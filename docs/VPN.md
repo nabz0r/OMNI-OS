@@ -90,4 +90,4 @@ The Rust tests exercise real encrypted six-client exchanges and cross-language H
 sudo env PATH="$PATH" OMNI_VPN_BINARY="$PWD/target/debug/omni-vpn" infra/vpn/test-linux.sh
 ```
 
-The privileged Linux and macOS deployment paths are supplied but have not been exercised on a real server/macOS utun during this build session. The completed local UDP simulation validates the cryptographic/control behavior, not operating-system deployment, cloud firewall policy, throughput or App Store distribution. Verify the privileged integration test and an actual configured client before exposing a deployed service.
+The privileged Linux interoperability test has passed in GitHub Actions with a real BoringTun userspace client and kernel WireGuard server in separate network namespaces. This verifies admission, rotation and retired-key rejection beyond the local cryptographic simulation. A public-server deployment and the privileged macOS utun path have not been exercised in this session. Cloud firewall policy, throughput and signed macOS distribution still require deployment-specific validation. See [validation evidence](VALIDATION.md).

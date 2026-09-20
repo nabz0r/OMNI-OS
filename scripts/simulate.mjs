@@ -17,8 +17,8 @@ const buildDir = execFileSync(
 ).trim();
 const existing = process.env.OMNI_SIM_USE_EXISTING === "1";
 const clientsCount = Number(process.env.OMNI_SIM_CLIENTS ?? 6);
-if (!Number.isInteger(clientsCount) || clientsCount < 2 || clientsCount > 16)
-  throw new Error("Simulation supports 2–16 clients.");
+if (!Number.isInteger(clientsCount) || clientsCount < 6 || clientsCount > 16)
+  throw new Error("Simulation supports 6–16 clients.");
 const runId = new Date().toISOString().replace(/[:.]/g, "-");
 const directory = resolve(root, ".omni", "simulations", runId);
 const latestFile = resolve(root, ".omni", "simulation-latest.json");

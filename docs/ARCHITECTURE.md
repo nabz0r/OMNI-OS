@@ -37,13 +37,48 @@ erDiagram
   MEMORY }o--o{ DISCLOSURE : included_in
   OBSERVATION }o--|| WEEKLY_REPORT : contributes_locally
   PRIVACY_LEDGER ||--o{ WEEKLY_REPORT : accounts_for
-  SOURCE { string id string provenance string content string created_at }
-  MEMORY { string id string source_id string content string status string updated_at }
-  GRANT { string id string destination string scope string expires_at bool revoked }
-  DISCLOSURE { string id string grant_id string destination string memory_ids string created_at }
-  OBSERVATION { string category int latency_bin int token_bin }
-  WEEKLY_REPORT { string report_id string week float epsilon string noised_histograms }
-  PRIVACY_LEDGER { float epsilon_spent int reports_released }
+  SOURCE {
+    string id
+    string provenance
+    string content
+    string created_at
+  }
+  MEMORY {
+    string id
+    string source_id
+    string content
+    string status
+    string updated_at
+  }
+  GRANT {
+    string id
+    string destination
+    string scope
+    string expires_at
+    bool revoked
+  }
+  DISCLOSURE {
+    string id
+    string grant_id
+    string destination
+    string memory_ids
+    string created_at
+  }
+  OBSERVATION {
+    string category
+    int latency_bin
+    int token_bin
+  }
+  WEEKLY_REPORT {
+    string report_id
+    string week
+    float epsilon
+    string noised_histograms
+  }
+  PRIVACY_LEDGER {
+    float epsilon_spent
+    int reports_released
+  }
 ```
 
 The diagram is the logical model; JSON arrays may represent scope and memory references in SQLite. The private database stores detailed observations. The central store receives only noised report values and persists **aggregated sums/counts plus deduplication hashes**, not an individual searchable conversation store.
