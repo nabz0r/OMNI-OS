@@ -1,4 +1,4 @@
-# 🧠 OMNI-OS · Your memory. Your authority.
+# 🧠 OMNI-OS · Compression of Comprehension.
 
 Local-first memory, explicit permissions, a cognitive gateway, and a real WireGuard transport. OMNI helps you decide what an AI may know and what an agent may do. It does not claim to intercept every application, erase data already disclosed, or infer your psychological state.
 
