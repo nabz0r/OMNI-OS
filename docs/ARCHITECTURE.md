@@ -1,5 +1,7 @@
 # Architecture and transaction paths
 
+This is the concise implementation map. Read the [architecture book](../ARCHITECTURE.md) for the doctrine, trust boundaries and target design, and the [diagram collection](../DIAGRAMS.md) for the current and planned flows.
+
 ## Authorized AI transaction
 
 ```mermaid
