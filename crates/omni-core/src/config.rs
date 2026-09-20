@@ -1,4 +1,6 @@
-use anyhow::{bail, Context, Result};
+#[cfg(target_os = "macos")]
+use anyhow::Context;
+use anyhow::{bail, Result};
 use rand::RngCore;
 #[cfg(target_os = "macos")]
 use sha2::{Digest, Sha256};
