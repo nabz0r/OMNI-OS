@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "OMNI",
+  "version": "0.1.0",
+  "identifier": "local.omni.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:3006",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "OMNI — Your context. Your authority.",
+        "width": 1380,
+        "height": 960,
+        "minWidth": 760,
+        "minHeight": 680,
+        "backgroundColor": "#0b0e11",
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:3007 http://127.0.0.1:3008 ws://127.0.0.1:3008; object-src 'none'; base-uri 'none'; frame-src 'none'",
+      "devCsp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:3007 http://127.0.0.1:3008 ws://127.0.0.1:3006 ws://127.0.0.1:3008; object-src 'none'; base-uri 'none'; frame-src 'none'",
+      "capabilities": ["main"]
+    }
+  },
+  "bundle": { "active": false }
+}

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OMNI Capture</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">omni<span>.</span></div>
+      <span class="badge">EXPLICIT CAPTURE</span>
+    </header>
+    <main>
+      <div class="eyebrow">YOUR WORDS. YOUR CHOICE.</div>
+      <h1>A memory starts<br />with permission.</h1>
+      <p class="intro">
+        Review the conversation text before saving it to your local vault. No
+        background capture.
+      </p>
+      <section id="connection">
+        <label for="token">Local agent token</label
+        ><input
+          id="token"
+          type="password"
+          autocomplete="off"
+          placeholder="Agent token from your local OMNI session"
+        /><button id="connect">Connect to local vault <span>→</span></button>
+        <p class="hint">
+          Kept only for this browser session. Never sent to the website.
+        </p>
+      </section>
+      <section id="capture" hidden>
+        <div class="connected">
+          <span>●</span> Local session connected
+          <button id="lock" class="link">Lock</button>
+        </div>
+        <button id="read">Review current conversation <span>↗</span></button>
+        <p id="source" class="hint"></p>
+        <label for="preview">Text to save — edit before sending</label
+        ><textarea
+          id="preview"
+          rows="10"
+          placeholder="Click Review current conversation on a ChatGPT or Claude tab."
+        ></textarea>
+        <div class="count">
+          <span id="characters">0 characters</span
+          ><span>Local extraction only</span>
+        </div>
+        <label class="consent"
+          ><input id="approve" type="checkbox" /><span
+            >Save this text in my encrypted local vault and propose memories for
+            my review.</span
+          ></label
+        ><button id="save" disabled>Save reviewed text <span>→</span></button>
+      </section>
+      <p id="status" role="status"></p>
+      <details>
+        <summary>Local connection setup</summary>
+        <p>Set the allowed extension origin before starting OMNI:</p>
+        <code id="origin"></code>
+        <p>
+          Supported sites: chatgpt.com, chat.openai.com, claude.ai. If a site
+          changes its page structure, capture fails visibly instead of
+          collecting the whole page.
+        </p>
+      </details>
+    </main>
+    <footer>Raw content goes only to 127.0.0.1:3007</footer>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+.git
+.omni
+node_modules
+target
+**/target
+**/dist
+artifacts
+*.key
+*.pem
+.env

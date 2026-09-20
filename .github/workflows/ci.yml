@@ -1,0 +1,85 @@
+name: Verify OMNI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo test --workspace --locked
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+  application:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: npm ci
+      - run: npm test
+        env:
+          OMNI_TEST_REDIS_URL: redis://127.0.0.1:6379
+      - run: npm run build
+      - run: cargo build --workspace --locked
+      - run: python3 infra/vpn/test_scripts.py
+      - run: npm run simulate
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synthetic-lab-evidence
+          path: .omni/simulation-latest.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+  collector-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f infra/collector.Dockerfile .
+  desktop:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+      - run: npm ci
+      - run: npm run build --workspace @omni/desktop
+      - run: cargo build --manifest-path apps/desktop/src-tauri/Cargo.toml --locked --features custom-protocol
+  vpn-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: sudo apt-get update && sudo apt-get install -y wireguard-tools nftables iproute2
+      - run: cargo build -p omni-vpn --locked
+      - run: cargo install boringtun-cli --version 0.7.1 --locked
+      - run: sudo env PATH="$PATH" OMNI_VPN_BINARY="$PWD/target/debug/omni-vpn" infra/vpn/test-linux.sh

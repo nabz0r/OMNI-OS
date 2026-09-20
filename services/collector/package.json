@@ -1,0 +1,18 @@
+{
+  "name": "@omni/collector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "build": "node --check src/server.mjs && node --check src/store.mjs"
+  },
+  "dependencies": {
+    "fastify": "^5.6.0",
+    "@fastify/cors": "^11.1.0",
+    "@fastify/websocket": "^11.2.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "redis": "^5.8.0"
+  }
+}

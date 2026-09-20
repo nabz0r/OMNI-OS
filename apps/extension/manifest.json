@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "OMNI — Explicit local capture",
+  "version": "0.1.0",
+  "description": "Preview and explicitly save selected ChatGPT or Claude conversation text to your local OMNI vault.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://127.0.0.1:3007/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Review a conversation for OMNI"
+  },
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; connect-src http://127.0.0.1:3007; object-src 'none'; base-uri 'none'"
+  }
+}

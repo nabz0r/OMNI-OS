@@ -1,0 +1,17 @@
+[package]
+name = "omni-vpn"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+description = "OMNI WireGuard engine, authenticated knocking, rotation and local simulation"
+
+[dependencies]
+anyhow = "1"
+base64 = "0.22"
+boringtun = { version = "=0.7.1", default-features = false }
+hmac = "0.12"
+rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+zeroize = "1"
