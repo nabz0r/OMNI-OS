@@ -1,0 +1,17 @@
+{
+  "name": "omni-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Your memory. Your permissions. Your AI.",
+  "license": "AGPL-3.0-only",
+  "workspaces": ["apps/desktop", "services/collector"],
+  "engines": {"node": ">=22.13.0"},
+  "scripts": {
+    "dev": "npm run dev --workspace @omni/desktop",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspace @omni/collector",
+    "simulate": "node scripts/simulate.mjs",
+    "collector": "npm run start --workspace @omni/collector"
+  }
+}

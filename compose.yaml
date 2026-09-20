@@ -1,0 +1,55 @@
+services:
+  redis:
+    image: redis:7.4-alpine
+    command: [redis-server, --appendonly, "yes", --appendfsync, everysec]
+    restart: unless-stopped
+    volumes:
+      - aggregates:/data
+    networks: [backend]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  collector:
+    build:
+      context: .
+      dockerfile: infra/collector.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+      OMNI_MIN_REPORTS: "10000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [backend]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3008/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+  https:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      OMNI_PUBLIC_HOST: ${OMNI_PUBLIC_HOST:?Set your real public DNS name before deployment}
+    ports: ["443:443", "80:80"]
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+      - caddy_config:/config
+    depends_on: [collector]
+    networks: [backend, edge]
+networks:
+  backend:
+    internal: true
+  edge: {}
+volumes:
+  aggregates: {}
+  certificates: {}
+  caddy_config: {}
