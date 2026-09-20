@@ -86,7 +86,9 @@ class Tunnel:
         key_file.write_text(private_key + "\n")
         key_file.chmod(0o600)
         environment = dict(os.environ, WG_TUN_NAME_FILE=str(name_file))
-        self.process = subprocess.Popen(["boringtun-cli", "-f", "utun"], env=environment,
+        # This explicitly privileged supervisor also controls wg/utun. BoringTun's
+        # default drop path fails under sudo when USER resolves to root.
+        self.process = subprocess.Popen(["boringtun-cli", "-f", "--disable-drop-privileges", "utun"], env=environment,
                                         stdout=subprocess.DEVNULL, stderr=None)
         try:
             for _ in range(100):

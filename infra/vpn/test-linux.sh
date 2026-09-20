@@ -70,12 +70,20 @@ ip netns exec "$NS_SERVER" "$VPN_BINARY" knock-server --bind 0.0.0.0:51821 --cli
 PIDS+=("$!")
 start_peer() {
   local interface="$1" keyfile="$2" address="$3"
-  ip netns exec "$NS_CLIENT" env WG_SUDO=true boringtun-cli -f "$interface" &
-  PIDS+=("$!")
+  ip netns exec "$NS_CLIENT" boringtun-cli -f --disable-drop-privileges "$interface" &
+  local peer_pid=$!
+  PIDS+=("$peer_pid")
+  local ready=0
   for _ in {1..50}; do
-    if ip -n "$NS_CLIENT" link show "$interface" >/dev/null 2>&1; then break; fi
+    kill -0 "$peer_pid" 2>/dev/null || { echo "BoringTun exited while starting $interface" >&2; return 1; }
+    if ip -n "$NS_CLIENT" link show "$interface" >/dev/null 2>&1 &&
+       ip netns exec "$NS_CLIENT" wg show "$interface" public-key >/dev/null 2>&1; then
+      ready=1
+      break
+    fi
     sleep 0.1
   done
+  [[ $ready -eq 1 ]] || { echo "BoringTun control socket did not become ready: $interface" >&2; return 1; }
   ip netns exec "$NS_CLIENT" wg set "$interface" private-key "$keyfile" peer "$(cat "$TEST_DIR/server_public_key")" endpoint 192.0.2.1:51820 allowed-ips 10.77.0.1/32
   ip -n "$NS_CLIENT" address add "$address/32" dev "$interface"
   ip -n "$NS_CLIENT" link set "$interface" mtu 1280 up
