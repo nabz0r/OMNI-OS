@@ -70,7 +70,7 @@ ip netns exec "$NS_SERVER" "$VPN_BINARY" knock-server --bind 0.0.0.0:51821 --cli
 PIDS+=("$!")
 start_peer() {
   local interface="$1" keyfile="$2" address="$3"
-  ip netns exec "$NS_CLIENT" env WG_SUDO=1 boringtun-cli -f "$interface" &
+  ip netns exec "$NS_CLIENT" env WG_SUDO=true boringtun-cli -f "$interface" &
   PIDS+=("$!")
   for _ in {1..50}; do
     if ip -n "$NS_CLIENT" link show "$interface" >/dev/null 2>&1; then break; fi
