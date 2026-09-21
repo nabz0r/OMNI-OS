@@ -125,10 +125,19 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.route("http://127.0.0.1:3007/**", async (route) => {
     const source = new URL(route.request().url());
+    const response = await route.fetch({
+      url: `${base}${source.pathname}${source.search}`,
+    });
+    if (
+      route.request().method() === "PATCH" &&
+      source.pathname.startsWith("/api/providers/") &&
+      typeof route.request().postDataJSON()?.api_key === "string"
+    ) {
+      // The core may commit a key before the browser receives its response.
+      await new Promise((ready) => setTimeout(ready, 250));
+    }
     await route.fulfill({
-      response: await route.fetch({
-        url: `${base}${source.pathname}${source.search}`,
-      }),
+      response,
     });
   });
   await page.addInitScript((value) => {
@@ -180,9 +189,10 @@ try {
   const createdId = created.id;
   assert.equal(created.model, "");
   assert.equal(created.status, "not_checked");
-  assert.equal(
-    await setup.getByLabel("Your connection").inputValue(),
-    createdId,
+  await until(
+    async () =>
+      (await setup.getByLabel("Your connection").inputValue()) === createdId,
+    "The new connection should become the selected profile",
   );
   assert.equal(
     await setup
@@ -240,11 +250,12 @@ try {
   await setup
     .getByLabel("Choose your model", { exact: true })
     .fill("qa-unlisted-model");
-  assert.equal(
-    await setup
-      .getByRole("button", { name: "Continue", exact: true })
-      .isEnabled(),
-    true,
+  await until(
+    async () =>
+      await setup
+        .getByRole("button", { name: "Continue", exact: true })
+        .isEnabled(),
+    "An explicit model ID should enable continuing after a successful connection check",
   );
   await setup
     .getByRole("button", { name: "Choose from catalog", exact: true })
@@ -306,13 +317,16 @@ try {
   await page.reload();
   await page.getByRole("button", { name: "Guided setup", exact: true }).click();
   await setup.waitFor();
-  assert.equal(
-    await setup.getByLabel("Your connection").inputValue(),
-    createdId,
+  await until(
+    async () =>
+      (await setup.getByLabel("Your connection").inputValue()) === createdId,
+    "The selected connection should persist after reloading",
   );
-  assert.equal(
-    await setup.getByLabel("Choose your model").inputValue(),
-    "omni-synthetic",
+  await until(
+    async () =>
+      (await setup.getByLabel("Choose your model").inputValue()) ===
+      "omni-synthetic",
+    "The selected model should appear after reloading",
   );
   // The optional disclosure remains usable for local endpoints that do require a key.
   requiredKey = `qa-local-key-${randomBytes(8).toString("hex")}`;
@@ -336,9 +350,8 @@ try {
         .has_api_key,
     "Local authentication key was not saved",
   );
-  assert.equal(
-    await keyField.inputValue(),
-    "",
+  await until(
+    async () => (await keyField.inputValue()) === "",
     "Successful key writes must clear the input",
   );
   const publicAdmin = await api("/api/admin");
