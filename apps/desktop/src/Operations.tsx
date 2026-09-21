@@ -1,3 +1,4 @@
+import { saveMetadata } from "./native";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
@@ -463,7 +464,7 @@ function logMetadata(item: AuditEvent): Record<string, unknown> {
     error_code: details.error_code ?? null,
   };
 }
-function download(
+async function download(
   rows: Record<string, unknown>[],
   format: "csv" | "json",
   view: OperationsView,
@@ -502,21 +503,11 @@ function download(
             columns.map((column) => csvCell(row[column])).join(","),
           ),
         ].join("\r\n");
-  const url = URL.createObjectURL(
-    new Blob([content], {
-      type:
-        format === "json"
-          ? "application/json;charset=utf-8"
-          : "text/csv;charset=utf-8",
-    }),
+  return saveMetadata(
+    `omni-${view}-${new Date().toISOString().slice(0, 10)}.${format}`,
+    content,
+    format === "json" ? "application/json" : "text/csv",
   );
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `omni-${view}-${new Date().toISOString().slice(0, 10)}.${format}`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function DetailDialog({
   item,
@@ -739,6 +730,7 @@ export default function Operations({
   const [revision, setRevision] = useState(0);
   const [selected, setSelected] = useState<Interaction | null>(null);
   const [exportError, setExportError] = useState("");
+  const [exportStatus, setExportStatus] = useState("");
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(query.trim());
@@ -808,9 +800,10 @@ export default function Operations({
             ...totalsMetadata(model.totals),
             cost_basis: usage.data?.cost_basis,
           }));
-  const exportFile = (format: "csv" | "json") => {
+  const exportFile = async (format: "csv" | "json") => {
+    setExportStatus("");
     try {
-      download(exportRows, format, view, {
+      const result = await download(exportRows, format, view, {
         period,
         ...(view === "usage"
           ? {}
@@ -824,6 +817,7 @@ export default function Operations({
             }),
       });
       setExportError("");
+      setExportStatus(result);
     } catch {
       setExportError(
         "The export could not be prepared. Refresh the view and try again.",
@@ -999,6 +993,11 @@ export default function Operations({
             Provider filters are unavailable. You can still search the loaded
             journal or retry with Refresh.
           </span>
+        </div>
+      )}
+      {exportStatus && (
+        <div className="ops-note" role="status">
+          {exportStatus}
         </div>
       )}
       {(active.error || exportError) && (

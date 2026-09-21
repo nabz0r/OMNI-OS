@@ -50,6 +50,7 @@ import {
 import Administration, { type AdminState } from "./Administration";
 import Operations from "./Operations";
 import Setup from "./Setup";
+import { isNative, provisionNativeSession, vaultStorageLabel } from "./native";
 import {
   claimLaunchSession,
   forgetLaunchSession,
@@ -141,7 +142,9 @@ function Brand() {
 }
 
 export default function App() {
-  const [session, setSession] = useState(0);
+  const [session, setSession] = useState(() =>
+    isNative && sessionStorage.getItem("omni.locked") === "true" ? 1 : 0,
+  );
   const lock = useCallback(() => setSession((value) => value + 1), []);
   return <OmniSpace key={session} onLock={lock} autoUnlock={session === 0} />;
 }
@@ -393,25 +396,6 @@ function OmniSpace({
     primaryProfile.status === "available" &&
     !!primaryProfile.model;
   useEffect(() => {
-    if (!("__TAURI_INTERNALS__" in window) || token || !autoUnlock || pairing)
-      return;
-    let cancelled = false;
-    void import("@tauri-apps/api/core")
-      .then(({ invoke }) => invoke<string | null>("local_session_token"))
-      .then((value) => {
-        if (value && !cancelled) {
-          sessionStorage.setItem("omni.token", value);
-          setToken(value);
-        }
-      })
-      .catch(() => {
-        /* Manual session entry remains available if native provisioning is absent. */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  useEffect(() => {
     if (!token) {
       setConnection("offline");
       return;
@@ -526,6 +510,12 @@ function OmniSpace({
     if (selected) setEditContent(selected.content);
   }, [selected?.id]);
   const loadCollective = useCallback(async () => {
+    if (!COLLECTOR) {
+      setGlobalError(
+        "Collective analytics is not connected on this device. Your local space works independently.",
+      );
+      return;
+    }
     try {
       const response = await fetch(`${COLLECTOR}/api/v1/global`, {
         signal: AbortSignal.timeout(5000),
@@ -550,7 +540,7 @@ function OmniSpace({
     if (view === "collective" || view === "network") void loadCollective();
   }, [view, loadCollective]);
   useEffect(() => {
-    if (view !== "collective") return;
+    if (view !== "collective" || !COLLECTOR) return;
     let socket: WebSocket | null = null;
     let retry: ReturnType<typeof setTimeout> | undefined;
     let attempts = 0;
@@ -568,6 +558,7 @@ function OmniSpace({
     const connect = () => {
       disconnect();
       if (disposed || document.hidden) return;
+      if (!COLLECTOR) return;
       const url = new URL("/api/v1/events", COLLECTOR);
       url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
       socket = new WebSocket(url);
@@ -722,7 +713,9 @@ function OmniSpace({
     setError("");
     setBusy(true);
     try {
-      const value = draftToken.trim();
+      const value = isNative
+        ? (await provisionNativeSession())!.token
+        : draftToken.trim();
       const state = await request<CoreState>(value, "/api/state", {
         signal: AbortSignal.any([
           sessionController.current.signal,
@@ -730,6 +723,7 @@ function OmniSpace({
         ]),
       });
       sessionStorage.setItem("omni.token", value);
+      sessionStorage.removeItem("omni.locked");
       tokenIdentity.current = value;
       setToken(value);
       setCore(state);
@@ -742,6 +736,7 @@ function OmniSpace({
     }
   };
   const logout = () => {
+    if (isNative) sessionStorage.setItem("omni.locked", "true");
     sessionStorage.removeItem("omni.token");
     forgetLaunchSession();
     sessionController.current.abort();
@@ -924,26 +919,34 @@ function OmniSpace({
             </div>
           ) : (
             <form onSubmit={login}>
-              <label htmlFor="token">Unlock your local session</label>
-              <div className="token-input">
-                <KeyRound size={17} />
-                <input
-                  id="token"
-                  type="password"
-                  autoComplete="off"
-                  value={draftToken}
-                  onChange={(e) => setDraftToken(e.target.value)}
-                  placeholder="Your private local session token"
-                  required
-                />
-              </div>
+              {!isNative && (
+                <>
+                  <label htmlFor="token">Unlock your local session</label>
+                  <div className="token-input">
+                    <KeyRound size={17} />
+                    <input
+                      id="token"
+                      type="password"
+                      autoComplete="off"
+                      value={draftToken}
+                      onChange={(e) => setDraftToken(e.target.value)}
+                      placeholder="Your private local session token"
+                      required
+                    />
+                  </div>
+                </>
+              )}
               <button className="primary" disabled={busy}>
-                {busy ? "Connecting…" : "Open my space"}
+                {busy
+                  ? "Connecting…"
+                  : isNative
+                    ? "Unlock on this device"
+                    : "Open my space"}
                 <ArrowRight size={17} />
               </button>
             </form>
           )}
-          {!pairing && !token && (
+          {!pairing && !token && !isNative && (
             <p className="unlock-help">
               Launch OMNI to open this space automatically. Manual unlock is
               available with the private token in{" "}
@@ -957,7 +960,11 @@ function OmniSpace({
           )}
           <div className="login-note">
             <LockKeyhole size={14} />
-            <span>Connects only to this device · 127.0.0.1</span>
+            <span>
+              {isNative
+                ? "Your encrypted vault · On this device"
+                : "Connects only to this device · 127.0.0.1"}
+            </span>
           </div>
           {token && (
             <button className="text-button" onClick={logout}>
@@ -1025,9 +1032,7 @@ function OmniSpace({
               Sharing requires a permission.
             </p>
             <span>
-              {core.vault.key_storage === "keychain"
-                ? "OS KEYCHAIN"
-                : "DEVELOPMENT KEY FILE"}
+              {vaultStorageLabel(core.vault.key_storage).toUpperCase()}
             </span>
           </div>
           <button

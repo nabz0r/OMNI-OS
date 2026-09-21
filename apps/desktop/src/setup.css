@@ -1026,3 +1026,96 @@
     flex: 1;
   }
 }
+
+@media (max-width: 760px), (pointer: coarse) {
+  .setup-dialog {
+    position: fixed;
+    top: calc(
+      var(--setup-viewport-top, 0px) + max(8px, var(--omni-safe-top, 0px))
+    );
+    bottom: auto;
+    left: max(10px, var(--omni-safe-left, 0px));
+    right: max(10px, var(--omni-safe-right, 0px));
+    width: min(
+      760px,
+      calc(
+        100vw - max(10px, var(--omni-safe-left, 0px)) -
+          max(10px, var(--omni-safe-right, 0px))
+      )
+    );
+    max-height: calc(
+      var(--setup-viewport-height, 100dvh) -
+        max(8px, var(--omni-safe-top, 0px)) -
+        max(8px, var(--omni-safe-bottom, 0px))
+    );
+    margin: 0 auto;
+  }
+  .setup-shell {
+    max-height: calc(
+      var(--setup-viewport-height, 100dvh) -
+        max(8px, var(--omni-safe-top, 0px)) -
+        max(8px, var(--omni-safe-bottom, 0px))
+    );
+  }
+  .setup-dialog button,
+  .setup-dialog summary {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+  .setup-dialog a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  .setup-dialog input,
+  .setup-dialog select,
+  .setup-dialog textarea {
+    font-size: 16px;
+    scroll-margin-block: 18px;
+  }
+  .setup-dialog input,
+  .setup-dialog select {
+    min-height: 44px;
+  }
+  .setup-close {
+    width: 44px;
+    height: 44px;
+  }
+  .setup-scroll {
+    scroll-padding-block: 18px;
+  }
+  .setup-field-top {
+    align-items: center;
+  }
+  .setup-memory-actions {
+    flex-wrap: wrap;
+  }
+  .setup-dialog[data-compact-viewport="true"] .setup-chrome {
+    padding-top: 5px;
+    padding-bottom: 3px;
+  }
+  .setup-dialog[data-compact-viewport="true"] .setup-progress {
+    padding-bottom: 10px;
+  }
+  .setup-dialog[data-compact-viewport="true"] .setup-heading {
+    margin-bottom: 16px;
+  }
+  .setup-dialog[data-compact-viewport="true"] .setup-heading h2 {
+    font-size: 23px;
+  }
+  .setup-dialog[data-compact-viewport="true"] .setup-heading p,
+  .setup-dialog[data-compact-viewport="true"] .setup-eyebrow,
+  .setup-dialog[data-compact-viewport="true"] .setup-memory-illustration {
+    display: none;
+  }
+  .setup-dialog[data-compact-viewport="true"] .setup-scroll {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+  .setup-dialog[data-compact-viewport="true"] .setup-footer {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}

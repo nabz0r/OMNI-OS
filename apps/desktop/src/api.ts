@@ -1,5 +1,12 @@
-export const CORE = "http://127.0.0.1:3007";
-export const COLLECTOR = "http://127.0.0.1:3008";
+import { nativeRequest, nativeSession, type NativeSession } from "./native";
+export let CORE = "http://127.0.0.1:3007";
+export let COLLECTOR: string | null = "http://127.0.0.1:3008";
+export function configureRuntime(session: NativeSession | null) {
+  if (session) {
+    CORE = session.core_url;
+    COLLECTOR = session.collector_url;
+  }
+}
 export type MemoryStatus = "proposed" | "confirmed" | "disputed" | "superseded";
 export interface Memory {
   id: string;
@@ -83,15 +90,18 @@ export async function request<T>(
 ): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${CORE}${path}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...(options.body ? { "Content-Type": "application/json" } : {}),
-        ...options.headers,
-      },
-      signal: options.signal ?? AbortSignal.timeout(90000),
-    });
+    response =
+      nativeSession?.mode === "embedded"
+        ? await nativeRequest(token, path, options)
+        : await fetch(`${CORE}${path}`, {
+            ...options,
+            headers: {
+              Authorization: `Bearer ${token}`,
+              ...(options.body ? { "Content-Type": "application/json" } : {}),
+              ...options.headers,
+            },
+            signal: options.signal ?? AbortSignal.timeout(90000),
+          });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError")
       throw error;
@@ -101,6 +111,8 @@ export async function request<T>(
         0,
       );
     }
+    if (nativeSession?.mode === "embedded" && error instanceof Error)
+      throw new ApiError(error.message, 0);
     throw new ApiError(
       "Cannot reach your local OMNI service. Start OMNI, then try again.",
       0,

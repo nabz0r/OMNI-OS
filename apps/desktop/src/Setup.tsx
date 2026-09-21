@@ -1,3 +1,4 @@
+import { isMobileDevice } from "./native";
 import {
   useEffect,
   useId,
@@ -121,9 +122,11 @@ export default function Setup({
     admin?.settings.primary_provider_id || core.provider.id || "",
   );
   const [adding, setAdding] = useState(false);
-  const [kind, setKind] = useState<ConnectionKind>("ollama");
-  const [label, setLabel] = useState(connectionKinds.ollama.label);
-  const [base, setBase] = useState(connectionKinds.ollama.base);
+  const mobile = isMobileDevice();
+  const initialKind: ConnectionKind = mobile ? "openai" : "ollama";
+  const [kind, setKind] = useState<ConnectionKind>(initialKind);
+  const [label, setLabel] = useState(connectionKinds[initialKind].label);
+  const [base, setBase] = useState(connectionKinds[initialKind].base);
   const [apiKey, setApiKey] = useState("");
   const [replacementKey, setReplacementKey] = useState("");
   const [model, setModel] = useState("");
@@ -211,6 +214,43 @@ export default function Setup({
     scrollArea.current?.scrollTo({ top: 0 });
     heading.current?.focus({ preventScroll: true });
   }, [step]);
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+    const viewport = window.visualViewport;
+    let frame = 0;
+    const updateViewport = () => {
+      const height = viewport?.height ?? window.innerHeight;
+      element.style.setProperty("--setup-viewport-height", `${height}px`);
+      element.style.setProperty(
+        "--setup-viewport-top",
+        `${viewport?.offsetTop ?? 0}px`,
+      );
+      element.dataset.compactViewport = String(height < 520);
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const active = document.activeElement;
+        if (
+          (active instanceof HTMLInputElement ||
+            active instanceof HTMLTextAreaElement ||
+            active instanceof HTMLSelectElement) &&
+          scrollArea.current?.contains(active)
+        )
+          active.scrollIntoView({ block: "nearest", inline: "nearest" });
+      });
+    };
+    updateViewport();
+    viewport?.addEventListener("resize", updateViewport);
+    viewport?.addEventListener("scroll", updateViewport);
+    window.addEventListener("resize", updateViewport);
+    return () => {
+      cancelAnimationFrame(frame);
+      viewport?.removeEventListener("resize", updateViewport);
+      viewport?.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("resize", updateViewport);
+    };
+  }, []);
 
   const localRequest = <T,>(path: string, options: RequestInit = {}) =>
     request<T>(path, {
@@ -696,7 +736,7 @@ export default function Setup({
                                 ? "Ollama needs to be running with a model installed."
                                 : "The provider could not be reached."}
                           </strong>
-                          {selected.kind === "ollama" ? (
+                          {selected.kind === "ollama" && !mobile ? (
                             <ol>
                               <li>Install and open Ollama on this device.</li>
                               <li>Choose and download a model in Ollama.</li>
@@ -711,7 +751,7 @@ export default function Setup({
                               connection.
                             </p>
                           )}
-                          {selected.kind === "ollama" && (
+                          {selected.kind === "ollama" && !mobile && (
                             <a
                               href="https://ollama.com/download"
                               target="_blank"
@@ -826,8 +866,9 @@ export default function Setup({
                   </span>
                   <h3>Give your space a model.</h3>
                   <p>
-                    Connect Ollama on this device, or use your own provider API
-                    key.
+                    {mobile
+                      ? "Use your own provider API key. You can add a trusted remote model endpoint in Models later."
+                      : "Connect Ollama on this device, or use your own provider API key."}
                   </p>
                   <button
                     className="setup-primary"
@@ -872,8 +913,9 @@ export default function Setup({
                     role="group"
                     aria-label="New connection type"
                   >
-                    {(Object.keys(connectionKinds) as ConnectionKind[]).map(
-                      (item) => (
+                    {(Object.keys(connectionKinds) as ConnectionKind[])
+                      .filter((item) => !mobile || item !== "ollama")
+                      .map((item) => (
                         <button
                           key={item}
                           type="button"
@@ -893,8 +935,7 @@ export default function Setup({
                             <Check className="setup-kind-check" size={13} />
                           )}
                         </button>
-                      ),
-                    )}
+                      ))}
                   </div>
                   <div className="setup-field">
                     <label htmlFor={`${id}-name`}>Connection name</label>

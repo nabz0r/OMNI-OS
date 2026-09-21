@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = Config::from_env()?;
+    let mut config = Config::from_env()?;
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.first().is_some_and(|a| a == "token") {
         println!("{}", config.local_token);
@@ -26,6 +26,9 @@ async fn main() -> Result<()> {
         return Ok(());
     }
     vault.initialize_runtime_journal()?;
+    let listener =
+        tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, config.port)).await?;
+    config.port = listener.local_addr()?.port();
     let port = config.port;
     let (client, local_client) = omni_core::http::clients(&config)?;
     let state = AppState {
@@ -34,7 +37,6 @@ async fn main() -> Result<()> {
         client,
         local_client,
     };
-    let listener = tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port)).await?;
     println!("OMNI core listening on http://127.0.0.1:{port}; encrypted vault; development runtime without OS process isolation");
     axum::serve(listener, app(state))
         .with_graceful_shutdown(async {

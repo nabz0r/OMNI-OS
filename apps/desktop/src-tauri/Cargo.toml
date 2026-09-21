@@ -5,6 +5,10 @@ edition = "2021"
 description = "OMNI local personal context interface"
 license = "AGPL-3.0-only"
 
+[lib]
+name = "omni_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [workspace]
 
 [build-dependencies]
@@ -12,6 +16,13 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
+omni-core = { path = "../../../crates/omni-core" }
+tauri-plugin-omni-device = { path = "../../../crates/tauri-plugin-omni-device" }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["sync"] }
+subtle = "2"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"
 
 [features]

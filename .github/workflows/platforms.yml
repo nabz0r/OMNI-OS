@@ -1,0 +1,170 @@
+name: Build native platforms
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "apps/desktop/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "package*.json"
+      - "scripts/build-platform.mjs"
+      - ".github/workflows/platforms.yml"
+  pull_request:
+    paths:
+      - "apps/desktop/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "package*.json"
+      - "scripts/build-platform.mjs"
+      - ".github/workflows/platforms.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-platforms-${{ github.ref }}
+  cancel-in-progress: true
+
+# These are evaluation artifacts, not store releases. No signing credentials are
+# read. Android uses a development debug key; iOS targets an unsigned simulator.
+jobs:
+  desktop:
+    name: ${{ matrix.platform }} package and startup
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            runner: windows-2025
+            target: x86_64-pc-windows-msvc
+          - platform: linux
+            runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - platform: macos
+            runner: macos-15
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/apps/desktop/src-tauri/target
+      APPIMAGE_EXTRACT_AND_RUN: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+          key: native-${{ matrix.platform }}
+      - name: Install Linux build and display dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libdbus-1-dev gnome-keyring patchelf xvfb dbus-x11
+      - run: npm ci
+      - name: Build and launch the embedded application
+        if: runner.os != 'Linux'
+        run: node scripts/build-platform.mjs ${{ matrix.platform }} --smoke
+      - name: Build and launch under a virtual Linux display
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          dbus-run-session -- bash -e <<'SCRIPT'
+            printf '\n' | gnome-keyring-daemon --unlock --components=secrets
+            xvfb-run -a node scripts/build-platform.mjs linux --smoke
+          SCRIPT
+      - name: Test the native runtime
+        run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --locked --features custom-protocol --target ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: omni-${{ matrix.platform }}-${{ matrix.target }}-evaluation
+          path: artifacts/platforms/${{ matrix.platform }}/
+          if-no-files-found: warn
+          retention-days: 14
+
+  android:
+    name: Android debug APK (arm64 and x86_64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/apps/desktop/src-tauri/target
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,x86_64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+          key: native-android
+      - name: Use the runner's Android SDK and accepted licenses
+        shell: bash
+        run: |
+          test -n "$ANDROID_HOME"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" < /dev/null
+          echo "NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
+      - run: npm ci
+      - name: Generate the Android project and build both native ABIs
+        run: node scripts/build-platform.mjs android
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: omni-android-debug-arm64-x86_64
+          path: artifacts/platforms/android/
+          if-no-files-found: warn
+          retention-days: 14
+
+  ios-simulator:
+    name: iOS unsigned arm64 simulator
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/apps/desktop/src-tauri/target
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios-sim
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+          key: native-ios-simulator
+      - name: Verify Xcode and simulator prerequisites
+        shell: bash
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+          command -v pod >/dev/null || brew install cocoapods
+          command -v xcodegen >/dev/null || brew install xcodegen
+      - run: npm ci
+      - name: Archive without signing and launch the simulator application
+        run: node scripts/build-platform.mjs ios --smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: omni-ios-unsigned-arm64-simulator
+          path: artifacts/platforms/ios/
+          if-no-files-found: warn
+          retention-days: 14

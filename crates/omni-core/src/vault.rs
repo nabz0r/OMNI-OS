@@ -40,6 +40,9 @@ pub struct Receipt {
 
 pub struct Vault {
     pub(crate) db: Connection,
+    // Keep the embedded runtime's exclusive lease until the final request drops
+    // its vault reference. Connection is declared first so it closes first.
+    runtime_lease: Option<std::fs::File>,
 }
 
 pub fn valid_status(status: &str) -> bool {
@@ -75,7 +78,14 @@ impl Vault {
             CREATE TABLE IF NOT EXISTS analytics_reports(week TEXT PRIMARY KEY, report_id TEXT NOT NULL UNIQUE, epsilon REAL NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);")?;
         crate::journal::initialize(&db)?;
-        Ok(Self { db })
+        Ok(Self {
+            db,
+            runtime_lease: None,
+        })
+    }
+
+    pub(crate) fn hold_runtime_lease(&mut self, lease: std::fs::File) {
+        self.runtime_lease = Some(lease);
     }
 
     pub fn add_memory(

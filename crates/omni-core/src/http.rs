@@ -621,7 +621,29 @@ fn runtime_view(config: &Config) -> Value {
             url.set_fragment(None);
             url.to_string()
         });
-    json!({"version":env!("CARGO_PKG_VERSION"),"os":std::env::consts::OS,"process_id":std::process::id(),"listen_address":format!("127.0.0.1:{}",config.port),"core_address":format!("http://127.0.0.1:{}",config.port),"key_storage":if config.key_storage=="file" {"development-file"}else{"keychain"},"socks_proxy_configured":proxy.is_some(),"socks_proxy":proxy,"vpn_required":config.vpn_required,"simulation":config.simulation,"analytics_url":config.analytics_url,"network_policy_read_only":true,"upstream_allowlist":config.allowlist,"upstream_allowlist_enforced":config.allowlist_enforced,"process_isolation":false})
+    let listen_address = (config.port != 0).then(|| format!("127.0.0.1:{}", config.port));
+    let core_address = listen_address
+        .as_ref()
+        .map(|address| format!("http://{address}"))
+        .unwrap_or_else(|| "in-process".into());
+    json!({"version":env!("CARGO_PKG_VERSION"),"os":std::env::consts::OS,"process_id":std::process::id(),"listen_address":listen_address,"core_address":core_address,"key_storage":key_storage_label(config),"socks_proxy_configured":proxy.is_some(),"socks_proxy":proxy,"vpn_required":config.vpn_required,"simulation":config.simulation,"analytics_url":config.analytics_url,"analytics_configured":!config.analytics_url.is_empty(),"network_policy_read_only":true,"upstream_allowlist":config.allowlist,"upstream_allowlist_enforced":config.allowlist_enforced,"process_isolation":false})
+}
+
+fn key_storage_label(config: &Config) -> &str {
+    if config.key_storage == "file" {
+        "development-file"
+    } else {
+        &config.key_storage
+    }
+}
+
+fn require_collector(config: &Config) -> ApiResult<()> {
+    if config.analytics_url.is_empty() {
+        return Err(ApiError::bad(
+            "Analytics is unavailable until a collector is configured",
+        ));
+    }
+    Ok(())
 }
 async fn admin_view(State(state): State<AppState>, headers: HeaderMap) -> ApiResult<Json<Value>> {
     auth(&headers, &state, true)?;
@@ -905,7 +927,7 @@ async fn state_view(State(state): State<AppState>, headers: HeaderMap) -> ApiRes
         })
         .count();
     Ok(Json(
-        json!({"memories":memories,"grants":grants,"receipts":receipts,"stats":{"interactions":vault.interaction_count()?,"memories":memories.len(),"active_grants":active,"disclosures":receipts.len(),"simulation":state.config.simulation},"analytics":vault.analytics_stats(state.config.analytics_opt_in)?,"provider":{"id":primary.id,"kind":primary.kind,"base_url":primary.base_url,"model":primary.model,"local":is_loopback_url(&primary.base_url)},"vault":{"encrypted":true,"key_storage":if state.config.key_storage=="file"{"development-file"}else{"keychain"},"os_isolation":false},"network":{"state":"not_configured","simulation":state.config.simulation},"metric_labels":{"topics":analytics::TOPICS,"latency":analytics::LATENCY,"tokens":analytics::TOKENS,"classification":"local_keyword_heuristic","latency_measure":"time_to_upstream_headers"}}),
+        json!({"memories":memories,"grants":grants,"receipts":receipts,"stats":{"interactions":vault.interaction_count()?,"memories":memories.len(),"active_grants":active,"disclosures":receipts.len(),"simulation":state.config.simulation},"analytics":vault.analytics_stats(state.config.analytics_opt_in)?,"provider":{"id":primary.id,"kind":primary.kind,"base_url":primary.base_url,"model":primary.model,"local":is_loopback_url(&primary.base_url)},"vault":{"encrypted":true,"key_storage":key_storage_label(&state.config),"os_isolation":false},"network":{"state":"not_configured","simulation":state.config.simulation},"metric_labels":{"topics":analytics::TOPICS,"latency":analytics::LATENCY,"tokens":analytics::TOKENS,"classification":"local_keyword_heuristic","latency_measure":"time_to_upstream_headers"}}),
     ))
 }
 async fn list_memories(
@@ -1036,6 +1058,9 @@ async fn consent(
     Json(input): Json<Consent>,
 ) -> ApiResult<Json<Value>> {
     auth(&headers, &state, true)?;
+    if input.enabled {
+        require_collector(&state.config)?;
+    }
     let mut vault = state.vault()?;
     vault.set_consent(input.enabled)?;
     Ok(Json(vault.analytics_stats(state.config.analytics_opt_in)?))
@@ -1051,6 +1076,7 @@ async fn prepare_report(
     Json(input): Json<PrepareReport>,
 ) -> ApiResult<Json<Report>> {
     auth(&headers, &state, true)?;
+    require_collector(&state.config)?;
     let mut vault = state.vault()?;
     let report = vault.prepare_report(
         input.week.as_deref().unwrap_or(&analytics::current_week()),
@@ -1066,6 +1092,7 @@ async fn send_report(
     Json(input): Json<PrepareReport>,
 ) -> ApiResult<Json<Value>> {
     auth(&headers, &state, true)?;
+    require_collector(&state.config)?;
     let report = {
         state.vault()?.prepare_report(
             input.week.as_deref().unwrap_or(&analytics::current_week()),

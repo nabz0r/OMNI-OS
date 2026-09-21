@@ -92,7 +92,7 @@ if [[ "$omni_simulation" = 1 ]]; then
   OMNI_SIM_USE_EXISTING=1 node scripts/simulate.mjs
 fi
 if [[ "$omni_mode" = native && "$omni_open" = 1 ]]; then
-  cargo run --manifest-path apps/desktop/src-tauri/Cargo.toml &
+  OMNI_EXTERNAL_CORE=1 cargo run --manifest-path apps/desktop/src-tauri/Cargo.toml &
   omni_native_pid=$!
   while kill -0 "$omni_native_pid" 2>/dev/null; do
     omni_check_services

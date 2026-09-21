@@ -15,6 +15,10 @@
   --mint: #9cdbc9;
   --amber: #d5b580;
   --panel: #11161a;
+  --omni-safe-top: env(safe-area-inset-top, 0px);
+  --omni-safe-right: env(safe-area-inset-right, 0px);
+  --omni-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --omni-safe-left: env(safe-area-inset-left, 0px);
 }
 * {
   box-sizing: border-box;
@@ -3358,5 +3362,180 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .session-spinner {
     animation: none;
+  }
+}
+
+/* Keep controls reachable around mobile cutouts and the software keyboard. */
+@media (max-width: 760px), (pointer: coarse) {
+  :root {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  button,
+  summary,
+  label,
+  a {
+    touch-action: manipulation;
+  }
+  :is(.app-shell, .modal-backdrop, .login-page, .admin-dialog, .ops-dialog)
+    button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  :is(.app-shell, .modal-backdrop, .login-page, .admin-dialog, .ops-dialog)
+    :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    font-size: 16px;
+    scroll-margin-block: 20px;
+  }
+  :is(.app-shell, .modal-backdrop, .login-page, .admin-dialog, .ops-dialog)
+    :is(input:not([type="checkbox"]):not([type="radio"]), select) {
+    min-height: 44px;
+  }
+  :is(.scope-list label, .admin-check, .provider-pricing summary) {
+    min-height: 44px;
+    align-items: center;
+  }
+  .topbar {
+    height: calc(65px + var(--omni-safe-top));
+    padding-top: var(--omni-safe-top);
+    padding-right: max(16px, var(--omni-safe-right));
+  }
+  .content,
+  .app-footer {
+    padding-right: max(16px, var(--omni-safe-right));
+    padding-bottom: max(24px, var(--omni-safe-bottom));
+  }
+  .login-page,
+  .recovery-page {
+    min-height: var(--omni-viewport-height, 100dvh);
+    padding-top: max(24px, var(--omni-safe-top));
+    padding-right: max(20px, var(--omni-safe-right));
+    padding-bottom: max(24px, var(--omni-safe-bottom));
+    padding-left: max(20px, var(--omni-safe-left));
+  }
+  .modal-backdrop {
+    top: var(--omni-viewport-top, 0px);
+    bottom: auto;
+    height: var(--omni-viewport-height, 100dvh);
+    padding: max(10px, var(--omni-safe-top)) max(10px, var(--omni-safe-right))
+      max(10px, var(--omni-safe-bottom)) max(10px, var(--omni-safe-left));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .modal {
+    max-height: 100%;
+    overscroll-behavior: contain;
+    scroll-padding-block: 20px;
+  }
+  .launcher-backdrop {
+    align-items: stretch;
+  }
+  .launcher {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .launcher > header,
+  .launcher > form,
+  .launcher > footer,
+  .chat-routing,
+  .conversation-note {
+    flex-shrink: 0;
+  }
+  .launcher > header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #111b1d;
+  }
+  .chat-history {
+    flex: 1 1 180px;
+    min-height: 0;
+    max-height: none;
+    overscroll-behavior: contain;
+  }
+  .chat-routing label,
+  .context-selector select {
+    min-width: 0;
+  }
+  .composer textarea {
+    min-height: 56px;
+    max-height: min(160px, calc(var(--omni-viewport-height, 100dvh) * 0.24));
+  }
+  .send-button {
+    flex-shrink: 0;
+  }
+  .launcher:has(.composer textarea:focus) .conversation-starters {
+    display: none;
+  }
+  .launcher:has(.composer textarea:focus) .chat-intro {
+    padding-block: 8px;
+  }
+  .launcher:has(.composer textarea:focus) .chat-emblem {
+    display: none;
+  }
+  :is(.admin-dialog, .ops-dialog) {
+    position: fixed;
+    top: calc(var(--omni-viewport-top, 0px) + max(10px, var(--omni-safe-top)));
+    bottom: auto;
+    left: max(10px, var(--omni-safe-left));
+    right: max(10px, var(--omni-safe-right));
+    width: min(
+      680px,
+      calc(
+        100vw - max(10px, var(--omni-safe-left)) -
+          max(10px, var(--omni-safe-right))
+      )
+    );
+    max-height: calc(
+      var(--omni-viewport-height, 100dvh) - max(10px, var(--omni-safe-top)) -
+        max(10px, var(--omni-safe-bottom))
+    );
+    margin: 0 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-padding-block: 20px;
+  }
+  .toast {
+    bottom: max(20px, var(--omni-safe-bottom));
+  }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 980px) {
+  .sidebar {
+    top: var(--omni-viewport-top, 0px);
+    bottom: auto;
+    width: calc(62px + var(--omni-safe-left));
+    height: var(--omni-viewport-height, 100dvh);
+    padding-top: max(16px, var(--omni-safe-top));
+    padding-right: 7px;
+    padding-bottom: max(12px, var(--omni-safe-bottom));
+    padding-left: calc(7px + var(--omni-safe-left));
+  }
+  .sidebar nav {
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex-shrink: 1;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    margin-top: 18px;
+  }
+  .sidebar-bottom {
+    padding-top: 9px;
+  }
+  .main-shell {
+    margin-left: calc(62px + var(--omni-safe-left));
+    width: calc(100% - 62px - var(--omni-safe-left));
+  }
+  .top-actions {
+    gap: 5px;
+  }
+  .home-actions {
+    flex-wrap: wrap;
+  }
+  .home-actions > button {
+    flex-basis: 150px;
   }
 }

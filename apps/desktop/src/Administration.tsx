@@ -1,3 +1,4 @@
+import { saveMetadata, vaultStorageLabel } from "./native";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
@@ -18,7 +19,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { dateLabel } from "./api";
+import { COLLECTOR, dateLabel } from "./api";
 import "./administration.css";
 
 export type ProviderKind = "ollama" | "openai" | "anthropic" | "compatible";
@@ -664,38 +665,41 @@ function SettingsPanel({
   );
   const [clearHistory, setClearHistory] = useState(false);
   const [clearError, setClearError] = useState("");
-  const exportConfiguration = () => {
-    const blob = new Blob(
-      [
-        JSON.stringify(
-          {
-            exported_at: new Date().toISOString(),
-            settings: data.settings,
-            providers: data.providers.map(
-              ({ id, label, kind, base_url, model, enabled, rates }) => ({
-                id,
-                label,
-                kind,
-                base_url,
-                model,
-                enabled,
-                rates,
-              }),
-            ),
-            runtime: data.runtime,
-          },
-          null,
-          2,
+  const [exportStatus, setExportStatus] = useState("");
+  const [exportError, setExportError] = useState("");
+  const exportConfiguration = async () => {
+    setExportStatus("");
+    setExportError("");
+    try {
+      setExportStatus(
+        await saveMetadata(
+          "omni-configuration-without-secrets.json",
+          JSON.stringify(
+            {
+              exported_at: new Date().toISOString(),
+              settings: data.settings,
+              providers: data.providers.map(
+                ({ id, label, kind, base_url, model, enabled, rates }) => ({
+                  id,
+                  label,
+                  kind,
+                  base_url,
+                  model,
+                  enabled,
+                  rates,
+                }),
+              ),
+              runtime: data.runtime,
+            },
+            null,
+            2,
+          ),
+          "application/json",
         ),
-      ],
-      { type: "application/json" },
-    );
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "omni-configuration-without-secrets.json";
-    anchor.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+      );
+    } catch {
+      setExportError("The configuration could not be exported. Try again.");
+    }
   };
   return (
     <div className="settings-layout">
@@ -885,8 +889,9 @@ function SettingsPanel({
           <div>
             <h3>Allow private analytics reports</h3>
             <p>
-              Enable preparation of noised, numeric reports. Each export still
-              requires review in Collective.
+              {COLLECTOR
+                ? "Enable preparation of noised, numeric reports. Each export still requires review in Collective."
+                : "No analytics service is configured for this installation. Your activity stays on this device."}
             </p>
           </div>
           <button
@@ -894,7 +899,7 @@ function SettingsPanel({
             aria-checked={analyticsEnabled}
             aria-label="Allow private analytics reports"
             className={`admin-switch ${analyticsEnabled ? "on" : ""}`}
-            disabled={!!pending}
+            disabled={!!pending || !COLLECTOR}
             onClick={() =>
               void act(
                 "consent",
@@ -944,19 +949,16 @@ function SettingsPanel({
           <div>
             <dt>Core service</dt>
             <dd>
-              {data.runtime.core_address ||
-                data.runtime.listen_address ||
-                "http://127.0.0.1:3007"}
+              {data.runtime.core_address === "in-process"
+                ? "On this device"
+                : data.runtime.core_address ||
+                  data.runtime.listen_address ||
+                  "http://127.0.0.1:3007"}
             </dd>
           </div>
           <div>
             <dt>Vault protection</dt>
-            <dd>
-              SQLCipher ·{" "}
-              {data.runtime.key_storage === "keychain"
-                ? "macOS Keychain"
-                : "development key file"}
-            </dd>
+            <dd>SQLCipher · {vaultStorageLabel(data.runtime.key_storage)}</dd>
           </div>
           <div>
             <dt>Remote transport</dt>
@@ -1000,10 +1002,23 @@ function SettingsPanel({
           key custody and enforced network policy require a service restart;
           they cannot be changed by an agent or provider.
         </p>
-        <button className="secondary" onClick={exportConfiguration}>
+        <button
+          className="secondary"
+          onClick={() => void exportConfiguration()}
+        >
           <Download size={14} />
           Export configuration without secrets
         </button>
+        {exportStatus && (
+          <p className="settings-hint" role="status">
+            {exportStatus}
+          </p>
+        )}
+        {exportError && (
+          <p className="admin-error" role="alert">
+            {exportError}
+          </p>
+        )}
       </section>
       {clearHistory && (
         <Dialog

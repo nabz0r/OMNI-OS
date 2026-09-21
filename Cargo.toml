@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/omni-core", "crates/omni-vpn"]
-exclude = ["apps/desktop/src-tauri"]
+exclude = ["apps/desktop/src-tauri", "crates/tauri-plugin-omni-device"]
 resolver = "2"
 
 [workspace.package]
