@@ -1,4 +1,4 @@
-# 🧠 OMNI-OS · Compression of Comprehension.
+# (apps/desktop/public/omni.svg) OMNI-OS · Compression of Comprehension.
 
 ### Your AI changes. Your memory stays.
 
