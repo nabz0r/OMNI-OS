@@ -24,3 +24,7 @@ Compare conversation-only context, selected project documents and additional aut
 ## Scope chosen for this repository
 
 Local analysis, actual provider integrations, explicit permissions, a genuine VPN transport and a synthetic network laboratory. Analytics is an opt-in experiment with a finite privacy budget. All networking is classical. Production deployment, Apple signing, third-party API credentials and user consent remain real external requirements.
+
+## An inspectable daily workspace
+
+The delivered console makes provider choice, loaded local models, individual requests, permissions, token observations and configuration visible in one place. This is the first measurement surface for the product hypothesis: it exposes what happened without pretending that fewer context bytes prove better task outcomes. Costs require explicit rates; cloud API catalogs do not imply surveillance of ChatGPT or Claude website sessions. See the [administration guide](ADMINISTRATION.md).

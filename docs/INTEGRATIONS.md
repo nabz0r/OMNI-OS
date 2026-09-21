@@ -12,22 +12,24 @@ Changing the selected permission starts a new conversation. The interface also c
 
 Responses support Markdown tables and code blocks. Raw HTML is omitted and image markup is replaced with text, so a response cannot cause an automatic image fetch through this renderer. Links open only on user action, with `noopener noreferrer`. **Copy response** writes the original response text to the clipboard when the browser permits it.
 
-Failures restore the submitted message for a manual retry unless a newer draft exists. Empty replies do not become history. **Stop waiting** aborts the local wait, not a provider's already received work. Retrying can produce another provider request; inspect **Activity** when delivery is uncertain. Session resets, revocations and deletion cannot retrieve previously disclosed copies. Other applications using the gateway manage their own conversation histories; the desktop's reset behavior does not clear those clients.
+Failures restore the submitted message for a manual retry unless a newer draft exists. Empty replies do not become history. **Stop waiting** aborts the local wait, not a provider's already received work. Retrying can produce another provider request; inspect **History → Requests** and **Disclosure receipts** when delivery is uncertain. Session resets, revocations and deletion cannot retrieve previously disclosed copies. Other applications using the gateway manage their own conversation histories; the desktop's reset behavior does not clear those clients.
 
 ## Provider gateway
 
-Start `./run.sh --web` with the intended provider base and model. API keys belong to the local process environment, never the frontend. The default endpoint is local Ollama. For a remote endpoint, the base must use HTTPS and be present in the configured allowlist. If using the VPN, start its client first and set `OMNI_SOCKS_PROXY` and `OMNI_VPN_REQUIRED=true` as described in [VPN.md](VPN.md).
+Start `./run.sh --web`, then use **Models** to configure provider connections. Initial environment values seed the profiles on the first launch of that vault; subsequent edits are persisted locally and take precedence over those seed values. API keys entered in the console are write-only and encrypted in SQLCipher. The default endpoint is local Ollama. Remote bases must use HTTPS. An explicit `OMNI_UPSTREAM_ALLOWLIST` remains a hard deployment constraint; without it, an owner-created profile authorizes that destination. See the [administration guide](ADMINISTRATION.md) for discovery, settings and secret handling. If using the VPN, start its client first and set `OMNI_SOCKS_PROXY` and `OMNI_VPN_REQUIRED=true` as described in [VPN.md](VPN.md).
 
 The interface can create a permission for selected confirmed memories, an exact provider base, and a lifetime of at most 24 hours. Retrieve its ID from the owner-authenticated `/api/state` response when configuring another client. Configure that application's base URL as `http://127.0.0.1:3007/v1` and its API token from `.omni/runtime/agent-token`. Give it the `x-omni-grant` header only when that memory disclosure is intended. Without the header, the gateway forwards the request with no memory augmentation. A revoked or expired permission fails instead of silently retrying with memory.
 
 Supported routes:
 
-| Protocol                | Route                  | Memory authorization                              |
-| ----------------------- | ---------------------- | ------------------------------------------------- |
-| OpenAI Chat Completions | `/v1/chat/completions` | `x-omni-grant` for the configured `OMNI_LLM_BASE` |
-| Anthropic Messages      | `/v1/messages`         | `x-omni-grant` for `OMNI_ANTHROPIC_BASE`          |
+| Protocol                | Route                  | Memory authorization                               |
+| ----------------------- | ---------------------- | -------------------------------------------------- |
+| OpenAI Chat Completions | `/v1/chat/completions` | `x-omni-grant` for the selected compatible profile |
+| Anthropic Messages      | `/v1/messages`         | `x-omni-grant` for the selected Anthropic profile  |
 
-Both routes accept ordinary JSON requests and preserve upstream event-stream bytes. Streaming usage is marked unknown locally; non-streaming usage comes from provider-reported counters. The elapsed-time measurement is time to response headers. Models and API keys remain provider-specific; these routes do not imply compatibility with every provider API. The desktop launcher's bounded session-history behavior is separate from these pass-through protocol routes.
+Send optional `x-omni-provider: <profile-id>` to select an enabled profile of the matching protocol. Otherwise the gateway uses the primary profile if compatible, or the first enabled profile for that protocol. A permission must match the selected base exactly; selecting a different provider never broadens its scope.
+
+Both routes accept ordinary JSON requests and preserve upstream event-stream bytes. Reported usage is extracted from non-streaming responses and supported SSE usage events when supplied. Missing counters remain unknown. The separate local request journal records time to response headers and total elapsed time, request/response body bytes, terminal status and supported token counters. These are payload sizes, not TCP/TLS wire measurements. Streaming cancellation can leave partial usage; the record retains its terminal status. DP observations remain separate from this operational journal. Models and API keys remain provider-specific; these routes do not imply compatibility with every provider API. The desktop launcher's bounded session-history behavior is separate from these pass-through protocol routes.
 
 ## Memory tools over MCP
 

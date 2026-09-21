@@ -4,6 +4,14 @@
 
 The collector may observe or retain every released report. A configured AI provider receives the authorized prompt and context. A local attacker with access to an unlocked process, a compromised OS, or an authorized provider is not made harmless by database encryption. The authenticated VPN hub observes endpoints and traffic metadata. HTTPS remains necessary over the tunnel.
 
+## Private operational metadata
+
+**History**, **Usage** and **Logs** read a local SQLCipher journal. It records provider/model identifiers, destination, status, timings, body sizes, supplied token counts, price snapshots and structured audit actions. It never accepts prompt/response bodies, API keys or arbitrary diagnostic messages in its schema. Metadata can still reveal activity and remains private; an authorized export is a local file, not an analytics submission.
+
+Request journaling is enabled by default with 30-day retention, configurable from 1 to 365 days or disabled for future requests. The minimal audit trail remains active and follows the same retention horizon. Clearing request history does not clear audit events, memories, grants, disclosure receipts, DP observations, privacy-budget entries or released reports. Deletion cannot refund privacy already spent. The collector's numeric schema has not expanded to include the operational journal.
+
+Provider keys and configuration are encrypted in the same vault. Owner-authenticated administration exposes only whether a key is present, never its value. The browser handles a newly entered key transiently before sending it to the authenticated loopback core. Local encryption and API field separation do not protect an already compromised webview or unlocked core.
+
 ## Local differential privacy
 
 Each participating installation prepares one report for an ISO week. Three histograms have eight public categories each: topics, latency and token counts. Every histogram is normalized over observed interactions; missing measurements belong to an explicit unknown bin and no interactions belong to an inactive bin. No exact local interaction count is exported.
@@ -39,7 +47,6 @@ Clients can fabricate reports. Rate limits constrain abuse but are not Sybil res
 ## Deletion
 
 Deleting a memory prevents its future selection and removes its corresponding source/derived references as implemented in the vault. Revoking a grant blocks new authorized requests. Previously disclosed provider content and already released aggregate contributions cannot be pulled back by local deletion. Backups and SSD physical erasure have distinct limitations. Use encrypted backups and a retention policy appropriate to the deployment.
-
 
 ## Implementation details
 

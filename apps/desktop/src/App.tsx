@@ -11,6 +11,10 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   Activity,
+  BarChart3,
+  Cpu,
+  ScrollText,
+  Settings2,
   AlertCircle,
   CheckCheck,
   Copy,
@@ -43,6 +47,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import Administration, { type AdminState } from "./Administration";
+import Operations from "./Operations";
 const Nebula = lazy(() => import("./Nebula"));
 import {
   ApiError,
@@ -63,14 +69,22 @@ type View =
   | "permissions"
   | "activity"
   | "network"
-  | "collective";
+  | "collective"
+  | "models"
+  | "usage"
+  | "logs"
+  | "settings";
 const nav = [
   { id: "overview" as View, label: "Overview", icon: CircleDot },
   { id: "memories" as View, label: "Memory", icon: Database },
   { id: "permissions" as View, label: "Permissions", icon: ShieldCheck },
-  { id: "activity" as View, label: "Activity", icon: Activity },
+  { id: "models" as View, label: "Models", icon: Cpu },
+  { id: "activity" as View, label: "History", icon: Activity },
+  { id: "usage" as View, label: "Usage", icon: BarChart3 },
+  { id: "logs" as View, label: "Logs", icon: ScrollText },
   { id: "network" as View, label: "Connections", icon: Network },
   { id: "collective" as View, label: "Collective", icon: Globe2 },
+  { id: "settings" as View, label: "Settings", icon: Settings2 },
 ];
 type GlobalData = Record<string, unknown>;
 type ChatEntry = {
@@ -138,6 +152,7 @@ function OmniSpace({
   tokenIdentity.current = token;
   const sessionController = useRef(new AbortController());
   const chatController = useRef<AbortController | null>(null);
+  const adminSequence = useRef(0);
   const refreshInFlight = useRef<Promise<void> | null>(null);
   const historyElement = useRef<HTMLDivElement>(null);
   const providerIdentity = useRef("");
@@ -163,6 +178,28 @@ function OmniSpace({
   );
   const [draftToken, setDraftToken] = useState("");
   const [core, setCore] = useState<CoreState | null>(null);
+  const [admin, setAdmin] = useState<AdminState | null>(null);
+  const [adminError, setAdminError] = useState("");
+  const [historyTab, setHistoryTab] = useState<"requests" | "disclosures">(
+    "requests",
+  );
+  const [chatProviderId, setChatProviderId] = useState("");
+  const [chatModel, setChatModel] = useState("");
+  const [grantDestination, setGrantDestination] = useState("");
+  const selectedProvider = admin?.providers.find(
+    (item) =>
+      item.id === (chatProviderId || admin.settings.primary_provider_id),
+  );
+  const activeProvider = selectedProvider
+    ? {
+        id: selectedProvider.id,
+        base_url: selectedProvider.base_url,
+        model: chatModel || selectedProvider.model,
+        local: /^(https?:\/\/)(localhost|127\.0\.0\.1|\[::1\])([:/]|$)/i.test(
+          selectedProvider.base_url,
+        ),
+      }
+    : core?.provider;
   const [view, setView] = useState<View>("overview");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -228,6 +265,7 @@ function OmniSpace({
         );
         setConnection("online");
       } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
         if (
           sessionController.current.signal.aborted ||
           tokenIdentity.current !== token
@@ -246,6 +284,54 @@ function OmniSpace({
     await pending;
     if (refreshInFlight.current === pending) refreshInFlight.current = null;
   }, [token, !!core, localRequest, onLock]);
+  const loadAdmin = useCallback(async () => {
+    if (!token) return;
+    const sequence = ++adminSequence.current;
+    try {
+      const next = await localRequest<AdminState>("/api/admin", {
+        signal: AbortSignal.timeout(8000),
+      });
+      if (
+        sessionController.current.signal.aborted ||
+        tokenIdentity.current !== token
+      )
+        return;
+      if (sequence !== adminSequence.current) return;
+      setAdmin(next);
+      setAdminError("");
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      if (
+        !sessionController.current.signal.aborted &&
+        sequence === adminSequence.current
+      )
+        setAdminError((e as Error).message);
+    }
+  }, [token, localRequest]);
+  const refreshAdministration = useCallback(async () => {
+    await Promise.all([loadAdmin(), refresh()]);
+  }, [loadAdmin, refresh]);
+  useEffect(() => {
+    if (!token) return;
+    void loadAdmin();
+    const timer = setInterval(() => {
+      if (!document.hidden) void loadAdmin();
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [loadAdmin, token]);
+  useEffect(() => {
+    if (
+      chatProviderId &&
+      admin &&
+      !admin.providers.some(
+        (item) =>
+          item.id === chatProviderId && item.enabled && item.policy_allowed,
+      )
+    ) {
+      setChatProviderId("");
+      setChatModel("");
+    }
+  }, [admin, chatProviderId]);
   useEffect(() => {
     if (!("__TAURI_INTERNALS__" in window) || token || !autoUnlock) return;
     let cancelled = false;
@@ -290,7 +376,8 @@ function OmniSpace({
         !newMemory &&
         !grantForm &&
         !report &&
-        !captureOpen
+        !captureOpen &&
+        !document.querySelector("dialog[open]")
       ) {
         event.preventDefault();
         setLauncher((v) => !v);
@@ -312,7 +399,14 @@ function OmniSpace({
   }, [busy, !!selected, newMemory, grantForm, !!report, captureOpen]);
   useEffect(() => {
     const show = () => {
-      if (!selected && !newMemory && !grantForm && !report && !captureOpen)
+      if (
+        !selected &&
+        !newMemory &&
+        !grantForm &&
+        !report &&
+        !captureOpen &&
+        !document.querySelector("dialog[open]")
+      )
         setLauncher(true);
     };
     window.addEventListener("omni:launcher", show);
@@ -451,8 +545,8 @@ function OmniSpace({
     };
   }, [view]);
   useEffect(() => {
-    if (!core) return;
-    const next = `${core.provider.base_url}|${core.provider.model}`;
+    if (!core || !activeProvider) return;
+    const next = `${activeProvider.id || "default"}|${activeProvider.base_url}|${activeProvider.model}`;
     if (providerIdentity.current && providerIdentity.current !== next) {
       chatController.current?.abort();
       chatController.current = null;
@@ -468,7 +562,7 @@ function OmniSpace({
         (grant) =>
           grant.id === grantId &&
           isActive(grant) &&
-          grant.destination === core.provider.base_url,
+          grant.destination === activeProvider.base_url,
       )
     ) {
       chatController.current?.abort();
@@ -480,7 +574,13 @@ function OmniSpace({
         "This permission expired or was revoked. Choose a permission to start a new conversation.",
       );
     }
-  }, [core, grantId]);
+  }, [
+    core,
+    grantId,
+    activeProvider?.id,
+    activeProvider?.base_url,
+    activeProvider?.model,
+  ]);
   useEffect(() => {
     const grant = core?.grants.find(
       (item) => item.id === grantId && isActive(item),
@@ -589,6 +689,12 @@ function OmniSpace({
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!message.trim() || chatBusy || connection !== "online") return;
+    if (!activeProvider?.model) {
+      setError(
+        "Choose a model for this provider before sending. Check its connection in Models to discover available models.",
+      );
+      return;
+    }
     const text = message.trim();
     if (new TextEncoder().encode(text).length > 100000) {
       setError("Your message is too long. Keep it under 100,000 UTF-8 bytes.");
@@ -612,6 +718,8 @@ function OmniSpace({
         body: JSON.stringify({
           message: text,
           history,
+          ...(activeProvider?.id ? { provider_id: activeProvider.id } : {}),
+          ...(activeProvider?.model ? { model: activeProvider.model } : {}),
           ...(grantId ? { grant_id: grantId } : {}),
         }),
       });
@@ -1371,7 +1479,59 @@ function OmniSpace({
               )}
             </>
           )}
+          {(view === "models" || view === "settings") && (
+            <Administration
+              view={view}
+              data={admin}
+              error={adminError}
+              request={localRequest}
+              reload={loadAdmin}
+              onChanged={refreshAdministration}
+              analyticsEnabled={core.analytics.opt_in}
+              green={green}
+              onGreen={(enabled) => {
+                setGreen(enabled);
+                localStorage.setItem("omni.green", String(enabled));
+              }}
+            />
+          )}
+          {(view === "usage" || view === "logs") && (
+            <Operations
+              view={view}
+              request={localRequest}
+              onOpenProviders={() => setView("models")}
+            />
+          )}
           {view === "activity" && (
+            <div
+              className="history-tabs"
+              role="tablist"
+              aria-label="History records"
+            >
+              <button
+                role="tab"
+                aria-selected={historyTab === "requests"}
+                onClick={() => setHistoryTab("requests")}
+              >
+                Requests
+              </button>
+              <button
+                role="tab"
+                aria-selected={historyTab === "disclosures"}
+                onClick={() => setHistoryTab("disclosures")}
+              >
+                Disclosure receipts
+              </button>
+            </div>
+          )}
+          {view === "activity" && historyTab === "requests" && (
+            <Operations
+              view="history"
+              request={localRequest}
+              onOpenProviders={() => setView("models")}
+            />
+          )}
+          {view === "activity" && historyTab === "disclosures" && (
             <>
               <SectionTitle
                 eyebrow="A RECORD YOU CAN INSPECT"
@@ -1668,9 +1828,32 @@ function OmniSpace({
               <>
                 <div className="eyebrow">A PRECISE PERMISSION</div>
                 <h2>Share just enough.</h2>
-                <p>Authorize memories for the configured model endpoint.</p>
-                <label>Destination</label>
-                <code className="endpoint-code">{core.provider.base_url}</code>
+                <p>Authorize memories for one model destination.</p>
+                <label htmlFor="grant-destination">Destination</label>
+                <select
+                  id="grant-destination"
+                  value={
+                    grantDestination ||
+                    activeProvider?.base_url ||
+                    core.provider.base_url
+                  }
+                  onChange={(e) => setGrantDestination(e.target.value)}
+                >
+                  {(
+                    admin?.providers.filter(
+                      (item) => item.enabled && item.policy_allowed,
+                    ) || []
+                  ).map((item) => (
+                    <option key={item.id} value={item.base_url}>
+                      {item.label} · {item.base_url}
+                    </option>
+                  ))}
+                  {!admin && (
+                    <option value={core.provider.base_url}>
+                      {core.provider.base_url}
+                    </option>
+                  )}
+                </select>
                 <label>Memories</label>
                 <div className="scope-list">
                   {core.memories.some((m) => m.status === "confirmed") ? (
@@ -1712,7 +1895,10 @@ function OmniSpace({
                   onClick={async () => {
                     if (
                       await mutate("/api/grants", "POST", {
-                        destination: core.provider.base_url,
+                        destination:
+                          grantDestination ||
+                          activeProvider?.base_url ||
+                          core.provider.base_url,
                         scope: grantScope,
                         expires_in_seconds: Number(grantDuration),
                       })
@@ -2001,7 +2187,7 @@ function OmniSpace({
               <div>
                 <Sparkles size={19} />
                 <strong>Ask with context</strong>
-                <span>{core.provider.model}</span>
+                <span>{activeProvider?.model || "Choose a model"}</span>
               </div>
               <button
                 className="icon-button"
@@ -2011,6 +2197,84 @@ function OmniSpace({
                 <X size={19} />
               </button>
             </header>
+            <div className="chat-routing">
+              <label>
+                Provider
+                <select
+                  aria-label="Conversation provider"
+                  value={
+                    chatProviderId ||
+                    admin?.settings.primary_provider_id ||
+                    core.provider.id ||
+                    "default"
+                  }
+                  disabled={chatBusy || !admin}
+                  onChange={(e) => {
+                    setChatProviderId(e.target.value);
+                    setChatModel("");
+                  }}
+                >
+                  {admin ? (
+                    admin.providers
+                      .filter((item) => item.enabled && item.policy_allowed)
+                      .map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.label}
+                          {item.id === admin.settings.primary_provider_id
+                            ? " · Default"
+                            : ""}
+                        </option>
+                      ))
+                  ) : (
+                    <option value={core.provider.id || "default"}>
+                      {core.provider.model}
+                    </option>
+                  )}
+                </select>
+              </label>
+              <label>
+                Model
+                <select
+                  aria-label="Conversation model"
+                  value={activeProvider?.model || ""}
+                  disabled={chatBusy || !selectedProvider}
+                  onChange={(e) => setChatModel(e.target.value)}
+                >
+                  {!activeProvider?.model && (
+                    <option value="" disabled>
+                      Choose a model
+                    </option>
+                  )}
+                  {[
+                    ...new Set(
+                      [
+                        selectedProvider
+                          ? selectedProvider.model
+                          : core.provider.model,
+                        ...(selectedProvider?.models || []),
+                        chatModel,
+                      ].filter(Boolean),
+                    ),
+                  ].map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="icon-button"
+                title="Manage model connections"
+                aria-label="Manage model connections"
+                onClick={() => {
+                  setLauncher(false);
+                  setView("models");
+                }}
+              >
+                <Settings2 size={17} />
+              </button>
+            </div>
             <div
               className="chat-history"
               ref={historyElement}
@@ -2112,7 +2376,7 @@ function OmniSpace({
                 >
                   <option value="">No memory context</option>
                   {activeGrants
-                    .filter((g) => g.destination === core.provider.base_url)
+                    .filter((g) => g.destination === activeProvider?.base_url)
                     .map((g) => (
                       <option value={g.id} key={g.id}>
                         {g.scope.includes("*")
@@ -2128,7 +2392,7 @@ function OmniSpace({
                 </select>
                 <LockKeyhole size={13} />
                 <span>
-                  {core.provider.local
+                  {activeProvider?.local
                     ? "Local destination"
                     : "External destination"}
                 </span>
@@ -2165,7 +2429,11 @@ function OmniSpace({
                 ) : (
                   <button
                     className="send-button"
-                    disabled={!message.trim() || connection !== "online"}
+                    disabled={
+                      !message.trim() ||
+                      connection !== "online" ||
+                      !activeProvider?.model
+                    }
                     aria-label="Send message"
                   >
                     <Send size={17} />

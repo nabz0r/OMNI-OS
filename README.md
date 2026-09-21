@@ -38,9 +38,25 @@ cd OMNI-OS
 
 Open [localhost:3006](http://localhost:3006), then unlock the session using the token in `.omni/runtime/admin-token`. This credential stays private on your device.
 
-The demo uses a separate synthetic vault with a development file key, leaving existing personal and Keychain-backed vaults untouched. It creates **six clients, two simulated providers, and a test VPN hub**. LLM responses are fictional; WireGuard encryption, SQLCipher vaults, permissions, and OpenDP calculations run as actual code. No AI account or provider key is required. Results appear in **Connections** and **Collective**.
+The demo uses a separate synthetic vault with a development file key, leaving existing personal and Keychain-backed vaults untouched. It creates **six clients, two simulated providers, and a test VPN hub**. LLM responses are fictional; WireGuard encryption, SQLCipher vaults, permissions, and OpenDP calculations run as actual code. No AI account or provider key is required. Results appear in **Connections** and **Collective**. The viewer also sends synthetic exchanges through both configured providers, populating **History** and **Usage** with measured request metadata.
 
 On macOS, `./run.sh --simulate` also opens the native Tauri window. To use your own model, omit `--simulate`: OMNI expects Ollama running locally with `qwen3:0.6b` already installed. Configure other providers explicitly. [Integration guide →](docs/INTEGRATIONS.md)
+
+## One place to run your AI connections
+
+Open **Models** to connect Ollama, OpenAI, Anthropic, or a compatible endpoint. Store a key in the encrypted vault, check the connection, choose an available model, and make it your default. The launcher can switch provider and model for a new conversation.
+
+| Your question                                          | Where to look                                                                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Which models can I use? Which ones are loaded locally? | **Models** — provider catalogs and Ollama's loaded models, checked on demand                                       |
+| Which model handled a request, and what happened?      | **History** — destination, operation, status, timing, tokens and payload bytes; separate disclosure receipts       |
+| What am I consuming?                                   | **Usage** — reported input/output/cache tokens, observation coverage, per-model totals and optional cost estimates |
+| What changed in my installation?                       | **Logs** — structured local audit events without conversation content or secrets                                   |
+| How is my space configured?                            | **Settings** — history retention, local extraction, analytics consent, display preferences and deployment details  |
+
+**Savings must be earned, not invented.** Usage compares selected source size with inserted context as a clearly labeled benchmark. It does not claim to measure internet bandwidth saved or a better answer. Missing provider counters stay unknown. Cost estimates require your own rates and sufficient usage data; they are not invoices. ChatGPT and Claude website sessions are not automatically monitored. [Console guide →](docs/ADMINISTRATION.md)
+
+![OMNI model administration — actual application with explicitly synthetic local providers](docs/images/console.png)
 
 ## Where does the information go?
 
@@ -63,8 +79,9 @@ The remote provider receives the request it needs to do its work, protected by H
 | Local memory        | SQLCipher, provenance, history, correction, and deletion                                                        |
 | Authority           | Permissions scoped to destinations and memories, expiration, revocation, and receipts                           |
 | Integrations        | Launcher, Chat Completions and Messages APIs, MCP tools, and explicit browser capture                           |
-| Interface           | Three.js Nebula, Tauri shell, and low-energy mode                                                               |
+| Interface           | Three.js Nebula, Tauri shell, model administration, history, usage, logs, settings and low-energy mode          |
 | Optional transport  | WireGuard/BoringTun, authenticated knocking, replay protection, and identity-key rotation every 30 minutes      |
+| Local observability | Encrypted request metadata, bounded retention, structured audit, model discovery and manual-rate estimates      |
 | Voluntary analytics | OpenDP, persistent budget, retries without new noise; Fastify and Redis collector                               |
 | Verification        | Reproducible simulation, Linux/macOS tests, server build, and BoringTun ↔ Linux WireGuard interoperability test |
 
@@ -78,6 +95,7 @@ The remote provider receives the request it needs to do its work, protected by H
 | [ARCHITECTURE.md](ARCHITECTURE.md)                                                                  | Trust boundaries, memory, and technical contracts               |
 | [DIAGRAMS.md](DIAGRAMS.md)                                                                          | Request flows, knowledge graph, containers, and VPN             |
 | [ROADMAP.md](ROADMAP.md)                                                                            | From individual value to a million users, with measurable gates |
+| [Administration](docs/ADMINISTRATION.md)                                                            | Models, settings, history, logs and measurement definitions     |
 | [Operations](docs/OPERATIONS.md) · [VPN](docs/VPN.md)                                               | Startup, enrollment, and deployment                             |
 | [Privacy](docs/PRIVACY.md) · [Security](docs/SECURITY.md)                                           | Precise guarantees and limitations                              |
 | [Validation](docs/VALIDATION.md) · [CI](https://github.com/nabz0r/OMNI-OS/actions/workflows/ci.yml) | Observed results and revision checks                            |

@@ -28,7 +28,7 @@ A permission names an exact destination, selected confirmed memories and an expi
 
 ## Continue a conversation deliberately
 
-The launcher sends your message to the configured model endpoint. Selecting a permission allows the core to add its authorized memory context. **No memory context** disables that augmentation; it does not prevent your own messages or the conversation's included turns from reaching the model.
+The launcher sends your message to the selected provider and model. **Models** manages persistent connections; the launcher selectors choose the connection for this conversation. Changing either starts a new conversation. OpenAI-compatible and Anthropic replies are normalized for the same interface. Selecting a permission allows the core to add its authorized memory context. **No memory context** disables that augmentation; it does not prevent your own messages or the conversation's included turns from reaching the model.
 
 For each follow-up, the interface includes up to ten previous complete user/assistant exchanges. The new message and included history together may contain at most 100,000 UTF-8 bytes of conversation text. Older exchanges are omitted as necessary; this limit does not include JSON overhead or separately bounded vault context. The visible conversation is held in interface memory, not automatically saved as permanent memories. Closing the launcher preserves it during the session; reloading the interface or locking the session clears it.
 
@@ -36,13 +36,25 @@ Changing the selected permission starts a new conversation. A detected provider 
 
 Responses render as Markdown with tables and code blocks. Raw HTML is omitted, and image markup becomes a text description instead of loading an image. Links require a user action and open with `noopener noreferrer`. **Copy response** copies the original response text to the clipboard; if the browser denies clipboard access, the interface asks you to select the text manually.
 
-A failed request restores the message for manual retry unless you have already entered a different draft. Empty responses are treated as errors instead of entering the conversation history. **Stop waiting** cancels the interface's wait; it does not establish that the provider stopped processing or never received the request. A retry is another request. Check **Activity** before retrying an uncertain delivery. Receipts distinguish sent context, authorization and failed or possibly partial delivery.
+A failed request restores the message for manual retry unless you have already entered a different draft. Empty responses are treated as errors instead of entering the conversation history. **Stop waiting** cancels the interface's wait; it does not establish that the provider stopped processing or never received the request. A retry is another request. Check **History → Requests** and **Disclosure receipts** before retrying an uncertain delivery. Receipts distinguish sent context, authorization and failed or possibly partial delivery.
 
 The interface displays core and collector data without inventing global percentages. An installation report is not a count of unique people. A disconnected core leaves the last loaded state visible with an offline notice; collector snapshots identify when live updates are interrupted.
 
+## Administer the installation
+
+The console adds **Models**, **History**, **Usage**, **Logs** and **Settings** alongside memory and permission controls. Provider profiles and local settings survive restarts in SQLCipher. Keys are entered through a password field, written to the local core and never returned by the API. Changing a provider URL clears its stored key unless an explicit replacement accompanies the change.
+
+Use **Check connection** to read a provider catalog. For Ollama, the result also lists models reported loaded at the time of the check; cloud model catalogs do not expose running instances. Discovery does not download or load a model. The launcher shows enabled, policy-permitted profiles and their model choices.
+
+**History → Requests** offers filters, pages and a request detail dialog. **Disclosure receipts** remains a separate record of memory authorization and delivery. The request journal stores metadata only; the conversation itself is still transient interface state. **Usage** separates provider token reports, measured JSON/SSE body sizes, source-versus-context estimates and optional manually priced costs. **Logs** presents structured events such as profile edits, grants and request completion, not raw operating-system log files. The current filtered metadata page can be exported as JSON or CSV.
+
+**Settings** controls whether new requests are journaled, retention from 1 to 365 days, the local-only extractor, analytics consent and low-energy rendering. Clearing request history requires confirmation and preserves memories, permissions, receipts, audit events and the DP budget. Network policy and key custody are installation details that require a service restart to change. Exporting configuration excludes secrets and discovery state.
+
+The [administration guide](../../docs/ADMINISTRATION.md) documents every field, endpoint, metric and boundary. Native dialogs support keyboard dismissal and prevent the launcher shortcut from opening another modal behind them.
+
 ## Browser verification
 
-Run `npx playwright install chromium` installs the browser once. `npm run test:ui` against the isolated local `--simulate` stack. It uses Playwright and reads `.omni/runtime/admin-token` without printing it. Its mutation flow requires the core to identify itself as a simulation. Generated screenshots live in ignored `apps/desktop/artifacts/`.
+Run `npx playwright install chromium` installs the browser once. `npm run test:ui` and `npm run test:console` against the isolated local `--simulate` stack. It uses Playwright and reads `.omni/runtime/admin-token` without printing it. Its mutation flow requires the core to identify itself as a simulation. Generated screenshots live in ignored `apps/desktop/artifacts/`.
 
 The expanded flow is designed to check:
 
@@ -50,6 +62,7 @@ The expanded flow is designed to check:
 - Follow-up history in the outgoing request, draft recovery after a failed request, and Markdown rendering without executable HTML or remote images.
 - Conversation reset after an authorized memory changes, followed by permission revocation.
 - Text import as unconfirmed proposals, the two-step deletion flow and cancellation of deletion.
+- Provider creation/discovery/edit/deletion, default selection, launcher routing, history details, usage and logs, metadata exports, retention settings and secret exclusion.
 - Every main view, mobile overflow at 430 px, and an empty conversation and draft after locking and unlocking.
 
 Some failure and rendering cases use explicit browser response fixtures; ordinary contextual exchanges go to the configured local simulation provider. These checks are a verification procedure, not a statement that the current run has passed. Recorded results belong in [validation evidence](../../docs/VALIDATION.md).

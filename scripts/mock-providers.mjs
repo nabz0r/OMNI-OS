@@ -20,7 +20,23 @@ export async function startMockProvider({
         }),
       );
     }
-    if (req.url === "/v1/models") {
+    if (["/api/ps", "/api/tags"].includes(req.url)) {
+      res.setHeader("Content-Type", "application/json");
+      return res.end(
+        JSON.stringify({
+          simulation: true,
+          models: [
+            {
+              name: "omni-synthetic",
+              model: "omni-synthetic",
+              size: 104857600,
+              expires_at: new Date(Date.now() + 300000).toISOString(),
+            },
+          ],
+        }),
+      );
+    }
+    if (req.url.split("?")[0] === "/v1/models") {
       res.setHeader("Content-Type", "application/json");
       return res.end(
         JSON.stringify({
@@ -87,7 +103,7 @@ export async function startMockProvider({
       const anthropic = req.url === "/v1/messages";
       if (anthropic) {
         res.write(
-          `event: message_start\ndata: ${JSON.stringify({ type: "message_start", message: { id: "sim-message", type: "message", role: "assistant", model: body.model, content: [], usage: { input_tokens: promptTokens, output_tokens: 0 } } })}\n\n`,
+          `event: message_start\ndata: ${JSON.stringify({ type: "message_start", message: { id: "sim-message", type: "message", role: "assistant", model: body.model, content: [], usage: { input_tokens: promptTokens, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 } } })}\n\n`,
         );
         res.write(
           'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}\n\n',
@@ -105,7 +121,7 @@ export async function startMockProvider({
       res.end(
         anthropic
           ? 'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}\n\nevent: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":24}}\n\nevent: message_stop\ndata: {"type":"message_stop"}\n\n'
-          : `data: ${JSON.stringify({ id: "sim-stream", object: "chat.completion.chunk", choices: [{ index: 0, delta: {}, finish_reason: "stop" }], usage: { prompt_tokens: promptTokens, completion_tokens: 24, total_tokens: promptTokens + 24 } })}\n\ndata: [DONE]\n\n`,
+          : `data: ${JSON.stringify({ id: "sim-stream", object: "chat.completion.chunk", choices: [{ index: 0, delta: {}, finish_reason: "stop" }], usage: { prompt_tokens: promptTokens, completion_tokens: 24, total_tokens: promptTokens + 24, prompt_tokens_details: { cached_tokens: 0 } } })}\n\ndata: [DONE]\n\n`,
       );
     } else {
       res.setHeader("Content-Type", "application/json");
@@ -113,6 +129,7 @@ export async function startMockProvider({
         prompt_tokens: promptTokens,
         completion_tokens: 24,
         total_tokens: promptTokens + 24,
+        prompt_tokens_details: { cached_tokens: 0 },
       };
       res.end(
         JSON.stringify(
@@ -123,7 +140,12 @@ export async function startMockProvider({
                 role: "assistant",
                 content: [{ type: "text", text: content }],
                 stop_reason: "end_turn",
-                usage: { input_tokens: promptTokens, output_tokens: 24 },
+                usage: {
+                  input_tokens: promptTokens,
+                  output_tokens: 24,
+                  cache_read_input_tokens: 0,
+                  cache_creation_input_tokens: 0,
+                },
               }
             : {
                 id: "sim-completion",

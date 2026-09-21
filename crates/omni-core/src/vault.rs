@@ -1,3 +1,4 @@
+use crate::journal::{audit_on, AuditDetails};
 use anyhow::{bail, Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use rusqlite::{params, Connection, OptionalExtension};
@@ -73,6 +74,7 @@ impl Vault {
             CREATE INDEX IF NOT EXISTS interactions_week ON interactions(week);
             CREATE TABLE IF NOT EXISTS analytics_reports(week TEXT PRIMARY KEY, report_id TEXT NOT NULL UNIQUE, epsilon REAL NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);")?;
+        crate::journal::initialize(&db)?;
         Ok(Self { db })
     }
 
@@ -99,6 +101,14 @@ impl Vault {
         tx.execute(
             "INSERT INTO memories VALUES(?1,?2,?3,?4,?5,?5)",
             params![id, source_id, content, status, timestamp],
+        )?;
+        audit_on(
+            &tx,
+            "memory_created",
+            &AuditDetails {
+                entity_id: Some(id.clone()),
+                ..Default::default()
+            },
         )?;
         tx.commit()?;
         Ok(Memory {
@@ -150,6 +160,14 @@ impl Vault {
                 id
             ],
         )?;
+        audit_on(
+            &tx,
+            "memory_updated",
+            &AuditDetails {
+                entity_id: Some(id.into()),
+                ..Default::default()
+            },
+        )?;
         tx.commit()?;
         self.memories()?
             .into_iter()
@@ -168,6 +186,14 @@ impl Vault {
             let tx = self.db.transaction()?;
             tx.execute("DELETE FROM memories WHERE id=?1", [id])?;
             tx.execute("DELETE FROM sources WHERE id=?1 AND NOT EXISTS(SELECT 1 FROM memories WHERE source_id=?1)",[source])?;
+            audit_on(
+                &tx,
+                "memory_deleted",
+                &AuditDetails {
+                    entity_id: Some(id.into()),
+                    ..Default::default()
+                },
+            )?;
             tx.commit()?;
             return Ok(true);
         }
@@ -175,7 +201,20 @@ impl Vault {
     }
 
     pub fn delete_source(&mut self, id: &str) -> Result<bool> {
-        Ok(self.db.execute("DELETE FROM sources WHERE id=?1", [id])? > 0)
+        let tx = self.db.transaction()?;
+        let removed = tx.execute("DELETE FROM sources WHERE id=?1", [id])? > 0;
+        if removed {
+            audit_on(
+                &tx,
+                "source_deleted",
+                &AuditDetails {
+                    entity_id: Some(id.into()),
+                    ..Default::default()
+                },
+            )?;
+        }
+        tx.commit()?;
+        Ok(removed)
     }
 
     pub fn add_capture(
@@ -215,6 +254,15 @@ impl Vault {
                 source: kind.into(),
             });
         }
+        audit_on(
+            &tx,
+            "capture_saved",
+            &AuditDetails {
+                entity_id: Some(source_id.clone()),
+                count: Some(memories.len() as u64),
+                ..Default::default()
+            },
+        )?;
         tx.commit()?;
         Ok((source_id, memories))
     }
@@ -248,7 +296,8 @@ impl Vault {
             revoked_at: None,
             created_at: now(),
         };
-        self.db.execute(
+        let tx = self.db.transaction()?;
+        tx.execute(
             "INSERT INTO grants VALUES(?1,?2,?3,?4,NULL,?5)",
             params![
                 grant.id,
@@ -258,6 +307,15 @@ impl Vault {
                 grant.created_at
             ],
         )?;
+        audit_on(
+            &tx,
+            "grant_created",
+            &AuditDetails {
+                entity_id: Some(grant.id.clone()),
+                ..Default::default()
+            },
+        )?;
+        tx.commit()?;
         Ok(grant)
     }
 
@@ -278,10 +336,23 @@ impl Vault {
     }
 
     pub fn revoke(&mut self, id: &str) -> Result<bool> {
-        Ok(self.db.execute(
+        let tx = self.db.transaction()?;
+        let affected = tx.execute(
             "UPDATE grants SET revoked_at=COALESCE(revoked_at,?1) WHERE id=?2",
             params![now(), id],
-        )? > 0)
+        )? > 0;
+        if affected {
+            audit_on(
+                &tx,
+                "grant_revoked",
+                &AuditDetails {
+                    entity_id: Some(id.into()),
+                    ..Default::default()
+                },
+            )?;
+        }
+        tx.commit()?;
+        Ok(affected)
     }
 
     pub fn context(
@@ -396,7 +467,17 @@ impl Vault {
         Ok(rows.collect::<rusqlite::Result<Vec<_>>>()?)
     }
     pub fn set_consent(&mut self, enabled: bool) -> Result<()> {
-        self.db.execute("INSERT INTO settings VALUES('analytics_consent',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",[if enabled{"1"}else{"0"}])?;
+        let tx = self.db.transaction()?;
+        tx.execute("INSERT INTO settings VALUES('analytics_consent',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",[if enabled{"1"}else{"0"}])?;
+        audit_on(
+            &tx,
+            "analytics_consent_changed",
+            &AuditDetails {
+                enabled: Some(enabled),
+                ..Default::default()
+            },
+        )?;
+        tx.commit()?;
         Ok(())
     }
     pub fn consent(&self, default: bool) -> Result<bool> {

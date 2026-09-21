@@ -85,6 +85,14 @@ erDiagram
 
 The diagram is the logical model; JSON arrays may represent scope and memory references in SQLite. The private database stores detailed observations. The central store receives only noised report values and persists **aggregated sums/counts plus deduplication hashes**, not an individual searchable conversation store.
 
+## Local administration and observability
+
+The console reads owner-only administration endpoints in the same Rust core. Encrypted settings hold provider profiles, write-only credentials, manual rates, the primary destination, the local extractor and history preferences. The environment seeds new vaults; explicit deployment network policy remains an upper bound on profile routing.
+
+Two additional SQLCipher tables, `journal_interactions` and `journal_audit`, hold operational metadata independently of DP observations. A request starts before provider egress and ends with a terminal status, body-byte counters and any supported usage fields. A drop guard marks interrupted requests; restart recovery marks unfinished records aborted. The journal does not store conversation content. Aggregates are derived from retained journal rows, preserving unknown usage, observation coverage and request-time rate snapshots.
+
+The logical diagrams above focus on memory authorization and analytics. The complete administration API, actual storage names, retention behavior and metric definitions are documented in [ADMINISTRATION.md](ADMINISTRATION.md). The operational journal never feeds its detailed rows into the collector.
+
 ## Synthetic end-to-end laboratory
 
 ```mermaid
@@ -115,11 +123,11 @@ The collector is a separate process and deployment from the core. The local mode
 
 ## Ports
 
-| Service | Default binding | Purpose |
-|---|---|---|
-| Nebula | 127.0.0.1:3006 | Local UI |
-| Core | 127.0.0.1:3007 | Authenticated memory and gateway |
-| Collector | 127.0.0.1:3008 | Noised telemetry and public aggregates |
-| Synthetic providers | 127.0.0.1:4101–4102 | Test-only local/SaaS fixtures |
-| Synthetic clients | 127.0.0.1:4201–4216 | Isolated test processes |
-| WireGuard / knock / relay | Deployment configuration | See VPN guide |
+| Service                   | Default binding          | Purpose                                |
+| ------------------------- | ------------------------ | -------------------------------------- |
+| Nebula                    | 127.0.0.1:3006           | Local UI                               |
+| Core                      | 127.0.0.1:3007           | Authenticated memory and gateway       |
+| Collector                 | 127.0.0.1:3008           | Noised telemetry and public aggregates |
+| Synthetic providers       | 127.0.0.1:4101–4102      | Test-only local/SaaS fixtures          |
+| Synthetic clients         | 127.0.0.1:4201–4216      | Isolated test processes                |
+| WireGuard / knock / relay | Deployment configuration | See VPN guide                          |

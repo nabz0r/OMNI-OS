@@ -18,7 +18,8 @@
     "test": "npm run test --workspace @omni/collector && node --test apps/extension/adapters.test.mjs",
     "simulate": "node scripts/simulate.mjs",
     "collector": "npm run start --workspace @omni/collector",
-    "test:ui": "node apps/desktop/qa.mjs"
+    "test:ui": "node apps/desktop/qa.mjs",
+    "test:console": "node apps/desktop/qa-console.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

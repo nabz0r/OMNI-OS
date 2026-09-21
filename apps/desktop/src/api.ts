@@ -41,11 +41,18 @@ export interface CoreState {
     budget_limit: number;
     reports: number;
   };
-  provider: { base_url: string; model: string; local: boolean };
+  provider: {
+    id?: string;
+    kind?: string;
+    base_url: string;
+    model: string;
+    local: boolean;
+  };
   vault: { encrypted: boolean; key_storage: string };
   simulation?: boolean;
 }
 export interface ChatReply {
+  provider_id?: string;
   reply: string;
   receipt_id: string | null;
   model: string;
@@ -91,7 +98,7 @@ export async function request<T>(
       throw error;
     if (error instanceof DOMException && error.name === "TimeoutError") {
       throw new ApiError(
-        "The request timed out. Check Activity before retrying; it may already have reached its destination.",
+        "The request timed out. Check History before retrying; it may already have reached its destination.",
         0,
       );
     }
@@ -106,7 +113,11 @@ export async function request<T>(
     try {
       const error = JSON.parse(body);
       detail =
-        typeof error.error === "string" ? error.error : JSON.stringify(error);
+        typeof error.error === "string"
+          ? error.error
+          : typeof error.error?.message === "string"
+            ? error.error.message
+            : JSON.stringify(error);
     } catch {
       /* Plain-text errors remain readable. */
     }

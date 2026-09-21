@@ -1,7 +1,9 @@
 # Security boundaries
 
 - Treat `.omni/`, vault keys, agent/console tokens, VPN enrollment files and report logs as private runtime data. They are ignored by Git.
-- The console token administers memory and grants. The agent token must not acquire administrative authority. Use a separate grant per destination and revoke it when no longer needed.
+- The console token administers memory, grants, provider profiles, keys, settings and private operational metadata. The agent token must not acquire administrative authority. Use a separate grant per destination and revoke it when no longer needed.
+- Provider discovery is explicit and authenticated. Catalog availability is not proof of successful inference. The owner may authorize a new HTTPS destination through a profile unless an explicit deployment allowlist forbids it. Changing the base URL drops the old key; redirects are disabled.
+- Operational history and audit schemas exclude conversation bodies and secrets. Model identifiers, destinations and usage are still private metadata. Exports include only the selected metadata page or secret-free configuration; keep these files private.
 - The local service binds to loopback. Public deployment of the core is unsupported. CORS is not authentication; bearer checks are mandatory.
 - SQLCipher protects storage at rest. An unlocked application necessarily processes plaintext. Development file-key storage protects file permissions but is weaker than an OS keychain against access by the same user.
 - Production providers use HTTPS; plain HTTP is permitted only for explicit loopback development services. Redirects must not bypass destination authorization.

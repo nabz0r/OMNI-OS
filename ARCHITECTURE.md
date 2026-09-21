@@ -36,16 +36,17 @@ Authority here is a technical capability: deciding which reads and outputs may p
 It confers no power over an application that bypasses OMNI or a copy already received by a third party.
 Nor does it turn an inference into truth, or possession of a document into a universal right to redistribute it.
 
-| Area          | Delivered in v1                                               | Target or limitation                                           |
-| ------------- | ------------------------------------------------------------- | -------------------------------------------------------------- |
-| Memory        | SQLCipher, sources, memories, statuses, history               | Temporal graph and derived semantic indexes                    |
-| Understanding | Extraction by a local model, proposals requiring confirmation | Evaluated contradiction resolution and relevance               |
-| Authorization | Owner/agent tokens, grants by destination and scope           | Cryptographic identity and capabilities specific to each agent |
-| Integrations  | OpenAI/Anthropic gateways, MCP, voluntary capture             | Additional connectors, without implicit universal interception |
-| Transport     | WireGuard, authenticated admission, deployment tools          | Signed native distribution and large-scale operation           |
-| Analytics     | Bounded OpenDP reports, Redis collector or local SQLite       | SingleStore analytics storage and publication governance       |
-| Isolation     | Separate collector; memory and gateway in the same core       | Separate OS helpers with distinct network permissions          |
-| ZK proofs     | None                                                          | Targeted verifiable attributes, if justified by a use case     |
+| Area           | Delivered in v1                                                                 | Target or limitation                                           |
+| -------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Memory         | SQLCipher, sources, memories, statuses, history                                 | Temporal graph and derived semantic indexes                    |
+| Understanding  | Extraction by a local model, proposals requiring confirmation                   | Evaluated contradiction resolution and relevance               |
+| Authorization  | Owner/agent tokens, grants by destination and scope                             | Cryptographic identity and capabilities specific to each agent |
+| Integrations   | OpenAI/Anthropic gateways, MCP, voluntary capture                               | Additional connectors, without implicit universal interception |
+| Administration | Persistent profiles/settings, model discovery, request journal, audit and usage | No hidden observation of third-party website sessions          |
+| Transport      | WireGuard, authenticated admission, deployment tools                            | Signed native distribution and large-scale operation           |
+| Analytics      | Bounded OpenDP reports, Redis collector or local SQLite                         | SingleStore analytics storage and publication governance       |
+| Isolation      | Separate collector; memory and gateway in the same core                         | Separate OS helpers with distinct network permissions          |
+| ZK proofs      | None                                                                            | Targeted verifiable attributes, if justified by a use case     |
 
 The product must remain useful without participating in analytics or sending memory to a remote model.
 Success is measured by the quality of tasks completed with controlled disclosure, not by the volume of data absorbed.
@@ -94,7 +95,7 @@ Evaluation must include stale information, contradictory documents, malicious in
 **V1:** `sources` stores captured content, its type, metadata, and creation date.
 `memories` contains text linked to a source, with creation/modification dates and a `proposed`, `confirmed`, `disputed`, or `superseded` status.
 `memory_history` retains earlier versions when a memory is edited; `grants` and `receipts` describe authorizations and disclosures.
-Usage observations and analytics reports also remain local until an explicitly authorized export.
+DP observations and analytics reports also remain local until an explicitly authorized release. A separate encrypted operational journal stores request metadata and audit events without conversation bodies or keys. Provider profiles, manual rate templates and console settings persist in the same vault. See [local administration](docs/ADMINISTRATION.md) for the actual schema and API.
 
 Only confirmed memories can be injected into a provider's context.
 MCP search is lexical; context selection is bounded and respects the grant's scope.
@@ -102,7 +103,7 @@ V1 has no semantic graph engine, persisted embeddings, or demonstrated automatic
 
 The Nebula visualization represents available memory objects and their status; their positions are not a scientific map of the brain.
 A particle animation is never evidence of an actual transfer or a verified tunnel.
-The interface must show the absence of data or a connection when it has no such state available.
+The interface must show the absence of data or a connection when it has no such state available. **Models** distinguishes provider catalogs from Ollama models reported loaded. **History**, **Usage** and **Logs** show only OMNI-mediated activity. Unknown counters remain unknown; source-versus-context compression is a benchmark, not measured wire savings. Manual cost estimates are scoped to recorded usage and request-time rates.
 
 ### The target local graph
 

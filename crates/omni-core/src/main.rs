@@ -20,10 +20,12 @@ async fn main() -> Result<()> {
     }
     let key = config.load_vault_key()?;
     let vault = Vault::open(&config.data_dir.join("vault.db"), &key)?;
+    vault.initialize_admin(&config)?;
     if args.first().is_some_and(|a| a == "init") {
         println!("Encrypted SQLCipher vault ready. Key storage: {}. No analytics network export configured.",config.key_storage);
         return Ok(());
     }
+    vault.initialize_runtime_journal()?;
     let port = config.port;
     let (client, local_client) = omni_core::http::clients(&config)?;
     let state = AppState {

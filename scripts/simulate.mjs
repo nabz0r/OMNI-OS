@@ -355,6 +355,25 @@ try {
       body: JSON.stringify(payload),
     });
     check(`${id}: collector deduplicates retries`, duplicate.status === 200);
+    const journal = await call(base, token, "/api/interactions?limit=100");
+    check(
+      `${id}: local journal attributes actual model requests`,
+      journal.ok &&
+        journal.data.items.length >= 3 &&
+        journal.data.items.every(
+          (item) => item.model === "omni-synthetic" && item.request_bytes > 0,
+        ),
+    );
+    check(
+      `${id}: operational metadata excludes content`,
+      !JSON.stringify(journal.data).includes("SIM_CANARY") &&
+        !JSON.stringify(journal.data).includes("Aurora"),
+    );
+    const usage = await call(base, token, "/api/usage?period=all");
+    check(
+      `${id}: usage includes measured payload bytes`,
+      usage.ok && usage.data.totals.request_bytes > 0,
+    );
     const deleted = await call(
       base,
       token,
@@ -445,6 +464,64 @@ try {
           status,
           source: "simulation",
         });
+    const base = "http://127.0.0.1:3007";
+    const administration = await call(base, token, "/api/admin");
+    check("viewer administration is available", administration.ok);
+    const profiles = administration.data.providers.filter(
+      (profile) =>
+        profile.enabled &&
+        ["http://127.0.0.1:4101/v1", "http://127.0.0.1:4102/v1"].includes(
+          profile.base_url,
+        ),
+    );
+    for (const profile of profiles) {
+      // Configure only the isolated viewer's known loopback fixture profiles.
+      const configured = await call(
+        base,
+        token,
+        `/api/providers/${profile.id}`,
+        "PATCH",
+        {
+          kind: profile.kind === "anthropic" ? "anthropic" : "ollama",
+          label:
+            profile.kind === "anthropic"
+              ? "SaaS lab · synthetic"
+              : "Local lab · synthetic",
+          model: "omni-synthetic",
+        },
+      );
+      check(
+        `viewer: ${profile.kind} fixture profile configured`,
+        configured.ok,
+      );
+      const probed = await call(
+        base,
+        token,
+        `/api/providers/${profile.id}/probe`,
+        "POST",
+        {},
+      );
+      check(
+        `viewer: ${profile.kind} discovery works`,
+        probed.ok && probed.data.status === "available",
+      );
+      for (const message of [
+        "SIMULATION: summarize a fictional Rust project.",
+        "SIMULATION: compare local inference and a fictional SaaS workflow.",
+      ]) {
+        const response = await call(base, token, "/api/chat", "POST", {
+          provider_id: profile.id,
+          message,
+          model: "omni-synthetic",
+        });
+        check(`viewer: ${profile.kind} request recorded`, response.ok);
+      }
+    }
+    const journal = await call(base, token, "/api/interactions?limit=100");
+    check(
+      "viewer history contains real synthetic exchanges",
+      journal.ok && journal.data.items.length >= profiles.length * 2,
+    );
   }
   report.status = "passed";
   report.completed_at = new Date().toISOString();

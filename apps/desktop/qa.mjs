@@ -60,7 +60,7 @@ try {
     for (const [label, file] of [
       ["Memory", "memory"],
       ["Permissions", "permissions"],
-      ["Activity", "activity"],
+      ["History", "history"],
       ["Collective", "collective"],
       ["Connections", "connections"],
     ]) {
@@ -280,8 +280,9 @@ try {
   );
   await page
     .getByRole("navigation")
-    .getByRole("button", { name: "Activity" })
+    .getByRole("button", { name: "History" })
     .click();
+  await page.getByRole("tab", { name: "Disclosure receipts" }).click();
   await page.screenshot({ path: resolve(out, "activity.png"), fullPage: true });
   await page
     .getByRole("navigation")
