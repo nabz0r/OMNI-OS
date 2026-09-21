@@ -36,11 +36,17 @@ cd OMNI-OS
 ./run.sh --web --simulate
 ```
 
-Open [localhost:3006](http://localhost:3006), then unlock the session using the token in `.omni/runtime/admin-token`. This credential stays private on your device.
+The local interface opens automatically with a private, single-use connection link. No token copy is needed in this normal launch. For headless operation, add `--no-open`; manual unlock uses the private token in `.omni/runtime/admin-token`. [First-run guide →](docs/GETTING_STARTED.md)
 
 The demo uses a separate synthetic vault with a development file key, leaving existing personal and Keychain-backed vaults untouched. It creates **six clients, two simulated providers, and a test VPN hub**. LLM responses are fictional; WireGuard encryption, SQLCipher vaults, permissions, and OpenDP calculations run as actual code. No AI account or provider key is required. Results appear in **Connections** and **Collective**. The viewer also sends synthetic exchanges through both configured providers, populating **History** and **Usage** with measured request metadata.
 
-On macOS, `./run.sh --simulate` also opens the native Tauri window. To use your own model, omit `--simulate`: OMNI expects Ollama running locally with `qwen3:0.6b` already installed. Configure other providers explicitly. [Integration guide →](docs/INTEGRATIONS.md)
+On macOS, `./run.sh --simulate` opens the native Tauri window. To use your own models, omit `--simulate` and follow **Guided setup**: connect a provider, optionally save a first memory, and open a conversation. The default local profile points to Ollama; choose an installed model or configure your own API connection. Run `./run.sh --doctor` for a read-only startup check. [Integration guide →](docs/INTEGRATIONS.md)
+
+## A first run that leads somewhere
+
+**Connect → Remember → Continue.** A guided setup opens for a fresh vault. Connect a model without searching through settings, keep an optional preference locally, and start your first conversation. Setup grants no memory access and sends no inference request on your behalf. The home screen then gives you a direct **Start a conversation** action, with draft-only suggestions inside the launcher.
+
+![Guided setup — the actual interface connected to an isolated synthetic local provider](docs/images/setup.png)
 
 ## One place to run your AI connections
 
@@ -95,6 +101,7 @@ The remote provider receives the request it needs to do its work, protected by H
 | [ARCHITECTURE.md](ARCHITECTURE.md)                                                                  | Trust boundaries, memory, and technical contracts               |
 | [DIAGRAMS.md](DIAGRAMS.md)                                                                          | Request flows, knowledge graph, containers, and VPN             |
 | [ROADMAP.md](ROADMAP.md)                                                                            | From individual value to a million users, with measurable gates |
+| [Getting started](docs/GETTING_STARTED.md)                                                          | First launch, guided setup and recovery                         |
 | [Administration](docs/ADMINISTRATION.md)                                                            | Models, settings, history, logs and measurement definitions     |
 | [Operations](docs/OPERATIONS.md) · [VPN](docs/VPN.md)                                               | Startup, enrollment, and deployment                             |
 | [Privacy](docs/PRIVACY.md) · [Security](docs/SECURITY.md)                                           | Precise guarantees and limitations                              |

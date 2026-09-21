@@ -49,6 +49,12 @@ import {
 } from "lucide-react";
 import Administration, { type AdminState } from "./Administration";
 import Operations from "./Operations";
+import Setup from "./Setup";
+import {
+  claimLaunchSession,
+  forgetLaunchSession,
+  hasLaunchSession,
+} from "./session";
 const Nebula = lazy(() => import("./Nebula"));
 import {
   ApiError,
@@ -147,7 +153,14 @@ function OmniSpace({
   onLock: () => void;
   autoUnlock: boolean;
 }) {
-  const [token, setToken] = useState(initialToken);
+  const [token, setToken] = useState(() =>
+    autoUnlock && !hasLaunchSession() ? initialToken() : "",
+  );
+  const [pairing, setPairing] = useState(
+    () => autoUnlock && hasLaunchSession(),
+  );
+  const [setupOpen, setSetupOpen] = useState(false);
+  const setupConsidered = useRef(false);
   const tokenIdentity = useRef(token);
   tokenIdentity.current = token;
   const sessionController = useRef(new AbortController());
@@ -333,7 +346,55 @@ function OmniSpace({
     }
   }, [admin, chatProviderId]);
   useEffect(() => {
-    if (!("__TAURI_INTERNALS__" in window) || token || !autoUnlock) return;
+    if (!pairing || !autoUnlock) return;
+    let cancelled = false;
+    void claimLaunchSession()
+      .then((value) => {
+        if (cancelled) return;
+        sessionStorage.setItem("omni.token", value);
+        tokenIdentity.current = value;
+        setToken(value);
+        setPairing(false);
+        setError("");
+        forgetLaunchSession();
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setPairing(false);
+        setError((error as Error).message);
+        forgetLaunchSession();
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pairing, autoUnlock]);
+  useEffect(() => {
+    if (!core || !admin || setupConsidered.current) return;
+    setupConsidered.current = true;
+    const untouched =
+      !core.stats.simulation &&
+      !core.simulation &&
+      core.memories.length === 0 &&
+      core.stats.interactions === 0 &&
+      admin.providers.every((provider) => !provider.checked_at);
+    if (untouched && localStorage.getItem("omni.setup.dismissed") !== "true")
+      setSetupOpen(true);
+  }, [core, admin]);
+  const closeSetup = () => {
+    setSetupOpen(false);
+    localStorage.setItem("omni.setup.dismissed", "true");
+  };
+  const primaryProfile = admin?.providers.find(
+    (provider) => provider.id === admin.settings.primary_provider_id,
+  );
+  const modelReady =
+    !!primaryProfile?.enabled &&
+    !!primaryProfile.policy_allowed &&
+    primaryProfile.status === "available" &&
+    !!primaryProfile.model;
+  useEffect(() => {
+    if (!("__TAURI_INTERNALS__" in window) || token || !autoUnlock || pairing)
+      return;
     let cancelled = false;
     void import("@tauri-apps/api/core")
       .then(({ invoke }) => invoke<string | null>("local_session_token"))
@@ -682,6 +743,7 @@ function OmniSpace({
   };
   const logout = () => {
     sessionStorage.removeItem("omni.token");
+    forgetLaunchSession();
     sessionController.current.abort();
     chatController.current?.abort();
     onLock();
@@ -852,25 +914,42 @@ function OmniSpace({
             Your memories stay in your local vault. You decide what every AI
             gets to know.
           </p>
-          <form onSubmit={login}>
-            <label htmlFor="token">Unlock your local session</label>
-            <div className="token-input">
-              <KeyRound size={17} />
-              <input
-                id="token"
-                type="password"
-                autoComplete="off"
-                value={draftToken}
-                onChange={(e) => setDraftToken(e.target.value)}
-                placeholder="Paste the session token from run.sh"
-                required
-              />
+          {pairing || (token && connection === "connecting" && !error) ? (
+            <div className="session-opening" role="status">
+              <span className="session-spinner" />
+              <div>
+                <strong>Opening your private space…</strong>
+                <p>Connecting securely to this device.</p>
+              </div>
             </div>
-            <button className="primary" disabled={busy}>
-              {busy ? "Connecting…" : "Open my space"}
-              <ArrowRight size={17} />
-            </button>
-          </form>
+          ) : (
+            <form onSubmit={login}>
+              <label htmlFor="token">Unlock your local session</label>
+              <div className="token-input">
+                <KeyRound size={17} />
+                <input
+                  id="token"
+                  type="password"
+                  autoComplete="off"
+                  value={draftToken}
+                  onChange={(e) => setDraftToken(e.target.value)}
+                  placeholder="Your private local session token"
+                  required
+                />
+              </div>
+              <button className="primary" disabled={busy}>
+                {busy ? "Connecting…" : "Open my space"}
+                <ArrowRight size={17} />
+              </button>
+            </form>
+          )}
+          {!pairing && !token && (
+            <p className="unlock-help">
+              Launch OMNI to open this space automatically. Manual unlock is
+              available with the private token in{" "}
+              <code>.omni/runtime/admin-token</code>.
+            </p>
+          )}
           {error && (
             <p className="error" role="alert">
               {error}
@@ -1055,11 +1134,54 @@ function OmniSpace({
                   </h1>
                   <p>Your knowledge, connected. Your boundaries, respected.</p>
                 </div>
+                <div className="home-actions">
+                  <button
+                    className="primary"
+                    onClick={() =>
+                      modelReady ? setLauncher(true) : setSetupOpen(true)
+                    }
+                    disabled={connection !== "online"}
+                  >
+                    {modelReady ? (
+                      <MessageSquare size={17} />
+                    ) : (
+                      <Sparkles size={17} />
+                    )}
+                    {modelReady ? "Start a conversation" : "Set up your space"}
+                    <ArrowRight size={16} />
+                  </button>
+                  <button
+                    className="secondary"
+                    onClick={() => setNewMemory(true)}
+                  >
+                    <Plus size={16} /> Add a memory
+                  </button>
+                </div>
+              </section>
+              <section
+                className={`space-readiness ${modelReady ? "is-ready" : ""}`}
+                aria-label="Your next step"
+              >
+                <span className="readiness-mark">
+                  {modelReady ? <Check size={22} /> : <Sparkles size={22} />}
+                </span>
+                <div>
+                  <strong>
+                    {modelReady
+                      ? `${primaryProfile?.label} is connected`
+                      : "A few moments from your first conversation."}
+                  </strong>
+                  <p>
+                    {modelReady
+                      ? `${primaryProfile?.model} · Availability checked ${dateLabel(primaryProfile?.checked_at || "")}. Memory sharing stays under your control.`
+                      : "Connect a local model or your AI provider. Add only the context you want to keep."}
+                  </p>
+                </div>
                 <button
-                  className="secondary"
-                  onClick={() => setNewMemory(true)}
+                  className="text-button"
+                  onClick={() => setSetupOpen(true)}
                 >
-                  <Plus size={16} /> Add a memory
+                  Guided setup <ArrowUpRight size={15} />
                 </button>
               </section>
               {core.memories.length === 0 && (
@@ -2171,6 +2293,22 @@ function OmniSpace({
           </section>
         </div>
       )}
+      {setupOpen && (
+        <Setup
+          request={localRequest}
+          admin={admin}
+          core={core}
+          onChanged={refreshAdministration}
+          onClose={closeSetup}
+          onAsk={() => {
+            setChatProviderId("");
+            setChatModel("");
+            setGrantId("");
+            resetConversation();
+            setLauncher(true);
+          }}
+        />
+      )}
       {launcher && (
         <div
           className="modal-backdrop launcher-backdrop"
@@ -2346,6 +2484,32 @@ function OmniSpace({
                     <br />
                     Without one, your message is sent without memory context.
                   </p>
+                  <div
+                    className="conversation-starters"
+                    aria-label="Conversation starters"
+                  >
+                    {[
+                      "Help me plan my next project.",
+                      "Explain an idea, step by step.",
+                      "Help me think through a decision.",
+                    ].map((starter) => (
+                      <button
+                        key={starter}
+                        type="button"
+                        onClick={() => {
+                          setMessage(starter);
+                          document
+                            .querySelector<HTMLTextAreaElement>(
+                              '[aria-label="Your message"]',
+                            )
+                            ?.focus();
+                        }}
+                      >
+                        {starter}
+                        <ArrowUpRight size={13} />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {chatBusy && (

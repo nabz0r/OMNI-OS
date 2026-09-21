@@ -8,9 +8,17 @@ Run the repository's `run.sh` first to start the authenticated core and collecto
 
 For the native shell, run `npm run tauri --workspace @omni/desktop -- dev` with the core already running. If Vite is already running on port 3006, use `npm run tauri --workspace @omni/desktop -- dev --no-dev-server-wait --config '{"build":{"beforeDevCommand":""}}'`. The native global shortcut is **Alt + Shift + Space**. Within either interface, **Command/Ctrl + K** opens the request launcher. The Tauri crate is independent of the core Cargo workspace.
 
-The session token is held in `sessionStorage` and attached as a Bearer header to loopback API requests. An explicit `?token=` startup parameter is consumed and removed from the current browser-history entry; prefer entering the token manually. In native mode, the restricted `local_session_token` command reads only `OMNI_LOCAL_TOKEN` from the launcher process environment and supplies it to the main webview. It does not read arbitrary files. Tauri exposes no filesystem, shell, clipboard or HTTP plugin commands to the frontend.
+Normal browser startup receives a one-time `#connect=` fragment. The UI removes it synchronously and exchanges it at `/api/session/claim`; the generated link never contains the owner bearer token. React effect replay shares the same pending exchange. An existing browser credential cannot override a new pairing attempt. Expired or consumed links fall back to manual unlock.
+
+The session token is held in `sessionStorage` and attached as a Bearer header to loopback API requests. Legacy `?token=` parameters are removed and discarded rather than adopted as a session. Explicit lock always returns to manual unlock. In native mode, the restricted `local_session_token` command reads only `OMNI_LOCAL_TOKEN` from the launcher process environment and supplies it to the main webview. It does not read arbitrary files. Tauri exposes no filesystem, shell, clipboard or HTTP plugin commands to the frontend.
 
 **Lock session** clears the token, conversation and drafts from the interface and aborts its pending requests. The same running interface does not immediately provision the native token again after an explicit lock. This action locks the interface session; it does not stop the core or revoke credentials held by other clients.
+
+## A guided first run
+
+Fresh unused personal vaults open **Guided setup** unless the browser has dismissed it. **Overview → Guided setup** remains available later. Connect an existing or new provider, check its catalog, explicitly select a model, optionally save a confirmed preference, then open a fresh conversation. No grant or inference request is created by setup. The overview offers the next useful action according to the latest known primary-provider discovery state. This state includes its check timestamp, not a claim of continuous service health.
+
+Starter suggestions fill the composer without sending. A rendering boundary offers **Reload OMNI** if the interface fails to load, without deleting saved vault objects. See [Getting started](../../docs/GETTING_STARTED.md).
 
 ## Inspect and curate memory
 
@@ -54,7 +62,7 @@ The [administration guide](../../docs/ADMINISTRATION.md) documents every field, 
 
 ## Browser verification
 
-Run `npx playwright install chromium` installs the browser once. `npm run test:ui` and `npm run test:console` against the isolated local `--simulate` stack. It uses Playwright and reads `.omni/runtime/admin-token` without printing it. Its mutation flow requires the core to identify itself as a simulation. Generated screenshots live in ignored `apps/desktop/artifacts/`.
+Install the browser once with `npx playwright install chromium`. Run `npm run test:ui` and `npm run test:console` against the isolated local `--simulate --no-open` stack. They use Playwright and read `.omni/runtime/admin-token` without printing it. Their mutation flows require the core to identify itself as a simulation. Then run `npm run test:onboarding` and `npm run test:setup`: these launch separate temporary cores and encrypted vaults against loopback fixture providers, using the same UI server. They cover one-time browser pairing, guided setup, first conversation, profile creation and recovery from authentication or catalog failures. Generated screenshots live in ignored `apps/desktop/artifacts/`.
 
 The expanded flow is designed to check:
 

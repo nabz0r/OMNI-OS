@@ -239,3 +239,7 @@ The console does not automatically monitor ChatGPT or Claude website conversatio
 Owner authentication, loopback binding, destination policy, memory grants and encryption serve different purposes. None replaces process isolation, which the current runtime explicitly reports as absent. Protect the owner session and vault key, keep encrypted backups under a separate policy, and preserve the independent privacy ledger when restoring a vault.
 
 Implementation references: [administration settings and profiles](../crates/omni-core/src/administration.rs), [HTTP routes and exchange tracking](../crates/omni-core/src/http.rs), [encrypted journal and aggregation](../crates/omni-core/src/journal.rs), [provider console](../apps/desktop/src/Administration.tsx) and [operations console](../apps/desktop/src/Operations.tsx).
+
+## Guided first run
+
+The [first-run guide](GETTING_STARTED.md) introduces the same persistent profiles through Connect → Remember → Continue. Setup performs explicit catalog checks, sets a chosen primary model and optionally saves a confirmed preference. It does not create a grant or send an inference request. Return to the full Models and Settings pages for later administration.

@@ -2,9 +2,11 @@
 
 ## Local application
 
-`./run.sh --web` starts the gateway, collector and local UI. The default real inference endpoint is Ollama on `127.0.0.1:11434/v1`. On a new vault, `OMNI_LLM_MODEL` seeds the model choice. Thereafter use **Models** to manage persistent provider profiles and **Settings** to manage the extractor and local history. `./run.sh --web --simulate` substitutes explicitly marked local fixtures and runs the synthetic scenario. Runtime material goes under the ignored `.omni/` directory. The launcher starts only its own processes and terminates them on exit.
+`./run.sh --web` starts the gateway, collector and local UI. The default real inference endpoint is Ollama on `127.0.0.1:11434/v1`. On a new vault, `OMNI_LLM_MODEL` seeds the model choice. Thereafter use **Models** to manage persistent provider profiles and **Settings** to manage the extractor and local history. `./run.sh --web --simulate` substitutes explicitly marked local fixtures and runs the synthetic scenario. Runtime material goes under the ignored `.omni/` directory. The launcher starts only its own processes and terminates them on exit. `--web` opens the browser after readiness through an expiring, single-use pairing link; `--no-open` suppresses browser and native opening. `--doctor` runs a read-only startup diagnostic and exits. See [GETTING_STARTED.md](GETTING_STARTED.md) for the user path.
 
 The native shell is available through `./run.sh`. On macOS, Command Line Tools suffice for desktop compilation; trusted public distribution needs a Developer ID and notarization. The server-side VPN and privileged macOS interface setup have their own explicit commands in [VPN.md](VPN.md).
+
+JavaScript dependencies are refreshed with `npm ci` when the installation stamp no longer matches the root/workspace manifests, lockfile, runtime or platform. The stamp is written only after installation succeeds. Native build prerequisites remain platform-specific.
 
 ## Daily administration
 
@@ -29,24 +31,25 @@ No production endpoint is deployed automatically by publishing source code. VPN 
 
 ## Interface inventory
 
-| Endpoint                                                                  | Authentication                            | Role                                                            |
-| ------------------------------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
-| Core `/health`                                                            | None; loopback                            | Liveness                                                        |
-| Core `/api/state`                                                         | Console token                             | Vault, grants, disclosure and usage view                        |
-| Core `/api/memories`                                                      | Console token                             | Review and manage memory                                        |
-| Core `/api/grants`                                                        | Console token                             | Destination/scope/lifetime management                           |
-| Core `/api/admin`, `/api/admin/settings`                                  | Console token                             | Persistent local settings and read-only deployment policy       |
-| Core `/api/providers`, `/api/providers/{id}`, `/api/providers/{id}/probe` | Console token                             | Provider profiles, write-only keys and explicit discovery       |
-| Core `/api/interactions`, `/api/usage`, `/api/logs`                       | Console token                             | Metadata history, measured/estimated usage and structured audit |
-| Core `/api/chat`                                                          | Console token                             | Context-aware interaction                                       |
-| Core `/v1/chat/completions`, `/v1/messages`                               | Agent or console token + applicable grant | Provider-compatible requests                                    |
-| Core `/mcp`                                                               | Agent or console token                    | Explicitly authorized memory tools                              |
-| Core `/api/analytics/prepare`                                             | Console token, opt-in                     | Immutable local noised report                                   |
-| Core `/api/analytics/send`                                                | Console token, opt-in                     | Send the locally prepared report through Rust                   |
-| Core `/api/capture`, `/api/capture/status`                                | Agent or console token                    | Explicit local extraction into reviewable proposals             |
-| Collector `/api/v1/analytics`                                             | Strict numeric schema and rate limit      | Opt-in report intake                                            |
-| Collector `/api/v1/global`                                                | Public                                    | Thresholded aggregate                                           |
-| Collector `/api/v1/events`                                                | Public WebSocket                          | Published aggregate notifications                               |
+| Endpoint                                                                  | Authentication                                               | Role                                                            |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------- |
+| Core `/api/session/claim`                                                 | Single-use launch secret; local Origin required when present | Return the owner session once, within 120 seconds; no-store     |
+| Core `/health`                                                            | None; loopback                                               | Liveness                                                        |
+| Core `/api/state`                                                         | Console token                                                | Vault, grants, disclosure and usage view                        |
+| Core `/api/memories`                                                      | Console token                                                | Review and manage memory                                        |
+| Core `/api/grants`                                                        | Console token                                                | Destination/scope/lifetime management                           |
+| Core `/api/admin`, `/api/admin/settings`                                  | Console token                                                | Persistent local settings and read-only deployment policy       |
+| Core `/api/providers`, `/api/providers/{id}`, `/api/providers/{id}/probe` | Console token                                                | Provider profiles, write-only keys and explicit discovery       |
+| Core `/api/interactions`, `/api/usage`, `/api/logs`                       | Console token                                                | Metadata history, measured/estimated usage and structured audit |
+| Core `/api/chat`                                                          | Console token                                                | Context-aware interaction                                       |
+| Core `/v1/chat/completions`, `/v1/messages`                               | Agent or console token + applicable grant                    | Provider-compatible requests                                    |
+| Core `/mcp`                                                               | Agent or console token                                       | Explicitly authorized memory tools                              |
+| Core `/api/analytics/prepare`                                             | Console token, opt-in                                        | Immutable local noised report                                   |
+| Core `/api/analytics/send`                                                | Console token, opt-in                                        | Send the locally prepared report through Rust                   |
+| Core `/api/capture`, `/api/capture/status`                                | Agent or console token                                       | Explicit local extraction into reviewable proposals             |
+| Collector `/api/v1/analytics`                                             | Strict numeric schema and rate limit                         | Opt-in report intake                                            |
+| Collector `/api/v1/global`                                                | Public                                                       | Thresholded aggregate                                           |
+| Collector `/api/v1/events`                                                | Public WebSocket                                             | Published aggregate notifications                               |
 
 The collector has no personal account cookie or subscription token. Rate limiting is exposure control, not authentication of unique humans. If deploying behind multiple proxies, configure trusted source-IP handling intentionally; never blindly trust user-provided forwarding headers.
 

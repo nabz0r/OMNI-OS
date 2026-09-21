@@ -2,14 +2,85 @@
 use anyhow::Context;
 use anyhow::{bail, Result};
 use rand::RngCore;
-#[cfg(target_os = "macos")]
 use sha2::{Digest, Sha256};
 use std::{
     env, fs,
     io::Write,
     net::IpAddr,
     path::{Path, PathBuf},
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
 };
+use subtle::ConstantTimeEq;
+
+const PAIRING_LIFETIME: Duration = Duration::from_secs(120);
+
+/// An ephemeral, single-use capability shared by every clone of the runtime.
+/// Only its hash is retained; neither the secret nor this state is persisted.
+#[derive(Clone, Default)]
+pub struct PairingGate {
+    ticket: Arc<Mutex<Option<PairingTicket>>>,
+}
+
+struct PairingTicket {
+    secret_hash: [u8; 32],
+    expires_at: Instant,
+}
+
+impl PairingGate {
+    pub fn from_secret(secret: Option<&str>) -> Result<Self> {
+        Self::from_secret_at(secret, Instant::now())
+    }
+
+    fn from_secret_at(secret: Option<&str>, started: Instant) -> Result<Self> {
+        let Some(secret) = secret else {
+            return Ok(Self::default());
+        };
+        let bytes = pairing_bytes(secret)
+            .ok_or_else(|| anyhow::anyhow!("OMNI_PAIRING_SECRET must encode exactly 32 random bytes as 64 hexadecimal characters"))?;
+        Ok(Self {
+            ticket: Arc::new(Mutex::new(Some(PairingTicket {
+                secret_hash: Sha256::digest(bytes).into(),
+                expires_at: started + PAIRING_LIFETIME,
+            }))),
+        })
+    }
+
+    pub fn claim(&self, candidate: &str) -> bool {
+        self.claim_at(candidate, None)
+    }
+
+    fn claim_at(&self, candidate: &str, at: Option<Instant>) -> bool {
+        let Some(bytes) = pairing_bytes(candidate) else {
+            return false;
+        };
+        let candidate_hash: [u8; 32] = Sha256::digest(bytes).into();
+        let Ok(mut ticket) = self.ticket.lock() else {
+            return false;
+        };
+        let Some(pending) = ticket.as_ref() else {
+            return false;
+        };
+        if at.unwrap_or_else(Instant::now) >= pending.expires_at {
+            *ticket = None;
+            return false;
+        }
+        if bool::from(pending.secret_hash.ct_eq(&candidate_hash)) {
+            *ticket = None;
+            return true;
+        }
+        false
+    }
+}
+
+fn pairing_bytes(secret: &str) -> Option<[u8; 32]> {
+    if secret.len() != 64 {
+        return None;
+    }
+    let mut bytes = [0; 32];
+    hex::decode_to_slice(secret, &mut bytes).ok()?;
+    Some(bytes)
+}
 
 #[derive(Clone)]
 pub struct Config {
@@ -17,6 +88,7 @@ pub struct Config {
     pub port: u16,
     pub local_token: String,
     pub agent_token: String,
+    pub pairing: PairingGate,
     pub llm_base: String,
     pub llm_model: String,
     pub llm_key: String,
@@ -41,6 +113,7 @@ fn flag(name: &str) -> bool {
 
 impl Config {
     pub fn from_env() -> Result<Self> {
+        let pairing = PairingGate::from_secret(env::var("OMNI_PAIRING_SECRET").ok().as_deref())?;
         let data_dir = env::var_os("OMNI_DATA_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|| {
@@ -122,6 +195,7 @@ impl Config {
         Ok(Self {
             local_token,
             agent_token,
+            pairing,
             port: env::var("OMNI_CORE_PORT")
                 .unwrap_or_else(|_| "3007".into())
                 .parse()?,
@@ -285,5 +359,59 @@ mod tests {
         assert!(validate_tokens("shared-token-0123456", "shared-token-0123456").is_err());
         assert!(validate_tokens("owner-token-01234567", "agent-token\r\nsecret").is_err());
         assert!(validate_tokens("owner-token-01234567", "agent token 01234567").is_err());
+    }
+    #[test]
+    fn pairing_expires_monotonically_and_never_extends_on_failed_claims() {
+        let secret = "ab".repeat(32);
+        let start = Instant::now();
+        let gate = PairingGate::from_secret_at(Some(&secret), start).unwrap();
+        assert!(!gate.claim_at(&"cd".repeat(32), Some(start + Duration::from_secs(119))));
+        assert!(!gate.claim_at(&secret, Some(start + Duration::from_secs(120))));
+        assert!(!gate.claim_at(&secret, Some(start + Duration::from_secs(121))));
+        let gate = PairingGate::from_secret_at(Some(&secret), start).unwrap();
+        assert!(gate.claim_at(&secret, Some(start + Duration::from_secs(119))));
+        assert!(!gate
+            .clone()
+            .claim_at(&secret, Some(start + Duration::from_secs(119))));
+    }
+    #[test]
+    fn pairing_has_one_winner_across_concurrent_clones_and_bad_candidates() {
+        let secret = "ab".repeat(32);
+        let gate = PairingGate::from_secret(Some(&secret)).unwrap();
+        let barrier = Arc::new(std::sync::Barrier::new(24));
+        let attempts = (0..24)
+            .map(|index| {
+                let gate = gate.clone();
+                let barrier = barrier.clone();
+                let candidate = if index % 2 == 0 {
+                    secret.clone()
+                } else {
+                    "cd".repeat(32)
+                };
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    (index % 2 == 0, gate.claim(&candidate))
+                })
+            })
+            .collect::<Vec<_>>();
+        let results = attempts
+            .into_iter()
+            .map(|attempt| attempt.join().unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(results.iter().filter(|(_, claimed)| *claimed).count(), 1);
+        assert!(results
+            .iter()
+            .filter(|(valid, _)| !*valid)
+            .all(|(_, claimed)| !*claimed));
+        assert!(!gate.claim(&secret));
+    }
+    #[test]
+    fn pairing_requires_exact_hex_and_is_disabled_without_launch_secret() {
+        assert!(PairingGate::from_secret(Some("bad-secret")).is_err());
+        assert!(PairingGate::from_secret(Some(&"gg".repeat(32))).is_err());
+        assert!(!PairingGate::default().claim(&"ab".repeat(32)));
+        let gate = PairingGate::from_secret(Some(&"ab".repeat(32))).unwrap();
+        assert!(!gate.claim("bad-secret"));
+        assert!(gate.claim(&"ab".repeat(32)));
     }
 }

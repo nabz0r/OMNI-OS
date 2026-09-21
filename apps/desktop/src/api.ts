@@ -59,9 +59,8 @@ export interface ChatReply {
 }
 export function initialToken() {
   const url = new URL(window.location.href);
-  const token = url.searchParams.get("token");
-  if (token) {
-    sessionStorage.setItem("omni.token", token);
+  // Legacy query credentials are discarded, never adopted as an owner session.
+  if (url.searchParams.has("token")) {
     url.searchParams.delete("token");
     history.replaceState({}, "", url);
   }

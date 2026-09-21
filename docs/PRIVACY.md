@@ -4,6 +4,10 @@
 
 The collector may observe or retain every released report. A configured AI provider receives the authorized prompt and context. A local attacker with access to an unlocked process, a compromised OS, or an authorized provider is not made harmless by database encryption. The authenticated VPN hub observes endpoints and traffic metadata. HTTPS remains necessary over the tunnel.
 
+## First-run privacy
+
+Guided setup discovers provider catalogs and optionally saves a confirmed local preference. It does not issue an inference request or create a sharing permission automatically. Conversation suggestions are local drafts until submitted. The browser launch capability is short-lived, single-use and removed from the URL before rendering; no owner token is embedded in the generated URL. This convenience does not provide protection against a compromised local browser or core.
+
 ## Private operational metadata
 
 **History**, **Usage** and **Logs** read a local SQLCipher journal. It records provider/model identifiers, destination, status, timings, body sizes, supplied token counts, price snapshots and structured audit actions. It never accepts prompt/response bodies, API keys or arbitrary diagnostic messages in its schema. Metadata can still reveal activity and remains private; an authorized export is a local file, not an analytics submission.

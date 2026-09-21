@@ -30,7 +30,9 @@ Still **to be built or evaluated**: a vault process isolated through OS permissi
 
 The proposed first audience is independent professionals, developers and small teams using several assistants on ongoing projects. Distribution begins with supported pilots in professional communities the team can reach. Each participant brings real work and chooses their sources. One complete use case is worth more than a long list of connectors.
 
-The product must make it simple to create a first memory, correct it, grant limited permission, send a request with context and inspect the resulting receipt. Export and verified vault restoration are work to complete before a public beta. Withdrawing permission must be understandable without reading code.
+The guided first run now connects a provider, optionally saves one confirmed memory without granting access, and opens a first conversation. The browser launch uses an expiring, single-use pairing exchange; the native launcher provisions its own session. A read-only startup diagnostic and dependency freshness checks improve recovery. The home screen places conversation and guided setup beside the private memory view. These are implemented MVP behaviors, not a signed one-click public installer.
+
+The product must continue to make it simple to correct a first memory, grant limited permission, send a request with context and inspect the resulting receipt. Export and verified vault restoration are work to complete before a public beta. Withdrawing permission must be understandable without reading code.
 
 ### Evidence Required Before Expanding
 

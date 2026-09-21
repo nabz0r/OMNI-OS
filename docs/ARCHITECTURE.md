@@ -29,6 +29,10 @@ sequenceDiagram
 
 Local inference uses a loopback provider and does not require the tunnel. When VPN routing is configured, the gateway must use the configured SOCKS transport without direct fallback. A failed tunnel is an error, not authorization to bypass it.
 
+## First-run session boundary
+
+The local launcher creates a temporary random pairing secret for automatic browser opening. Its fragment is consumed before rendering; `/api/session/claim` returns the owner token exactly once within 120 seconds, with allowed-Origin checks and non-cacheable responses. The core retains a hash and atomic consumed state in memory. Native startup uses its restricted provisioning command instead. The setup UI then calls existing owner-only profile and memory APIs; it does not bypass grants or infer new agent authority.
+
 ## Data model
 
 ```mermaid

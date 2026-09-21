@@ -44,17 +44,19 @@ jobs:
       - run: npm run build
       - run: cargo build --workspace --locked
       - run: python3 infra/vpn/test_scripts.py
-      - run: node --test scripts/lifecycle.test.mjs
+      - run: node --test scripts/lifecycle.test.mjs scripts/startup.test.mjs
       - run: npx playwright install --with-deps chromium
       - name: Exercise the complete local application in Chromium
         shell: bash
         run: |
-          ./run.sh --web --simulate > browser-stack.log 2>&1 &
+          ./run.sh --web --simulate --no-open > browser-stack.log 2>&1 &
           omni_stack_pid=$!
           trap 'kill -TERM "$omni_stack_pid" 2>/dev/null || true; wait "$omni_stack_pid" 2>/dev/null || true' EXIT
           node scripts/wait-ready.mjs http://127.0.0.1:3007/health http://127.0.0.1:3008/health http://127.0.0.1:3006
           npm run test:ui
           npm run test:console
+          npm run test:onboarding
+          npm run test:setup
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -90,6 +92,7 @@ jobs:
       - run: npm ci
       - run: npm run build --workspace @omni/desktop
       - run: cargo build --manifest-path apps/desktop/src-tauri/Cargo.toml --locked --features custom-protocol
+      - run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --locked --features custom-protocol
   vpn-linux:
     runs-on: ubuntu-latest
     timeout-minutes: 15

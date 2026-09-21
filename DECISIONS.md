@@ -6,7 +6,7 @@ OMNI represents preferences, observations and decisions with provenance and stat
 
 ## 2. Authority is enforced at a boundary we actually control
 
-Grants constrain destination, scope and lifetime. Agent credentials cannot administer their own grants. Revocation stops subsequent OMNI-mediated requests, not copies already held by a provider. A remote provider necessarily receives the content selected for it. The collector has a separate, closed numeric schema. Neither Rust's type system nor local storage alone proves complete OS confinement.
+Grants constrain destination, scope and lifetime. Agent credentials cannot administer their own grants. Guided setup creates no implicit permission, and automatic browser startup uses a temporary single-use capability instead of exposing the owner token in the launch URL. Revocation stops subsequent OMNI-mediated requests, not copies already held by a provider. A remote provider necessarily receives the content selected for it. The collector has a separate, closed numeric schema. Neither Rust's type system nor local storage alone proves complete OS confinement.
 
 ## 3. Transport and semantic understanding are separate
 

@@ -28,3 +28,5 @@ Local analysis, actual provider integrations, explicit permissions, a genuine VP
 ## An inspectable daily workspace
 
 The delivered console makes provider choice, loaded local models, individual requests, permissions, token observations and configuration visible in one place. This is the first measurement surface for the product hypothesis: it exposes what happened without pretending that fewer context bytes prove better task outcomes. Costs require explicit rates; cloud API catalogs do not imply surveillance of ChatGPT or Claude website sessions. See the [administration guide](ADMINISTRATION.md).
+
+The guided first run reduces setup to a chosen connection, an optional local preference and a first conversation. It does not invent an account, a cloud credential, an installed model or a permission on the user's behalf. Startup diagnostics and visible recovery paths are part of the experience; signed installation and broader device validation remain release gates.

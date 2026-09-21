@@ -48,6 +48,8 @@ Nor does it turn an inference into truth, or possession of a document into a uni
 | Isolation      | Separate collector; memory and gateway in the same core                         | Separate OS helpers with distinct network permissions          |
 | ZK proofs      | None                                                                            | Targeted verifiable attributes, if justified by a use case     |
 
+The guided first run uses these same boundaries: catalog discovery, an optional confirmed local preference and a primary-provider choice. It creates no sharing grant and no inference request. Browser startup uses an expiring one-time pairing capability; owner-token provisioning and the transient UI session remain separate from provider authority. See the [first-run guide](docs/GETTING_STARTED.md).
+
 The product must remain useful without participating in analytics or sending memory to a remote model.
 Success is measured by the quality of tasks completed with controlled disclosure, not by the volume of data absorbed.
 

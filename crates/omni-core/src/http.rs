@@ -527,6 +527,10 @@ pub fn app(state: AppState) -> Router {
             }),
         )
         .route("/api/state", get(state_view))
+        .route(
+            "/api/session/claim",
+            post(claim_session).layer(DefaultBodyLimit::max(1024)),
+        )
         .route("/api/admin", get(admin_view))
         .route("/api/admin/settings", patch(admin_settings))
         .route("/api/providers", post(create_provider))
@@ -562,6 +566,47 @@ pub fn app(state: AppState) -> Router {
         .layer(DefaultBodyLimit::max(1024 * 1024))
         .layer(cors)
         .with_state(state)
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SessionClaim {
+    secret: String,
+}
+
+async fn claim_session(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    input: Result<Json<SessionClaim>, axum::extract::rejection::JsonRejection>,
+) -> Response {
+    // CORS is not an authorization check. An explicitly supplied Origin must
+    // match even for clients that do not enforce browser response restrictions.
+    let mut origins = headers.get_all(header::ORIGIN).iter();
+    let origin_allowed = match origins.next() {
+        None => true,
+        Some(origin) => {
+            origins.next().is_none()
+                && origin.to_str().is_ok_and(|origin| {
+                    state.config.origins.iter().any(|allowed| allowed == origin)
+                })
+        }
+    };
+    let claimed =
+        origin_allowed && input.is_ok_and(|Json(input)| state.config.pairing.claim(&input.secret));
+    let mut response = if claimed {
+        Json(json!({"token":state.config.local_token})).into_response()
+    } else {
+        ApiError(
+            StatusCode::FORBIDDEN,
+            "Session pairing is unavailable".into(),
+        )
+        .into_response()
+    };
+    response.headers_mut().insert(
+        header::CACHE_CONTROL,
+        header::HeaderValue::from_static("no-store"),
+    );
+    response
 }
 
 fn runtime_view(config: &Config) -> Value {
@@ -1772,6 +1817,7 @@ mod tests {
             port: 3007,
             local_token: "admin-token-0123456789".into(),
             agent_token: "agent-token-0123456789".into(),
+            pairing: Default::default(),
             llm_base: "http://127.0.0.1:11434/v1".into(),
             llm_model: "test".into(),
             llm_key: String::new(),
@@ -3015,5 +3061,193 @@ mod tests {
             complete.response_complete();
             assert_eq!(complete.finish.status, "succeeded");
         }
+    }
+    async fn claim_request(
+        router: Router,
+        secret: &str,
+        origin: Option<&str>,
+        token: Option<&str>,
+    ) -> (StatusCode, HeaderMap, Value) {
+        let mut builder = axum::http::Request::builder()
+            .method("POST")
+            .uri("/api/session/claim")
+            .header(header::CONTENT_TYPE, "application/json");
+        if let Some(origin) = origin {
+            builder = builder.header(header::ORIGIN, origin);
+        }
+        if let Some(token) = token {
+            builder = builder.header(header::AUTHORIZATION, format!("Bearer {token}"));
+        }
+        let response = router
+            .oneshot(
+                builder
+                    .body(Body::from(json!({"secret":secret}).to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let status = response.status();
+        let headers = response.headers().clone();
+        let bytes = axum::body::to_bytes(response.into_body(), 4096)
+            .await
+            .unwrap();
+        (status, headers, serde_json::from_slice(&bytes).unwrap())
+    }
+    #[tokio::test]
+    async fn pairing_rejects_wrong_origin_and_agent_bearer_then_claims_once_without_cache() {
+        let (_dir, mut state) = test_state();
+        let secret = "ab".repeat(32);
+        Arc::make_mut(&mut state.config).pairing =
+            crate::config::PairingGate::from_secret(Some(&secret)).unwrap();
+        let router = app(state.clone());
+        let wrong = claim_request(
+            router.clone(),
+            &"cd".repeat(32),
+            Some("http://localhost:3006"),
+            Some("agent-token-0123456789"),
+        )
+        .await;
+        assert_eq!(wrong.0, StatusCode::FORBIDDEN);
+        assert_eq!(wrong.1[header::CACHE_CONTROL], "no-store");
+        assert!(!wrong.2.to_string().contains("admin-token"));
+        assert!(!wrong.2.to_string().contains(&secret));
+        let foreign = claim_request(
+            router.clone(),
+            &secret,
+            Some("https://foreign.example"),
+            None,
+        )
+        .await;
+        assert_eq!(foreign.0, StatusCode::FORBIDDEN);
+        assert_eq!(foreign.2, wrong.2);
+        let opaque = claim_request(router.clone(), &secret, Some("null"), None).await;
+        assert_eq!(opaque.0, StatusCode::FORBIDDEN);
+        let claimed =
+            claim_request(router.clone(), &secret, Some("http://localhost:3006"), None).await;
+        assert_eq!(claimed.0, StatusCode::OK);
+        assert_eq!(claimed.1[header::CACHE_CONTROL], "no-store");
+        assert_eq!(claimed.2, json!({"token":"admin-token-0123456789"}));
+        let duplicate =
+            claim_request(router.clone(), &secret, Some("http://localhost:3006"), None).await;
+        assert_eq!(duplicate.0, StatusCode::FORBIDDEN);
+        assert_eq!(duplicate.2, wrong.2);
+        let admin = request(
+            router.clone(),
+            "/api/admin",
+            Some("admin-token-0123456789"),
+            None,
+            None,
+        )
+        .await
+        .1;
+        assert!(!admin.to_string().contains(&secret));
+        assert!(!admin.to_string().contains("pairing"));
+        let agent = request(
+            router.clone(),
+            "/api/session/claim",
+            Some("agent-token-0123456789"),
+            None,
+            None,
+        )
+        .await;
+        assert_eq!(agent.0, StatusCode::METHOD_NOT_ALLOWED);
+        assert!(!agent.1.to_string().contains("admin-token"));
+        assert_eq!(
+            state
+                .vault()
+                .unwrap()
+                .journal_history(&Default::default())
+                .unwrap()
+                .total,
+            0
+        );
+    }
+    #[tokio::test]
+    async fn pairing_router_clones_share_one_atomic_claim_and_absent_origin_is_allowed() {
+        let (_dir, mut state) = test_state();
+        let secret = "ab".repeat(32);
+        Arc::make_mut(&mut state.config).pairing =
+            crate::config::PairingGate::from_secret(Some(&secret)).unwrap();
+        let router = app(state);
+        let attempts = (0..20).map(|index| {
+            let router = router.clone();
+            let candidate = if index % 2 == 0 {
+                secret.clone()
+            } else {
+                "cd".repeat(32)
+            };
+            async move { (index, claim_request(router, &candidate, None, None).await) }
+        });
+        let results = futures_util::future::join_all(attempts).await;
+        assert_eq!(
+            results
+                .iter()
+                .filter(|(_, result)| result.0 == StatusCode::OK)
+                .count(),
+            1
+        );
+        assert!(results
+            .iter()
+            .filter(|(index, _)| index % 2 == 1)
+            .all(|(_, result)| result.0 == StatusCode::FORBIDDEN));
+        let (_dir, disabled) = test_state();
+        let denied = claim_request(app(disabled), &secret, None, None).await;
+        assert_eq!(denied.0, StatusCode::FORBIDDEN);
+        assert!(!denied.2.to_string().contains("admin-token"));
+    }
+    #[tokio::test]
+    async fn pairing_rejects_malformed_or_oversized_bodies_and_duplicate_origins_without_echo() {
+        let (_dir, mut state) = test_state();
+        let secret = "ab".repeat(32);
+        Arc::make_mut(&mut state.config).pairing =
+            crate::config::PairingGate::from_secret(Some(&secret)).unwrap();
+        let router = app(state);
+        for body in [
+            format!("{{\"secret\":\"{secret}\",\"unexpected\":true}}"),
+            format!("{{\"secret\":\"{}\"}}", "x".repeat(2048)),
+            "not-json".into(),
+        ] {
+            let response = router
+                .clone()
+                .oneshot(
+                    axum::http::Request::builder()
+                        .method("POST")
+                        .uri("/api/session/claim")
+                        .header(header::CONTENT_TYPE, "application/json")
+                        .body(Body::from(body))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::FORBIDDEN);
+            assert_eq!(response.headers()[header::CACHE_CONTROL], "no-store");
+            let bytes = axum::body::to_bytes(response.into_body(), 4096)
+                .await
+                .unwrap();
+            let value: Value = serde_json::from_slice(&bytes).unwrap();
+            assert_eq!(value["error"]["message"], "Session pairing is unavailable");
+            assert!(!value.to_string().contains(&secret));
+        }
+        let response = router
+            .clone()
+            .oneshot(
+                axum::http::Request::builder()
+                    .method("POST")
+                    .uri("/api/session/claim")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .header(header::ORIGIN, "http://localhost:3006")
+                    .header(header::ORIGIN, "https://foreign.example")
+                    .body(Body::from(json!({"secret":secret}).to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        assert_eq!(
+            claim_request(router, &secret, Some("http://localhost:3006"), None)
+                .await
+                .0,
+            StatusCode::OK
+        );
     }
 }

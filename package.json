@@ -19,7 +19,9 @@
     "simulate": "node scripts/simulate.mjs",
     "collector": "npm run start --workspace @omni/collector",
     "test:ui": "node apps/desktop/qa.mjs",
-    "test:console": "node apps/desktop/qa-console.mjs"
+    "test:console": "node apps/desktop/qa-console.mjs",
+    "test:onboarding": "node apps/desktop/qa-onboarding.mjs",
+    "test:setup": "node apps/desktop/qa-setup-connections.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

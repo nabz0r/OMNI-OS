@@ -2,6 +2,8 @@
 
 OMNI does not need an interception certificate. Use the desktop launcher, point a compatible client at the local gateway, or connect through its MCP memory tools. The browser extension captures visible conversation text only when its button is pressed; installation is described in the [extension guide](../apps/extension/README.md).
 
+For the normal first launch, follow [Getting started](GETTING_STARTED.md). The browser opens through a single-use local pairing link; the native app receives its session from the launcher. Headless `--no-open` keeps manual owner-token entry available.
+
 ## Desktop launcher and session context
 
 The [desktop interface](../apps/desktop/README.md) connects to the authenticated local core. **Ask with context** sends a message through `/api/chat` to the configured model. A selected permission controls which confirmed vault memories may augment the request. Without a permission, the model still receives the user's message and any included conversation history; it receives no vault-memory augmentation.

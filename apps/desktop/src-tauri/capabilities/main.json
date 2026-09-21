@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main",
-  "description": "Only the main webview can retrieve its locally provisioned session token from the process environment. No shell, filesystem, HTTP plugin or shortcut management permission.",
+  "description": "Only the main webview can retrieve its locally provisioned session token and open the fixed official setup resource. No arbitrary shell, filesystem, HTTP plugin or shortcut management permission.",
   "windows": ["main"],
-  "permissions": ["allow-local-session-token"]
+  "permissions": ["allow-local-session-token", "allow-open-setup-resource"]
 }
