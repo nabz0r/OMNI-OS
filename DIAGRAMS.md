@@ -1,122 +1,122 @@
-# OMNI-OS · Les frontières de la compréhension
+# OMNI-OS · The Boundaries of Understanding
 
-> Un schéma doit montrer ce qui peut traverser une frontière — et qui en décide.
+> A diagram should show what can cross a boundary—and who decides.
 
-Ces vues complètent le [livre d’architecture](ARCHITECTURE.md). **Implémenté** désigne le comportement du dépôt. **Cible** désigne une construction à livrer, avec ses critères dans la [roadmap](ROADMAP.md). Une frontière dessinée ne constitue jamais, à elle seule, une isolation imposée par le système d’exploitation.
+These views complement the [architecture guide](ARCHITECTURE.md). **Implemented** describes behavior in this repository. **Target** describes work still to be delivered, with acceptance criteria in the [roadmap](ROADMAP.md). A boundary drawn on a diagram is never, by itself, evidence of operating-system isolation.
 
-## 1. Une requête, une autorisation, une réponse
+## 1. One request, one authorization, one response
 
-**Implémenté — intégration applicative explicite.** L’application ou l’agent appelle le gateway OMNI. Le VPN ne découvre pas le texte d’une conversation HTTPS. Mémoire, politique et gateway sont actuellement des modules du même processus Rust.
+**Implemented — explicit application integration.** The application or agent calls the OMNI gateway. The VPN does not reveal the text of an HTTPS conversation. Memory, policy, and the gateway currently run as modules within the same Rust process.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Utilisateur
-    participant UI as Launcher ou application intégrée
-    participant Core as OMNI local / Rust
-    participant Vault as Coffre SQLCipher
-    participant LLM as Modèle choisi
+    actor User as User
+    participant UI as Launcher or integrated application
+    participant Core as Local OMNI / Rust
+    participant Vault as SQLCipher vault
+    participant LLM as Selected model
 
-    User->>UI: Pose une question
-    UI->>Core: Requête authentifiée et grant éventuel
-    Core->>Core: Vérifie destination, expiration et révocation
-    alt Grant fourni mais invalide
-        Core-->>UI: Refus avant tout appel au fournisseur
-        UI-->>User: Autorisation à corriger
-    else Autorisation valide ou aucune mémoire demandée
-        opt Grant valide pour partager de la mémoire
-            Core->>Vault: Recherche bornée dans les souvenirs autorisés
-            Vault-->>Core: Souvenirs confirmés et provenance
-            Core->>Core: Construit le contexte autorisé et borné
+    User->>UI: Asks a question
+    UI->>Core: Authenticated request and optional grant
+    Core->>Core: Checks destination, expiration, and revocation
+    alt Supplied grant is invalid
+        Core-->>UI: Rejects before calling the provider
+        UI-->>User: Authorization needs attention
+    else Valid authorization or no memory requested
+        opt Valid grant for sharing memory
+            Core->>Vault: Selects a bounded set of authorized memories
+            Vault-->>Core: Confirmed memories and provenance
+            Core->>Core: Builds authorized, bounded context
         end
-        opt Souvenirs sélectionnés non vides
-            Core->>Vault: Enregistre le reçu du partage de contexte
+        opt Selected memories are not empty
+            Core->>Vault: Records a context disclosure receipt
         end
-        Core->>LLM: Requête et contexte autorisé / HTTPS si distant
-        Note over Core,LLM: WireGuard optionnel transporte ce HTTPS sans le déchiffrer
-        LLM-->>Core: En-têtes de réponse
-        Core->>Vault: Enregistre la latence et les observations locales
-        LLM-->>Core: Corps de réponse, éventuellement en streaming
-        Core-->>UI: Réponse du fournisseur
-        UI-->>User: Affiche la réponse
+        Core->>LLM: Request and authorized context / HTTPS if remote
+        Note over Core,LLM: Optional WireGuard carries this HTTPS without decrypting it
+        LLM-->>Core: Response headers
+        Core->>Vault: Records latency and local observations
+        LLM-->>Core: Response body, optionally streamed
+        Core-->>UI: Provider response
+        UI-->>User: Displays the response
     end
 ```
 
-La conversation ne part pas vers le collecteur OMNI. Le **fournisseur choisi** reçoit nécessairement le texte autorisé pour effectuer son calcul. Son éventuelle rétention dépend de son contrat et de sa configuration. Le mode local garde ce calcul sur l’appareil.
+The conversation is not sent to the OMNI collector. The **selected provider** necessarily receives the authorized text to perform its computation. Any retention depends on that provider's contract and configuration. Local mode keeps this computation on the device.
 
-Une entrée de mémoire issue d’une capture reste une **proposition** jusqu’à confirmation. Le reçu trace une divulgation tentée par OMNI ; il ne prouve pas qu’un fournisseur a effacé ses copies ni qu’il a correctement utilisé chaque souvenir.
+A memory extracted from a capture remains a **proposal** until confirmed. A receipt records an attempted disclosure by OMNI; it does not prove that a provider deleted its copies or used each memory correctly.
 
-Le gateway sélectionne les souvenirs confirmés permis, dans la limite de 24 entrées et 12 000 octets ; cette sélection n’effectue pas encore une recherche sémantique liée à la question. La recherche lexicale avec une requête existe côté MCP. Les observations ne constituent pas un archivage automatique de la conversation ; les tokens d’un flux streaming restent inconnus.
+The gateway selects authorized, confirmed memories, up to 24 entries and 12,000 bytes. This selection does not yet perform semantic retrieval based on the question. Query-based lexical search is available through MCP. Observations do not automatically archive the conversation; token counts remain unknown for streamed responses.
 
-## 2. Le terrain qui se métamorphose
+## 2. A landscape that evolves
 
-**Cible — Knowledge Graph temporel et autorité par agent.** La v1 possède déjà des sources, souvenirs, états, historiques, permissions et reçus. Sa recherche est lexicale ; les relations sémantiques ci-dessous et les identités cryptographiques distinctes par agent restent à construire.
+**Target — a temporal knowledge graph and authority for each agent.** V1 already has sources, memories, states, histories, permissions, and receipts. Its search is lexical; the semantic relationships shown below and distinct cryptographic identities for each agent remain to be built.
 
 ```mermaid
 flowchart TB
-    Owner["Vous<br/>Confirmer, corriger, révoquer"]
-    Agents["Agents externes<br/>Identités distinctes — cible"]
+    Owner["You<br/>Confirm, correct, revoke"]
+    Agents["External agents<br/>Distinct identities — target"]
 
-    subgraph Authority["Juridiction locale · frontière d’autorisation"]
-        Policy["Contrôle de capacité<br/>Agent · destination · action · durée · portée"]
-        Proposals["Propositions non fiables<br/>Jamais une autorisation"]
-        Export["Contexte pour une tâche<br/>Filtrage avant lecture et avant sortie"]
-        Receipts["Reçus de divulgation<br/>Quoi · vers qui · sous quelle permission"]
+    subgraph Authority["Local authority · authorization boundary"]
+        Policy["Capability checks<br/>Agent · destination · action · duration · scope"]
+        Proposals["Untrusted proposals<br/>Never an authorization"]
+        Export["Context for one task<br/>Filter before reading and before sending"]
+        Receipts["Disclosure receipts<br/>What · to whom · under which permission"]
 
-        subgraph Memory["Coffre local chiffré · graphe cible"]
-            Sources["Sources et provenance"]
-            Claims["Faits et relations typés"]
-            Time["Validité temporelle<br/>Versions et contradictions"]
-            Index["Index dérivés<br/>Lexical · vectoriel · graphe"]
+        subgraph Memory["Encrypted local vault · target graph"]
+            Sources["Sources and provenance"]
+            Claims["Typed facts and relationships"]
+            Time["Temporal validity<br/>Versions and contradictions"]
+            Index["Derived indexes<br/>Lexical · vector · graph"]
             Sources --> Claims
             Claims <--> Time
             Claims --> Index
         end
 
-        Policy -->|"Lecture autorisée"| Index
+        Policy -->|"Authorized read"| Index
         Index --> Export
         Export --> Receipts
-        Policy -->|"Écriture proposée"| Proposals
-        Proposals -->|"Après confirmation"| Claims
+        Policy -->|"Proposed write"| Proposals
+        Proposals -->|"After confirmation"| Claims
     end
 
-    Owner -->|"Fixe les règles"| Policy
-    Owner -->|"Arbitre les faits"| Proposals
-    Agents -->|"Présentent une capacité"| Policy
-    Export -->|"Sous-ensemble autorisé"| Agents
+    Owner -->|"Sets the rules"| Policy
+    Owner -->|"Resolves factual disputes"| Proposals
+    Agents -->|"Present a capability"| Policy
+    Export -->|"Authorized subset"| Agents
 ```
 
-**Zero Trust signifie vérifier chaque requête.** Un agent n’obtient jamais un accès SQL direct au coffre. Une instruction trouvée dans un document reste une donnée : elle ne peut étendre une permission. La cible sépare aussi le coffre et les sorties réseau par des mécanismes de l’OS ; ce confinement n’est pas une propriété déjà démontrée du processus Rust actuel.
+**Zero trust means checking every request.** An agent never receives direct SQL access to the vault. An instruction found in a document remains data: it cannot expand a permission. The target also separates the vault from network egress through OS mechanisms; this confinement is not an established property of the current Rust process.
 
-Le graphe conserve les désaccords et les dates. Les index accélèrent la recherche ; ils ne deviennent pas la source de vérité. Une correction doit invalider les vues dérivées concernées. Un dessin de Nebula n’est pas la preuve qu’une relation a été inférée correctement.
+The graph preserves disagreements and dates. Indexes accelerate retrieval; they do not become the source of truth. A correction must invalidate the affected derived views. A Nebula visualization does not prove that a relationship was inferred correctly.
 
-## 3. L’écosystème : deux destinations, deux contrats
+## 3. The ecosystem: two destinations, two contracts
 
-**Cible analytique — modèle C4 de conteneurs.** Ici, « conteneur » désigne une unité exécutable ou un stockage au sens de C4 ; il ne signifie pas que tout doit tourner dans Docker. Cette vue conserve le client Rust v1 et montre l’évolution du backend vers SingleStore. **Aujourd’hui, le collecteur Fastify emploie Redis en production, SQLite en développement.** L’isolation future des modules locaux en processus séparés est détaillée dans l’[architecture](ARCHITECTURE.md).
+**Analytics target — C4 container model.** Here, a “container” means an executable unit or a data store in the C4 model; it does not mean everything must run in Docker. This view retains the v1 Rust client and shows the backend's evolution toward SingleStore. **Today, the Fastify collector uses Redis in production and SQLite in development.** Future isolation of local modules into separate processes is detailed in the [architecture guide](ARCHITECTURE.md).
 
 ```mermaid
 C4Container
-    title OMNI-OS — client local et cible analytique SingleStore
+    title OMNI-OS — local client and target SingleStore analytics
 
-    Person(user, "Utilisateur", "Choisit ses souvenirs et leurs destinataires")
+    Person(user, "User", "Chooses memories and their recipients")
 
-    System_Boundary(device, "Appareil personnel") {
-        Container(core, "Client OMNI", "Rust + OpenDP", "Gateway, politique et calcul DP local")
-        ContainerDb(localdb, "Coffre personnel", "SQLCipher", "Mémoire, droits, reçus et budget DP")
+    System_Boundary(device, "Personal device") {
+        Container(core, "OMNI client", "Rust + OpenDP", "Gateway, policy, and local DP computation")
+        ContainerDb(localdb, "Personal vault", "SQLCipher", "Memory, permissions, receipts, and DP budget")
     }
 
-    System_Ext(provider, "Modèle choisi", "Local ou fournisseur distant sous HTTPS")
+    System_Ext(provider, "Selected model", "Local model or remote HTTPS provider")
 
-    System_Boundary(collective, "Collectif OMNI") {
-        Container(api, "API analytique", "Fastify / HTTPS + WSS", "Admission, agrégation et publication")
-        ContainerDb(analytics, "Analytique globale", "SingleStore — cible", "Agrégats bruités et registre de déduplication")
+    System_Boundary(collective, "OMNI Collective") {
+        Container(api, "Analytics API", "Fastify / HTTPS + WSS", "Admission, aggregation, and publication")
+        ContainerDb(analytics, "Global analytics", "SingleStore — target", "Noisy aggregates and deduplication ledger")
     }
 
-    Rel(user, core, "Interagit via Nebula")
-    Rel(core, localdb, "Lit et persiste")
-    Rel(core, provider, "Contexte autorisé")
-    BiRel(core, api, "Rapport bruité / accusé")
-    BiRel(api, analytics, "Agrège et consulte")
+    Rel(user, core, "Interacts through Nebula")
+    Rel(core, localdb, "Reads / writes")
+    Rel(core, provider, "Authorized context")
+    BiRel(core, api, "Noisy report / acknowledgment")
+    BiRel(api, analytics, "Aggregates and queries")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
     UpdateRelStyle(user, core, $offsetY="-30")
@@ -124,106 +124,106 @@ C4Container
     UpdateRelStyle(api, analytics, $offsetX="-45", $offsetY="-35")
 ```
 
-Le SaaS LLM apporte un service de calcul. Le SaaS OMNI tient un état statistique durable. **Aucun des deux ne possède, par cette architecture, le rôle de mémoire personnelle faisant autorité.** Appeler un modèle comme un moteur sans état ne garantit pas l’absence de journaux chez son fournisseur.
+The LLM SaaS provides computation. The OMNI SaaS maintains durable statistical state. **Neither is assigned the role of authoritative personal memory by this architecture.** Calling a model as a stateless engine does not guarantee that its provider keeps no logs.
 
-Cette vue se concentre sur le traitement et le stockage. Nebula interroge aussi l’API analytique et reçoit ses publications en WebSocket : uniquement les tendances ayant franchi le seuil prévu, avec leur incertitude.
+This view focuses on processing and storage. Nebula also queries the analytics API and receives its publications over WebSocket: only trends that meet the required publication threshold, accompanied by their uncertainty.
 
-SingleStore ne recevrait que des rapports déjà bruités et des données techniques minimales d’ingestion. Une transaction doit relier déduplication et mise à jour de l’agrégat. Si une file durable et un pipeline sont ajoutés, leurs garanties ne suffiront pas à empêcher deux requêtes HTTP identiques d’être comptées deux fois à deux positions différentes du journal. Dans la cible d’isolation locale, l’émetteur réseau ne reçoit que le rapport déjà bruité ; il n’accède pas directement à la base personnelle.
+SingleStore would receive only reports that have already been randomized and minimal technical ingestion data. A transaction must couple deduplication with aggregate updates. If a durable queue and pipeline are added, their guarantees alone will not prevent identical HTTP requests from being counted twice at different journal positions. In the target local isolation model, the network sender receives only the already randomized report; it has no direct access to the personal database.
 
-La syntaxe C4 de Mermaid est [expérimentale](https://mermaid.js.org/syntax/c4). Le bloc ci-dessus est testé avec Mermaid CLI 11.17.0 ; la version embarquée par GitHub peut différer. Les autres vues utilisent les diagrammes de séquence et les graphes standards.
+Mermaid's C4 syntax is [experimental](https://mermaid.js.org/syntax/c4). The block above is tested with Mermaid CLI 11.17.0; GitHub's embedded version may differ. The other views use standard sequence diagrams and flowcharts.
 
-## 4. Une statistique ne doit dépenser son budget qu’une fois
+## 4. A statistical report should spend its budget only once
 
-**Implémenté — rapport hebdomadaire préparé explicitement, export volontaire.** L’analytique est désactivée par défaut hors simulation. Le serveur accepte uniquement le schéma numérique fermé prévu ; aucune propriété libre n’accueille une conversation.
+**Implemented — explicitly prepared weekly reports and voluntary export.** Analytics is disabled by default outside simulation. The server accepts only the specified closed numeric schema; no unrestricted field can hold a conversation.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Utilisateur
-    participant Core as OMNI local / OpenDP
-    participant DB as Coffre SQLCipher
-    participant API as Collecteur OMNI
-    participant Store as Redis / SQLite de développement
+    actor User as User
+    participant Core as Local OMNI / OpenDP
+    participant DB as SQLCipher vault
+    participant API as OMNI collector
+    participant Store as Redis / development SQLite
 
-    User->>Core: Active et prépare un rapport
-    Core->>DB: Vérifie la semaine et le budget restant
-    alt Rapport déjà préparé
-        DB-->>Core: Même identifiant et mêmes valeurs bruitées
-    else Nouvelle publication autorisée
-        DB-->>Core: Histogrammes locaux bornés
-        Core->>Core: Applique trois mécanismes de Laplace
-        Core->>DB: Transaction : rapport immuable et dépense du budget
-        DB-->>Core: Validation durable
+    User->>Core: Enables analytics and prepares a report
+    Core->>DB: Checks the week and remaining budget
+    alt Report already prepared
+        DB-->>Core: Same identifier and same noisy values
+    else New release authorized
+        DB-->>Core: Bounded local histograms
+        Core->>Core: Applies three Laplace mechanisms
+        Core->>DB: Transaction: immutable report and budget expenditure
+        DB-->>Core: Durable commit
     end
-    Core-->>User: Aperçu du rapport numérique
-    User->>Core: Autorise l’envoi
+    Core-->>User: Numeric report preview
+    User->>Core: Authorizes sending
     Core->>API: POST /api/v1/analytics
-    Note over Core,API: HTTPS distant / HTTP loopback dans le laboratoire local
-    API->>API: Valide schéma, taille et paramètres
-    API->>Store: Atomiquement : identifiant + empreinte + agrégats
-    Store-->>API: Nouveau rapport ou reprise identique
-    API-->>Core: Accusé de réception
-    Note over Core,API: En cas d’incertitude réseau, renvoyer exactement le même rapport
-    Note over API,Store: Même identifiant avec un contenu différent : rejet
+    Note over Core,API: Remote HTTPS / loopback HTTP in the local lab
+    API->>API: Validates schema, size, and parameters
+    API->>Store: Atomically: identifier + digest + aggregates
+    Store-->>API: New report or identical retry
+    API-->>Core: Acknowledgment
+    Note over Core,API: If network delivery is uncertain, resend exactly the same report
+    Note over API,Store: Same identifier with different content: reject
 ```
 
-Trois histogrammes normalisés, huit cases chacun : sujets, latence, tokens. Pour chacun, la sensibilité L1 est bornée par 2 ; le budget est de ε = 1/3. Le rapport compose donc **ε = 1**. La v1 limite le pilote à **quatre rapports par installation**, soit ε ≤ 4 pour ce registre conservé. Le bruit de Laplace a une échelle légèrement supérieure à 6 pour tenir compte de l’implémentation numérique.
+Three normalized histograms, each with eight bins: topics, latency, and tokens. Each has L1 sensitivity bounded by 2 and a budget of ε = 1/3. The report therefore composes to **ε = 1**. V1 limits the pilot to **four reports per installation**, giving ε ≤ 4 while that ledger is preserved. The Laplace scale is slightly greater than 6 to account for the numerical implementation.
 
-Ce mécanisme borne la variation de distribution lorsqu’on remplace les données d’une installation pour une semaine. Il ne cache ni l’adresse IP ni la participation. Le seuil de production est exprimé en **rapports**, pas en personnes distinctes. Réinstallation, copies divergentes du coffre et plusieurs appareils ne doivent pas être présentés comme un budget personnel global déjà résolu. [Garanties et calculs →](docs/PRIVACY.md)
+This mechanism bounds the change in the output distribution when one installation's data for a week is replaced. It hides neither IP addresses nor participation. The production threshold counts **reports**, not distinct people. Reinstallation, divergent copies of the vault, and multiple devices must not be presented as an already solved global privacy budget per person. [Guarantees and calculations →](docs/PRIVACY.md)
 
-## 5. Le tunnel protège le transport
+## 5. The tunnel protects transport
 
-**Implémenté — knocking authentifié et rotation des identités WireGuard.** Le knocking est une autorisation d’admission à durée courte, signée par HMAC avec nonce et horodatage ; le simple ordre de quelques ports ouverts ne constitue pas une authentification.
+**Implemented — authenticated knocking and WireGuard identity rotation.** Knocking grants short-lived admission, authenticated with an HMAC, nonce, and timestamp. Opening a few ports in a particular order does not constitute authentication.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as Client WireGuard
-    participant Admission as Admission du hub
-    participant Hub as Pairs WireGuard du hub
-    participant Relay as Relais SOCKS contraint
-    participant SaaS as Fournisseur HTTPS autorisé
+    participant Client as WireGuard client
+    participant Admission as Hub admission service
+    participant Hub as Hub WireGuard peers
+    participant Relay as Constrained SOCKS relay
+    participant SaaS as Authorized HTTPS provider
 
-    Note over Client,Hub: Identité et clé publique initiales préenrôlées
-    Client->>Admission: Open authentifié : identifiant, epoch, nonce et horodatage
-    Admission->>Admission: Vérifie le secret et l’anti-rejeu persistant
-    Admission->>Hub: Ouvre l’accès UDP de l’IP source pour 120 secondes
-    Admission-->>Client: Admission authentifiée
-    Client->>Hub: Handshake WireGuard / Noise
-    loop Pendant la connexion
-        Client->>Admission: Rafraîchit l’admission toutes les 60 secondes
-        Client->>Hub: Paquets IP chiffrés
-        Hub->>Relay: Transit vers le relais autorisé
-        Relay->>SaaS: Transport du flux TLS du gateway
-        SaaS-->>Client: Réponse TLS par le même chemin
+    Note over Client,Hub: Initial identity and public key are enrolled in advance
+    Client->>Admission: Authenticated Open: identifier, epoch, nonce, and timestamp
+    Admission->>Admission: Verifies the secret and persistent replay protection
+    Admission->>Hub: Opens UDP access for the source IP for 120 seconds
+    Admission-->>Client: Authenticated admission acknowledgment
+    Client->>Hub: WireGuard / Noise handshake
+    loop While connected
+        Client->>Admission: Renews admission every 60 seconds
+        Client->>Hub: Encrypted IP packets
+        Hub->>Relay: Forwarding to the authorized relay
+        Relay->>SaaS: Carries the gateway's TLS stream
+        SaaS-->>Client: TLS response through the same path
     end
-    Note over Client,SaaS: Le hub voit les métadonnées de transport, pas le texte protégé par TLS
-    Note over Client,Hub: Toutes les 1 800 secondes, rotation supplémentaire de l’identité statique
-    Client->>Client: Génère une nouvelle clé privée aléatoire
-    Client->>Admission: Prépare le nouveau pair
-    Admission->>Hub: Installe le pair candidat
-    Admission-->>Client: Accusé de préparation authentifié
-    Note over Admission,Hub: Un candidat non confirmé expire après 60 secondes
-    Client->>Hub: Vérifie le handshake du nouveau pair
-    Client->>Admission: Confirme le basculement
-    Admission->>Hub: Vérifie le handshake récent du candidat
-    Admission->>Admission: Persiste le commit
-    Admission-->>Client: Accuse réception du commit
-    Admission->>Hub: Retire l’ancien pair après le chevauchement de 30 secondes
+    Note over Client,SaaS: The hub sees transport metadata, not the TLS-protected text
+    Note over Client,Hub: Additional static identity rotation every 1,800 seconds
+    Client->>Client: Generates a new random private key
+    Client->>Admission: Prepares the new peer
+    Admission->>Hub: Installs the candidate peer
+    Admission-->>Client: Authenticated preparation acknowledgment
+    Note over Admission,Hub: An unconfirmed candidate expires after 60 seconds
+    Client->>Hub: Verifies the new peer's handshake
+    Client->>Admission: Confirms the switch
+    Admission->>Hub: Checks the candidate's recent handshake
+    Admission->>Admission: Persists the commit
+    Admission-->>Client: Acknowledges the commit
+    Admission->>Hub: Removes the old peer after the 30-second overlap
 ```
 
-**WireGuard utilise Noise ; IKE appartient à IPsec.** La rotation des clés d’identité toutes les trente minutes s’ajoute au renouvellement automatique des clés de session WireGuard. Elle n’est pas un mode IKE. Le changement d’adresse interne pendant le basculement peut interrompre une connexion TCP ; une reprise applicative reste nécessaire.
+**WireGuard uses Noise; IKE belongs to IPsec.** Identity key rotation every thirty minutes is additional to WireGuard's automatic session key renewal. It is not an IKE mode. Changing the internal address during the switch can interrupt a TCP connection; application-level recovery remains necessary.
 
-L’interopérabilité BoringTun ↔ WireGuard Linux, l’admission, la rotation et le rejet de l’ancienne clé ont été testés. La simulation locale n’installe aucune route privilégiée. Le superviseur `utun` macOS demande un lancement privilégié distinct, dont le chemin complet reste à valider sur machine cible. [Déploiement, serveurs et secrets →](docs/VPN.md)
+BoringTun ↔ Linux WireGuard interoperability, admission, rotation, and rejection of the old key have been tested. The local simulation installs no privileged routes. The macOS `utun` supervisor requires a separate privileged launch; its complete path still needs validation on the target machine. [Deployment, servers, and secrets →](docs/VPN.md)
 
-## Lire les flèches sans se raconter d’histoire
+## Read the arrows without inventing guarantees
 
-| Flèche                 | Ce qui la traverse                           | Ce qu’elle ne prouve pas                                                    |
-| ---------------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
-| Mémoire → gateway      | Un contexte sélectionné sous permission      | Une compréhension infaillible de la personne                                |
-| Gateway → LLM distant  | Le prompt et le contexte autorisé, sous TLS  | L’absence de conservation chez le fournisseur                               |
-| Exporteur → collecteur | Un rapport numérique déjà bruité             | L’anonymat réseau ou l’unicité humaine                                      |
-| Collecteur → interface | Des agrégats publiables avec leurs limites   | Une mesure clinique, une opinion universelle ou une vérité sans incertitude |
-| Client VPN → hub       | Un transport chiffré et une identité de pair | Une interception sémantique universelle des applications                    |
+| Arrow                 | What crosses it                                     | What it does not prove                                  |
+| --------------------- | --------------------------------------------------- | ------------------------------------------------------- |
+| Memory → gateway      | Context selected under a permission                 | Infallible understanding of a person                    |
+| Gateway → remote LLM  | The prompt and authorized context, protected by TLS | No retention by the provider                            |
+| Exporter → collector  | An already randomized numeric report                | Network anonymity or a unique human participant         |
+| Collector → interface | Publishable aggregates with their limitations       | A clinical measurement, universal opinion, or certainty |
+| VPN client → hub      | Encrypted transport and a peer identity             | Universal semantic interception of applications         |
 
-[Retour au README](README.md) · [Architecture](ARCHITECTURE.md) · [Roadmap](ROADMAP.md)
+[Back to README](README.md) · [Architecture](ARCHITECTURE.md) · [Roadmap](ROADMAP.md)

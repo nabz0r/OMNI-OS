@@ -1,32 +1,32 @@
 # 🧠 OMNI-OS · Compression of Comprehension.
 
-### Vos IA changent. Votre mémoire reste.
+### Your AI changes. Your memory stays.
 
-**OMNI est une mémoire personnelle locale et une porte d’accès contrôlée vers vos IA.** Il conserve le contexte que vous choisissez, vous laisse le corriger et transmet uniquement les souvenirs que vous autorisez à un fournisseur donné.
+**OMNI is a local personal memory and a controlled gateway to your AI tools.** It keeps the context you choose, lets you correct it, and shares only the memories you authorize for a specific provider.
 
-> Les modèles apportent le calcul. Vous gardez l’histoire et les règles.
+> Models provide the computation. You keep the history and set the rules.
 
-[Manifeste](MANIFESTO.md) · [Architecture](ARCHITECTURE.md) · [Schémas](DIAGRAMS.md) · [Roadmap](ROADMAP.md)
+[Manifesto](MANIFESTO.md) · [Architecture](ARCHITECTURE.md) · [Diagrams](DIAGRAMS.md) · [Roadmap](ROADMAP.md)
 
-![Nebula — interface réelle, souvenirs de démonstration explicitement synthétiques](docs/images/nebula.png)
+![Nebula — the actual interface, showing explicitly synthetic demonstration memories](docs/images/nebula.png)
 
-## Le problème tient en une phrase
+## The problem in one sentence
 
-Changer d’IA ne devrait pas obliger à reconstruire toute sa relation avec elle.
+Changing AI tools should not mean rebuilding your entire relationship with them.
 
-Les services peuvent déjà avoir leur propre mémoire. OMNI vise une continuité que vous gouvernez entre les outils : vos préférences, vos projets, vos corrections et vos limites. Le but est la **compression de la compréhension** : fournir le contexte utile, sans recopier votre vie entière. Le gain en temps, en tokens et en qualité doit être mesuré.
+Services may already have their own memory. OMNI aims to give you continuity that you control across tools: your preferences, projects, corrections, and boundaries. The goal is **compression of comprehension**: provide useful context without copying your entire life. Savings in time and tokens, and improvements in quality, must be measured.
 
-## Trois gestes
+## Three steps
 
-1. **Mémoriser.** Ajoutez un fait ou capturez explicitement un échange. L’extraction locale propose des souvenirs à relire.
-2. **Autoriser.** Choisissez les souvenirs, le fournisseur et la durée d’accès. Une proposition non confirmée reste hors du contexte transmis.
-3. **Continuer.** Interrogez le modèle depuis le launcher ou une intégration compatible. Consultez les reçus de partage et révoquez l’accès quand il n’est plus nécessaire.
+1. **Remember.** Add a fact or explicitly capture a conversation. Local extraction proposes memories for you to review.
+2. **Authorize.** Choose the memories, the provider, and how long access lasts. Unconfirmed proposals stay out of shared context.
+3. **Continue.** Ask your model through the launcher or a compatible integration. Review disclosure receipts and revoke access when it is no longer needed.
 
-La révocation bloque les nouveaux partages via OMNI. Elle ne rappelle pas les copies déjà reçues par un fournisseur.
+Revocation blocks future sharing through OMNI. It cannot retrieve copies a provider has already received.
 
-## Essayez-le
+## Try it
 
-Prérequis : **Node.js 22.13+**, npm et les outils de compilation de votre plateforme. Sur macOS : Command Line Tools. Le premier lancement télécharge les dépendances et installe Rust s’il manque.
+Requirements: **Node.js 22.13+**, npm, and your platform's build tools. On macOS, install Command Line Tools. The first launch downloads dependencies and installs Rust if it is missing.
 
 ```bash
 git clone https://github.com/nabz0r/OMNI-OS.git
@@ -34,56 +34,58 @@ cd OMNI-OS
 ./run.sh --web --simulate
 ```
 
-Ouvrez [localhost:3006](http://localhost:3006), puis déverrouillez la session avec le jeton contenu dans `.omni/runtime/admin-token`. Il reste privé sur votre appareil.
+Open [localhost:3006](http://localhost:3006), then unlock the session using the token in `.omni/runtime/admin-token`. This credential stays private on your device.
 
-La démonstration crée **six clients, deux faux fournisseurs et un hub VPN de test**. Les réponses LLM sont fictives ; le chiffrement WireGuard, les coffres SQLCipher, les permissions et les calculs OpenDP s’exécutent réellement. Aucun compte IA ni clé fournisseur n’est nécessaire. Les résultats sont consultables dans **Connections** et **Collective**.
+The demo creates **six clients, two simulated providers, and a test VPN hub**. LLM responses are fictional; WireGuard encryption, SQLCipher vaults, permissions, and OpenDP calculations run as actual code. No AI account or provider key is required. Results appear in **Connections** and **Collective**.
 
-Sur macOS, `./run.sh --simulate` lance aussi la fenêtre native Tauri. Pour utiliser votre propre modèle, retirez `--simulate` : OMNI attend par défaut Ollama et le modèle installé `qwen3:0.6b`. Les autres fournisseurs se configurent explicitement. [Guide d’intégration →](docs/INTEGRATIONS.md)
+On macOS, `./run.sh --simulate` also opens the native Tauri window. To use your own model, omit `--simulate`: OMNI expects Ollama running locally with `qwen3:0.6b` already installed. Configure other providers explicitly. [Integration guide →](docs/INTEGRATIONS.md)
 
-## Où va l’information ?
+## Where does the information go?
 
 ```mermaid
 flowchart LR
-  User["Vous"] --> Omni["OMNI local<br/>Mémoire et permissions"]
-  Omni <--> Vault[("Coffre chiffré")]
-  Omni -->|"Requête et contexte autorisé"| Model["Modèle choisi<br/>local ou distant"]
-  Model -->|"Réponse"| Omni
-  Omni -->|"Réponse et contrôle du partage"| User
-  Omni -->|"Rapport bruité, sur consentement"| Stats["Collecteur statistique<br/>aucune conversation dans son schéma"]
+  User["You"] --> Omni["Local OMNI<br/>Memory and permissions"]
+  Omni <--> Vault[("Encrypted vault")]
+  Omni -->|"Request and authorized context"| Model["Chosen model<br/>local or remote"]
+  Model -->|"Response"| Omni
+  Omni -->|"Response and sharing controls"| User
+  Omni -->|"Noised report, with consent"| Stats["Analytics collector<br/>no conversations in its schema"]
 ```
 
-Le fournisseur distant reçoit la requête nécessaire à son travail, protégée par HTTPS pendant le transport. Le collecteur statistique reçoit un rapport numérique distinct. **L’analytique est désactivée par défaut hors simulation.** La confidentialité différentielle borne une divulgation statistique ; elle ne promet pas l’anonymat absolu.
+The remote provider receives the request it needs to do its work, protected by HTTPS in transit. The analytics collector receives a separate numeric report. **Analytics is disabled by default outside simulation.** Differential privacy bounds statistical disclosure; it does not promise absolute anonymity.
 
-## Déjà dans le dépôt
+## Already in the repository
 
-| Fonction                 | Implémentation actuelle                                                                                   |
-| ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Mémoire locale           | SQLCipher, provenance, historique, correction et suppression                                              |
-| Autorité                 | Permissions par destination et souvenirs, expiration, révocation, reçus                                   |
-| Intégrations             | Launcher, API Chat Completions et Messages, outils MCP, capture navigateur explicite                      |
-| Interface                | Nebula en Three.js, shell Tauri, mode basse consommation                                                  |
-| Transport optionnel      | WireGuard/BoringTun, knocking authentifié, anti-rejeu, rotation des clés d’identité toutes les 30 minutes |
-| Statistiques volontaires | OpenDP, budget persistant, reprises sans nouveau bruit ; collecteur Fastify et Redis                      |
-| Vérification             | Simulation reproductible, tests Linux/macOS, construction du serveur et test BoringTun ↔ WireGuard Linux  |
+| Capability          | Current implementation                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Local memory        | SQLCipher, provenance, history, correction, and deletion                                                        |
+| Authority           | Permissions scoped to destinations and memories, expiration, revocation, and receipts                           |
+| Integrations        | Launcher, Chat Completions and Messages APIs, MCP tools, and explicit browser capture                           |
+| Interface           | Three.js Nebula, Tauri shell, and low-energy mode                                                               |
+| Optional transport  | WireGuard/BoringTun, authenticated knocking, replay protection, and identity-key rotation every 30 minutes      |
+| Voluntary analytics | OpenDP, persistent budget, retries without new noise; Fastify and Redis collector                               |
+| Verification        | Reproducible simulation, Linux/macOS tests, server build, and BoringTun ↔ Linux WireGuard interoperability test |
 
-**Version de développement fonctionnelle.** Le VPN ne déchiffre pas les applications HTTPS et le lancement de démonstration ne reconfigure pas votre réseau. Le Knowledge Graph sémantique, les identités distinctes par agent, le coffre isolé par l’OS, SingleStore, le déploiement Kubernetes et la fédération sont des étapes de la [roadmap](ROADMAP.md). Le déploiement public et la distribution macOS signée restent à réaliser.
+**A working development release.** The VPN does not decrypt HTTPS applications, and the demo does not reconfigure your network. A semantic knowledge graph, distinct agent identities, an OS-isolated vault, SingleStore, Kubernetes deployment, and federation are [roadmap](ROADMAP.md) milestones. Public deployment and signed macOS distribution remain to be completed.
 
-## Lire, comprendre, construire
+## Read, understand, build
 
-| Document                                                                                            | Ce qu’il apporte                                                              |
-| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [MANIFESTO.md](MANIFESTO.md)                                                                        | L’origine, la conviction, les engagements                                     |
-| [ARCHITECTURE.md](ARCHITECTURE.md)                                                                  | Les frontières de confiance, la mémoire et les contrats techniques            |
-| [DIAGRAMS.md](DIAGRAMS.md)                                                                          | Les flux, le graphe de connaissances, les conteneurs et le VPN                |
-| [ROADMAP.md](ROADMAP.md)                                                                            | De la preuve individuelle au million d’utilisateurs, avec critères de passage |
-| [Exploitation](docs/OPERATIONS.md) · [VPN](docs/VPN.md)                                             | Lancement, enrôlement et déploiement                                          |
-| [Confidentialité](docs/PRIVACY.md) · [Sécurité](docs/SECURITY.md)                                   | Garanties précises et limites                                                 |
-| [Validation](docs/VALIDATION.md) · [CI](https://github.com/nabz0r/OMNI-OS/actions/workflows/ci.yml) | Résultats observés et vérifications de chaque révision                        |
+| Document                                                                                            | What it covers                                                  |
+| --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [MANIFESTO.md](MANIFESTO.md)                                                                        | The origin, conviction, and commitments                         |
+| [ARCHITECTURE.md](ARCHITECTURE.md)                                                                  | Trust boundaries, memory, and technical contracts               |
+| [DIAGRAMS.md](DIAGRAMS.md)                                                                          | Request flows, knowledge graph, containers, and VPN             |
+| [ROADMAP.md](ROADMAP.md)                                                                            | From individual value to a million users, with measurable gates |
+| [Operations](docs/OPERATIONS.md) · [VPN](docs/VPN.md)                                               | Startup, enrollment, and deployment                             |
+| [Privacy](docs/PRIVACY.md) · [Security](docs/SECURITY.md)                                           | Precise guarantees and limitations                              |
+| [Validation](docs/VALIDATION.md) · [CI](https://github.com/nabz0r/OMNI-OS/actions/workflows/ci.yml) | Observed results and revision checks                            |
 
-Le code se répartit entre `crates/omni-core`, `crates/omni-vpn`, `apps/desktop`, `apps/extension` et `services/collector`. Les scripts de lancement sont à la racine ; l’infrastructure est dans `infra/`.
+Code lives in `crates/omni-core`, `crates/omni-vpn`, `apps/desktop`, `apps/extension`, and `services/collector`. Startup scripts are at the repository root; infrastructure lives in `infra/`.
 
-Pour reproduire les vérifications, arrêtez d’abord la démonstration, puis exécutez `./scripts/verify.sh`. Le test Redis nécessite une base de test dédiée ; les prérequis sont détaillés dans le compte rendu de validation.
+To reproduce the checks, stop the demo first, then run `./scripts/verify.sh`. The Redis test requires a dedicated test database; prerequisites are detailed in the validation report.
 
-**Le modèle économique proposé : être payé par les utilisateurs pour les représenter.** Continuité, intégrations et déploiements privés constituent les services envisagés. Vente de profils et publicité comportementale restent hors de cette doctrine ; aucune facturation n’est encore implémentée.
+**The proposed business model: users pay OMNI to represent their interests.** Continuity, maintained integrations, and private deployments are the services being considered. Selling profiles and behavioral advertising are outside this doctrine; billing is not implemented yet.
 
-[AGPL-3.0](LICENSE). Les notes `ID network archi.md` et `protocoles.md` conservent l’historique de conception. Les documents ci-dessus distinguent le fonctionnement livré de l’architecture cible.
+All repository documentation, interface copy, examples, and code comments are written in English for an international audience. The [repository guidance](AGENTS.md) preserves this policy for future contributions.
+
+[AGPL-3.0](LICENSE). [Network design notes](NETWORK_DESIGN_NOTES.md) and [protocol notes](PROTOCOL_NOTES.md) preserve the design history. The documents above distinguish implemented behavior from target architecture.

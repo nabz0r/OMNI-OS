@@ -6,8 +6,8 @@ On an HTTPS ChatGPT (`chatgpt.com` / `chat.openai.com`) or Claude (`claude.ai`) 
 
 The extension uses `activeTab` and `scripting` only after this user action. There are no continuously installed content scripts, background scraping, page listeners, or global keystroke recording. The scoped agent token is stored in trusted-only `chrome.storage.session`, never passed into the website or injected capture function. Content is sent only to authenticated `http://127.0.0.1:3007/api/capture`. The core proposes memories for review; capture does not grant model access.
 
-Adapters depend on provider page structure. Unknown layouts fail visibly; they never fall back to scraping the whole page. Maximum reviewed payload is 100,000 characters. The extension captures only rendered messages, not a guaranteed complete provider history. Selection capture is the explicit fallback when page structure changes.
+Adapters depend on provider page structure. Unknown layouts fail visibly; they never fall back to scraping the whole page. The maximum reviewed payload is 100,000 UTF-8 bytes. The extension captures only rendered messages, not a guaranteed complete provider history. Selection capture is the explicit fallback when page structure changes.
 
 Run `node --test apps/extension/adapters.test.mjs` from the repository root for exact-origin matching tests.
 
-En français : l'extension ne capture rien en arrière-plan. Vous choisissez les échanges, relisez le texte, puis autorisez sa sauvegarde dans le coffre local. Le contenu n'est pas transmis à un fournisseur de modèle par cette action.
+The extension captures nothing in the background. You choose the conversation, review the text, and authorize saving it to your local vault. This action does not send the content to a remote model provider; a bounded excerpt is processed by the configured local extraction model.

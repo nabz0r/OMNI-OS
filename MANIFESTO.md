@@ -1,81 +1,81 @@
-# OMNI — La mémoire nous appartient. L’autorité aussi.
+# OMNI — Our memory. Our authority.
 
-> Pouvoir changer d’intelligence sans devoir recommencer son histoire.
+> Change AI models without having to start your story again.
 
-## L’origine — Du proxy réseau au proxy cognitif
+## The Origin — From the Network Proxy to the Cognitive Proxy
 
-OMNI prend naissance dans une intuition nourrie par vingt-cinq années de proxys : la couche qui se tient entre deux mondes peut transformer leur relation.
+OMNI begins with an insight shaped by twenty-five years of proxies: a layer between two worlds can change the relationship between them.
 
-Un proxy reçoit, examine, oriente, protège. Il rend une communication possible tout en lui donnant des règles. À mesure que les réseaux se sont développés, cette interposition a appris à gérer des connexions, des identités, des charges et des menaces.
+A proxy receives, examines, routes, protects. It makes communication possible while giving it rules. As networks grew, this layer learned to manage connections, identities, loads and threats.
 
-Le cache réseau évitait de transporter plusieurs fois le même contenu : moins de bande passante, moins d’attente, davantage de résilience. Le proxy cognitif transpose cette intuition au contexte. Ce qui mérite d’être conservé, c’est aussi le travail déjà accompli pour comprendre une situation. Mais un contexte vieillit, se contredit et dépend de celui qui le reçoit. Sa réutilisation exige une provenance et une autorisation.
+Network caches avoided carrying the same content over and over: less bandwidth, less waiting, more resilience. The cognitive proxy applies that insight to context. The work already done to understand a situation is also worth preserving. Yet context ages, contradicts itself and depends on who receives it. Reusing it requires provenance and permission.
 
-Aujourd’hui, une autre matière traverse nos interfaces : le contexte de nos vies.
+Today, something else travels through our interfaces: the context of our lives.
 
-Nous confions aux intelligences artificielles nos questions, nos contraintes, nos projets, nos hésitations. Nous leur expliquons le travail déjà accompli, les décisions déjà prises, les chemins déjà abandonnés. Une partie de notre attention sert à reconstruire, conversation après conversation, ce que nous pensions avoir établi.
+We entrust artificial intelligence with our questions, constraints, projects and doubts. We explain the work already completed, the decisions already made, the paths already abandoned. Part of our attention goes into rebuilding, conversation after conversation, what we thought we had established.
 
-De là vient le proxy cognitif : une couche personnelle qui accompagne les échanges entre une personne, ses modèles, ses agents et ses services. Elle conserve une continuité, choisit le contexte utile et applique les limites fixées par la personne.
+This is where the cognitive proxy begins: a personal layer accompanying the exchanges between a person, their models, their agents and their services. It preserves continuity, selects useful context and enforces the boundaries that person has set.
 
-La connexion transporte des mots. La continuité transporte leur sens.
+A connection carries words. Continuity carries their meaning.
 
-Nous appelons **compression de compréhension** le travail qui consiste à transformer une histoire abondante en un contexte assez précis pour agir : ce qui compte maintenant, ce qui a été décidé, ce qui reste incertain, ce qui doit rester privé. Cette compression perd nécessairement des détails. Elle doit donc garder ses sources, montrer ses limites et permettre de revenir à ce qu’elle résume.
+We call the work of turning a rich history into context precise enough to act on **compression of comprehension**: what matters now, what has been decided, what remains uncertain, what must remain private. Such compression inevitably loses detail. It must therefore retain its sources, reveal its limits and offer a way back to what it summarizes.
 
-L’ambition d’OMNI commence ici : faire durer la compréhension sans obliger la personne à tout répéter, ni l’obliger à tout dévoiler.
+OMNI's ambition begins here: make understanding last without asking people to repeat everything or disclose everything.
 
-> Chaque nouvelle intelligence ne devrait pas nous coûter une nouvelle autobiographie.
+> A new intelligence should not require a new autobiography.
 
-## L’ennemi — La dépendance sans continuité
+## The Enemy — Dependency Without Continuity
 
-Des assistants possèdent déjà une mémoire. [ChatGPT](https://openai.com/index/memory-and-new-controls-for-chatgpt/) et [Claude](https://support.claude.com/en/articles/11817273-use-claude-s-chat-search-and-memory-to-build-on-previous-context) proposent des mécanismes pour prolonger le contexte. Reconnaître ces avancées permet de nommer le problème avec précision.
+Some assistants already have memory. [ChatGPT](https://openai.com/index/memory-and-new-controls-for-chatgpt/) and [Claude](https://support.claude.com/en/articles/11817273-use-claude-s-chat-search-and-memory-to-build-on-previous-context) provide ways to carry context forward. Acknowledging that progress lets us name the problem precisely.
 
-L’ennemi est la continuité qui dépend d’un seul fournisseur. C’est l’amnésie entre les outils. C’est une préférence bien comprise dans un environnement, puis perdue au passage vers un autre. C’est la difficulté de savoir quelles représentations de nous circulent, de les corriger et de choisir où elles peuvent servir.
+The enemy is continuity that depends on a single provider. It is amnesia between tools. It is a preference understood in one environment and lost on the way to another. It is the difficulty of knowing which representations of us are circulating, correcting them and choosing where they may be used.
 
-Cette fragmentation a un coût discret. Elle consomme du temps, use l’attention et transforme l’accumulation d’un historique en raison de rester. Un outil peut devenir difficile à quitter parce qu’une relation utile s’y est construite.
+This fragmentation has a quiet cost. It consumes time, wears down attention and turns an accumulated history into a reason to stay. A tool can become hard to leave because a useful relationship has grown inside it.
 
-OMNI défend le droit de faire voyager cette continuité sous son propre contrôle.
+OMNI stands for the right to carry that continuity with us, under our own control.
 
-La confiance demande davantage qu’un bouton de consentement. Elle demande de pouvoir voir le contexte proposé, comprendre pourquoi il est utile, refuser sa transmission et corriger une interprétation. Elle demande aussi des mots exacts : couper un accès futur ne rappelle pas les copies déjà reçues ; chiffrer un trajet ne rend pas son destinataire aveugle ; produire une statistique privée ne fait pas disparaître toute information de participation.
+Trust requires more than a consent button. It requires the ability to see the proposed context, understand why it is useful, refuse its transmission and correct an interpretation. It also requires precise language: cutting off future access does not recall copies already received; encrypting a journey does not blind its recipient; producing a private statistic does not conceal every sign of participation.
 
-Une limite déclarée fait partie de la confiance.
+A stated limit is part of trust.
 
-## La vision — Une mémoire vivante, une autorité personnelle
+## The Vision — Living Memory, Personal Authority
 
-La personne reste l’auteur de ce qui la représente.
+The person remains the author of what represents them.
 
-Dans cette architecture, le SaaS devient un moteur de calcul interchangeable. OMNI fournit le contexte nécessaire à chaque tâche ; la continuité ne dépend plus de la mémoire interne de ce fournisseur. C’est le sens de **stateless** dans notre doctrine : une dépendance à l’historique que nous voulons retirer de l’application, jamais une promesse sur l’absence de journaux chez un tiers.
+In this architecture, the SaaS provider becomes an interchangeable computing engine. OMNI supplies the context each task needs; continuity no longer depends on that provider's internal memory. This is what **stateless** means in our design philosophy: a dependency on history that we aim to remove from the application, never a promise that a third party keeps no logs.
 
-Une mémoire personnelle rassemble des faits, des préférences, des événements et des décisions. Elle doit laisser leur place au doute, au changement et à l’oubli. Une proposition faite par un modèle conserve son statut de proposition. Une préférence peut dépendre d’un contexte. Un ancien choix peut cesser d’être vrai.
+Personal memory brings together facts, preferences, events and decisions. It must leave room for doubt, change and forgetting. A model's suggestion remains a suggestion. A preference may depend on context. A past choice may no longer hold.
 
-La bonne mémoire sait aussi se taire.
+Good memory also knows when to stay quiet.
 
-Pour préparer un voyage, un agent peut avoir besoin de contraintes de déplacement. Pour relire un document, il peut avoir besoin d’un ton et d’un objectif. Pour proposer un service, il peut recevoir une préférence pertinente sans obtenir une biographie. La représentation partagée doit être adaptée à la tâche et gouvernée par la personne.
+To plan a trip, an agent may need travel constraints. To review a document, it may need a tone and a purpose. To suggest a service, it may receive a relevant preference without receiving a biography. The representation shared must fit the task and remain governed by the person.
 
-Cette autorité a deux faces : **ce qu’un système peut savoir** et, à terme, **ce qu’il peut faire en notre nom**. Une destination, un périmètre et une durée donnent une forme concrète à la confiance. La délégation d’actions exigera en plus des limites d’opération, des budgets et des confirmations adaptées à leurs conséquences. Un agent ne pourra pas s’accorder lui-même davantage de droits parce qu’une source lui en donne l’instruction.
+This authority has two sides: **what a system may know** and, eventually, **what it may do on our behalf**. A destination, a scope and a duration give trust a concrete form. Delegating actions will also require limits on operations, budgets and confirmations proportionate to their consequences. An agent must not be able to grant itself greater rights because a source tells it to.
 
-Le moteur de compréhension, la mémoire et l’examen des règles ont vocation à vivre principalement sur l’appareil. Les modèles qui répondent peuvent être locaux ou distants. Lorsqu’un service distant est choisi, il reçoit ce qui lui est effectivement transmis. L’expérience doit rendre ce passage compréhensible.
+The understanding engine, memory and policy checks are intended to live primarily on the device. The models that answer may be local or remote. When a remote service is chosen, it receives the content actually sent to it. The experience must make that crossing understandable.
 
-Nous voulons que les modèles restent interchangeables et que la relation personnelle continue. Que la mémoire puisse être inspectée, exportée, corrigée, effacée. Que partir soit une possibilité ordinaire.
+We want models to remain interchangeable while the personal relationship continues. Memory should be open to inspection, export, correction and deletion. Leaving should be an ordinary possibility.
 
-Cette indépendance doit aussi exister dans l’économie du produit. Le modèle que nous voulons éprouver repose sur une personne qui paie pour un service utile : continuité, entretien des intégrations, contrôle, fiabilité. Le financement devra rester compatible avec cette mission. Un partenaire de distribution ne devient pas propriétaire de la mémoire ; une rémunération ne doit pas acheter silencieusement la priorité dans les recommandations.
+That independence must also shape the product's economics. The model we want to test is a person paying for a useful service: continuity, maintained integrations, control and reliability. Funding must remain compatible with that mission. A distribution partner does not become the owner of the memory; payment must not silently buy priority in recommendations.
 
-La sobriété appartient à la même philosophie. Notre attention est limitée. Nos appareils, nos batteries et les ressources qui les font fonctionner le sont aussi. OMNI devra justifier chaque capture, chaque inférence et chaque transmission par un bénéfice mesurable. Au repos, il doit apprendre à laisser la machine en paix.
+Resource restraint belongs to the same philosophy. Our attention is finite. So are our devices, batteries and the resources that keep them running. OMNI will have to justify every capture, inference and transmission with a measurable benefit. At rest, it must learn to leave the machine in peace.
 
-## Le but ultime — Continuer sans se réexpliquer
+## The Ultimate Goal — Continue Without Explaining Yourself Again
 
-Imagine une relation avec les intelligences artificielles qui s’approfondit sans t’enfermer.
+Imagine a relationship with artificial intelligence that deepens without closing around you.
 
-Tu changes de modèle. Ton projet garde son histoire. Tu confies une tâche à un agent. Il reçoit le contexte nécessaire et les limites de son mandat. Tu corriges un souvenir. Les prochaines interactions partent de cette correction. Tu retires un accès. La prochaine demande doit respecter ce retrait.
+You change models. Your project keeps its history. You entrust a task to an agent. It receives the necessary context and the limits of its mandate. You correct a memory. The next interactions begin from that correction. You withdraw access. The next request must respect that withdrawal.
 
-L’horizon est une expérience où tu passes moins de temps à expliquer qui tu es et davantage de temps à faire ce qui compte pour toi.
+The horizon is an experience in which you spend less time explaining who you are and more time doing what matters to you.
 
-**Zéro friction** et **ne jamais devoir se réexpliquer** donnent une direction au travail. Ce sont des horizons de conception. Certaines situations exigeront toujours une précision, une nouvelle décision ou une confirmation. Une question nécessaire protège parfois mieux la personne qu’une supposition silencieuse.
+**Zero friction** and **never having to explain yourself again** give the work a direction. They are design horizons. Some situations will always require clarification, a new decision or confirmation. A necessary question can protect a person better than a silent assumption.
 
-À l’échelle collective, une connaissance utile pourra émerger de contributions volontaires et de protocoles dont les limites sont publiques. Elle devra rester proportionnée aux données réellement observées. Une tendance entre participants ne devient pas, par son seul nom, la pensée de l’humanité.
+At a collective scale, useful knowledge may emerge from voluntary contributions and protocols whose limits are public. It must remain proportionate to the data actually observed. A trend among participants does not become the mind of humanity simply because we give it that name.
 
-Le but ultime est une infrastructure dans laquelle l’intelligence peut se multiplier autour de chacun, tandis que l’autorité reste attachée à la personne.
+The ultimate goal is an infrastructure in which intelligence can multiply around each of us while authority remains with the person.
 
-> Que les outils deviennent plus capables. Que notre liberté de choisir grandisse avec eux.
+> Let the tools become more capable. Let our freedom to choose grow with them.
 
 ---
 
-Ce manifeste exprime une direction. Les capacités effectivement implémentées, leur validation et leurs limites sont décrites dans le [README](README.md), les [décisions d’architecture](DECISIONS.md) et les [preuves de validation](docs/VALIDATION.md). La [feuille de route](ROADMAP.md) conditionne chaque étape suivante à des résultats observables.
+This manifesto sets a direction. Implemented capabilities, their validation and their limits are described in the [README](README.md), [architecture decisions](DECISIONS.md) and [validation evidence](docs/VALIDATION.md). The [roadmap](ROADMAP.md) makes each next step conditional on observable results.

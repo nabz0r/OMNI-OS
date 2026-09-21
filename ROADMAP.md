@@ -1,96 +1,96 @@
-# OMNI — De la première continuité à une infrastructure personnelle
+# OMNI — From the First Thread of Continuity to Personal Infrastructure
 
-Une trajectoire de zéro à un million de personnes commence par une personne qui choisit de revenir.
+The journey from zero to a million people begins with one person choosing to return.
 
-Cette feuille de route organise trois phases : **Genesis**, **Sovereign Agent**, **Global Mesh**. Les tailles de cohortes et seuils ci-dessous sont des objectifs expérimentaux proposés. Ils ne décrivent ni une adoption acquise, ni des prévisions commerciales, ni une capacité déjà démontrée. Les passages de phase dépendent de preuves ; aucune date ne les rend automatiques.
+This roadmap has three phases: **Genesis**, **Sovereign Agent**, **Global Mesh**. The cohort sizes and thresholds below are proposed experimental targets. They describe neither existing adoption, commercial forecasts nor demonstrated capacity. Progress between phases depends on evidence; no date makes it automatic.
 
-| Phase           | Échelle illustrative visée       | Question à résoudre                                                                        |
-| --------------- | -------------------------------- | ------------------------------------------------------------------------------------------ |
-| Genesis         | 0 → 100 participants volontaires | Une mémoire contrôlable améliore-t-elle réellement les usages existants ?                  |
-| Sovereign Agent | 100 → 10 000 utilisateurs actifs | Peut-on déléguer avec des limites compréhensibles et effectivement appliquées ?            |
-| Global Mesh     | 10 000 → 1 000 000 de personnes  | Cette autonomie peut-elle durer entre appareils, fournisseurs et opérateurs indépendants ? |
+| Phase           | Illustrative target scale      | The question to answer                                                         |
+| --------------- | ------------------------------ | ------------------------------------------------------------------------------ |
+| Genesis         | 0 → 100 voluntary participants | Does memory under the user's control actually improve existing workflows?      |
+| Sovereign Agent | 100 → 10,000 active users      | Can people delegate within boundaries they understand and the system enforces? |
+| Global Mesh     | 10,000 → 1,000,000 people      | Can that autonomy endure across devices, providers and independent operators?  |
 
-Les installations, comptes, abonnements, participants à une étude et utilisateurs actifs restent des mesures distinctes. Leur méthode de comptage sera publiée avec les résultats. Le collecteur actuel reçoit des rapports d’installation ; il ne mesure pas un nombre de personnes uniques. La mesure d’un pilote utilisera un consentement séparé, sans rendre la télémétrie obligatoire pour utiliser OMNI.
+Installations, accounts, subscriptions, study participants and active users remain distinct measures. Their counting methods will be published with the results. The current collector receives installation reports; it does not count unique people. Pilot measurement will use separate consent, without making telemetry a condition of using OMNI.
 
-## Le point de départ — Une v1 exécutable, des frontières explicites
+## The Starting Point — An Executable v1 With Explicit Boundaries
 
-Le dépôt contient un coffre **SQLCipher**, des souvenirs avec provenance et statut, des autorisations de partage limitées par destination, portée et expiration, des justificatifs de divulgation, et des connexions explicites aux protocoles OpenAI et Anthropic. La capture navigateur requiert une action volontaire. L’extraction locale propose des souvenirs à examiner.
+The repository contains a **SQLCipher** vault, memories with provenance and status, sharing permissions bounded by destination, scope and expiry, disclosure receipts, and explicit connections to the OpenAI and Anthropic protocols. Browser capture requires a deliberate action. Local extraction proposes memories for review.
 
-La v1 inclut aussi **OpenDP**, un budget persistant, un export analytique au schéma numérique fermé, et un collecteur avec déduplication et seuil de publication. La participation analytique est facultative. Le protocole pilote autorise au plus quatre rapports hebdomadaires, avec une perte de confidentialité composée annoncée ; ce plafond ne se remet pas silencieusement à zéro.
+The v1 also includes **OpenDP**, a persistent budget, analytics export through a closed numeric schema, and a collector with deduplication and a publication threshold. Analytics participation is optional. The pilot protocol permits at most four weekly reports, with a stated cumulative privacy loss; this cap does not silently reset.
 
-Le transport utilise **WireGuard/BoringTun**, une admission par paquet authentifié (_Single Packet Authorization_), une protection contre les rejeux et une politique de rotation des clés d’identité client de **30 minutes**. La couche sémantique s’appuie sur les intégrations applicatives. Faire transiter HTTPS dans un tunnel ne révèle pas son contenu.
+Transport uses **WireGuard/BoringTun**, admission through an authenticated packet (_Single Packet Authorization_), replay protection and a **30-minute** client identity-key rotation policy. The semantic layer relies on application integrations. Carrying HTTPS through a tunnel does not reveal its content.
 
-**React, Three.js et Tauri** rendent la mémoire et ses permissions inspectables. Le laboratoire utilise des données synthétiques signalées comme telles. Ses contrôles et les vérifications d’interopérabilité constituent des preuves sur les scénarios testés, pas une mesure d’adoption ou de résistance à toute compromission.
+**React, Three.js and Tauri** make memory and its permissions inspectable. The laboratory uses synthetic data labeled as such. Its checks and interoperability tests provide evidence for the scenarios tested, not a measure of adoption or resistance to every compromise.
 
-Restent **à construire ou à évaluer** : un processus de coffre isolé par les permissions de l’OS, un graphe sémantique temporel, une autorité fine par agent et par action, une synchronisation personnelle entre appareils, et une fédération entre opérateurs. **SingleStore, Kubernetes et la fédération ne sont pas des composants implémentés de cette v1.** Leur intérêt devra être démontré par un besoin et un essai comparatif. L’état technique détaillé demeure dans l’[architecture](ARCHITECTURE.md), le [protocole de confidentialité](docs/PRIVACY.md), le [transport VPN](docs/VPN.md) et les [preuves de validation](docs/VALIDATION.md).
+Still **to be built or evaluated**: a vault process isolated through OS permissions, a temporal semantic graph, granular authority per agent and action, personal synchronization across devices, and federation between operators. **SingleStore, Kubernetes and federation are not implemented components of this v1.** Their value must be established through a demonstrated need and a comparative trial. The detailed technical state remains documented in the [architecture](ARCHITECTURE.md), [privacy protocol](docs/PRIVACY.md), [VPN transport](docs/VPN.md) and [validation evidence](docs/VALIDATION.md).
 
-## Phase I — Genesis : mériter une place dans la journée
+## Phase I — Genesis: Earn a Place in the Day
 
-**Promesse à éprouver :** continuer une tâche entre plusieurs IA avec moins de répétitions, tout en sachant ce qui a été partagé.
+**The promise to test:** continue a task across several AIs with less repetition while knowing what was shared.
 
-Le premier terrain proposé est celui des indépendants, développeurs et petites équipes qui utilisent plusieurs assistants sur des projets suivis. La distribution commence par des pilotes accompagnés dans les communautés professionnelles accessibles à l’équipe. Chaque participant vient avec un travail réel et choisit ses sources. Un cas d’usage complet vaut davantage qu’une longue liste de connecteurs.
+The proposed first audience is independent professionals, developers and small teams using several assistants on ongoing projects. Distribution begins with supported pilots in professional communities the team can reach. Each participant brings real work and chooses their sources. One complete use case is worth more than a long list of connectors.
 
-Le produit doit rendre simples la première mémoire, sa correction, une permission limitée, une demande avec contexte et l’examen du justificatif correspondant. L’export et la restauration vérifiée du coffre font partie du travail à terminer avant une bêta publique. Le retrait d’une autorisation doit être compréhensible sans lecture du code.
+The product must make it simple to create a first memory, correct it, grant limited permission, send a request with context and inspect the resulting receipt. Export and verified vault restoration are work to complete before a public beta. Withdrawing permission must be understandable without reading code.
 
-### Les preuves avant d’élargir
+### Evidence Required Before Expanding
 
-- **Utilité :** au moins 30 participants recrutés, 20 parcours complets sur quatre semaines et 200 tâches comparées. Alterner l’ordre entre OMNI et une fiche de contexte préparée manuellement, avec le même modèle et le même budget de tâche. Viser une baisse médiane d’au moins 30 % du temps de remise en contexte, sans baisse de réussite supérieure à cinq points. Publier les distributions et leur incertitude.
-- **Justesse :** sur les tâches examinées, viser au plus 2 % d’injections de souvenirs faux ou périmés. Les désaccords entre évaluateurs et les catégories sensibles restent visibles ; une moyenne favorable ne masque pas un incident grave.
-- **Contrôle :** aucun accès non autorisé dans la suite de tests adversariaux définie avant le pilote. Toute divulgation observée doit correspondre à une permission applicable. Un échec bloque la diffusion de la version concernée jusqu’à correction et nouvelle vérification.
-- **Installation et continuité :** sur le matériel explicitement pris en charge, au moins 90 % des participants atteignent une première interaction utile en moins de dix minutes. Chaque scénario de sauvegarde testé doit restaurer les souvenirs et leurs permissions sans perte silencieuse.
-- **Énergie :** établir une mesure reproductible sur deux configurations de référence publiées. Au repos, fenêtre cachée et hors modèle de réponse, viser au plus 0,5 % du CPU total moyen sur dix minutes et 350 Mio de mémoire résidente. Mesurer séparément le coût de l’extraction locale ; publier également la consommation du parcours complet, modèle compris.
-- **Valeur économique :** proposer un abonnement à un prix annoncé avant le test et obtenir au moins dix paiements réels, suivis d’un renouvellement majoritaire à la première échéance. Entretiens, intentions d’achat et essais gratuits seront comptés séparément.
+- **Utility:** recruit at least 30 participants, complete 20 four-week participant journeys and compare 200 tasks. Alternate the order between OMNI and a manually prepared context brief, using the same model and task budget. Target a median reduction of at least 30% in time spent rebuilding context, with no drop in task success greater than five percentage points. Publish distributions and their uncertainty.
+- **Accuracy:** across the tasks reviewed, target a rate of false or outdated memory injections no higher than 2%. Disagreements between evaluators and sensitive categories remain visible; a favorable average must not hide a serious incident.
+- **Control:** no unauthorized access in the adversarial test suite defined before the pilot. Every observed disclosure must correspond to an applicable permission. A failure blocks distribution of the affected version until it is corrected and checked again.
+- **Installation and continuity:** on explicitly supported hardware, at least 90% of participants reach a first useful interaction in under ten minutes. Every tested backup scenario must restore memories and their permissions without silent loss.
+- **Energy:** establish reproducible measurements on two published reference configurations. At idle, with the window hidden and excluding the response model, target no more than 0.5% average total CPU usage over ten minutes and 350 MiB of resident memory. Measure the cost of local extraction separately; also publish consumption for the complete workflow, including the model.
+- **Economic value:** offer a subscription at a price announced before the test and obtain at least ten real payments, followed by a majority renewing at the first renewal date. Interviews, purchase intentions and free trials will be counted separately.
 
-Ces seuils servent à prendre une décision. Ils restent des hypothèses de pilotage, jamais des garanties annoncées au public avant mesure.
+These thresholds are decision tools. They remain operating hypotheses, never public guarantees made before measurement.
 
-**Règle d’arrêt :** après deux itérations ciblées sans gain utile sur la comparaison, arrêter l’élargissement du segment et revoir le cas d’usage. Si l’accès à une source apporte peu d’utilité tout en augmentant les erreurs ou l’exposition, retirer cette source du parcours par défaut. Si les participants reviennent seulement pour la démonstration visuelle, revenir au travail quotidien qu’OMNI doit améliorer.
+**Stop rule:** after two focused iterations without a useful gain in the comparison, stop expanding the segment and reconsider the use case. If access to a source adds little utility while increasing errors or exposure, remove it from the default workflow. If participants return only for the visual demonstration, refocus on the everyday work OMNI should improve.
 
-## Phase II — Sovereign Agent : déléguer sans abandonner l’autorité
+## Phase II — Sovereign Agent: Delegate Without Surrendering Authority
 
-**Promesse à éprouver :** une personne peut confier une tâche à un agent, vérifier les limites de cette délégation et interrompre ses futurs accès.
+**The promise to test:** a person can entrust a task to an agent, inspect the limits of that delegation and cut off its future access.
 
-Cette phase transforme les autorisations de contexte actuelles en une autorité plus précise. Elle doit distinguer l’identité d’un agent, la ressource demandée, la destination, l’opération autorisée et sa durée. Les actions ayant des effets externes demandent des règles propres : limites de dépense, confirmations adaptées, reprises sûres et historique consultable. Le modèle peut proposer une action ; la décision d’autorisation doit rester déterministe et extérieure à son interprétation des messages.
+This phase turns today's context permissions into more precise authority. It must distinguish an agent's identity, the requested resource, the destination, the permitted operation and its duration. Actions with external effects need their own rules: spending limits, appropriate confirmations, safe retries and an inspectable history. The model may propose an action; the authorization decision must remain deterministic and separate from its interpretation of messages.
 
-La mémoire cible devient temporelle et reliée à ses sources : changements, contradictions, dépendances et résumés sont révisables. Le processus qui conserve le coffre devra être isolé des sorties réseau au niveau de l’OS, avec des canaux étroits vers les composants autorisés. Ce confinement reste un objectif à vérifier ; l’organisation actuelle des modules Rust ne le remplace pas.
+The target memory system becomes temporal and connected to its sources: changes, contradictions, dependencies and summaries can be revised. The process holding the vault must be isolated from network egress at the OS level, with narrow channels to authorized components. That confinement remains an objective to verify; the current organization of Rust modules does not provide it.
 
-La distribution pourra s’appuyer sur des intégrations d’agents et des partenaires choisis. Le financement reste centré sur un service payé par ses utilisateurs. Un abonnement pris en charge par une organisation doit laisser explicites les espaces personnels, les espaces professionnels et les droits respectifs. Le payeur ne reçoit aucun accès implicite au coffre personnel.
+Distribution may grow through agent integrations and selected partners. Funding remains centered on a service paid for by its users. An organization-funded subscription must keep personal spaces, workspaces and their respective rights explicit. The payer receives no implicit access to the personal vault.
 
-### Les preuves avant de généraliser la délégation
+### Evidence Required Before Broadening Delegation
 
-- **Autorité :** une évaluation indépendante couvre les injections par documents et outils, l’usurpation d’agent, l’élévation de privilèges et les reprises après révocation. Toute faille critique ou élevée permettant un contournement demeure bloquante pour la version distribuée.
-- **Confinement :** des tests sous chaque OS pris en charge démontrent que le processus du coffre ne peut établir directement une connexion sortante et qu’un agent ne peut administrer ses propres droits. Publier les limites face à un OS compromis.
-- **Fidélité de la mémoire :** sur au moins 1 000 épisodes de test couvrant les changements et contradictions, 100 % des souvenirs dérivés sélectionnés doivent avoir une provenance résoluble. Un souvenir sans source valide est exclu du contexte transmis.
-- **Usage durable :** observer au moins 200 utilisateurs ayant terminé leur première tâche utile, puis viser une rétention d’au moins 50 % à huit semaines et une utilisation dans au moins deux intégrations pour 30 % de cette cohorte. Définir à l’avance ce qui constitue une tâche utile et une semaine active.
-- **Fiabilité et ressources :** pour les connexions prises en charge, viser moins de 1 % d’échecs attribuables à OMNI sur une fenêtre de 30 jours. Pour la sélection d’un contexte déjà indexé, viser un surcoût local p95 inférieur à 150 ms sur les configurations publiées, sans relâcher les règles de permission. Toute nouvelle source doit apporter un gain mesuré au regard de son coût énergétique.
-- **Viabilité :** sur une cohorte payante observée pendant trois mois, obtenir une contribution positive après hébergement, paiements et support directement attribuable. Publier les postes exclus du calcul, notamment la recherche et le développement. Éprouver la demande avec des renouvellements, sans la déduire du nombre de téléchargements.
+- **Authority:** an independent assessment covers injection through documents and tools, agent impersonation, privilege escalation and retries after revocation. Any critical or high-severity vulnerability that permits a bypass continues to block release of the affected version.
+- **Confinement:** tests on every supported OS demonstrate that the vault process cannot establish a direct outbound connection and that an agent cannot administer its own rights. Publish the limits of protection against a compromised OS.
+- **Memory fidelity:** across at least 1,000 test episodes covering changes and contradictions, 100% of selected derived memories must have provenance that can be resolved. A memory without a valid source is excluded from transmitted context.
+- **Sustained use:** observe at least 200 users who have completed their first useful task, then target at least 50% retention at eight weeks and usage across at least two integrations for 30% of that cohort. Define a useful task and an active week in advance.
+- **Reliability and resources:** for supported connections, target an OMNI-attributable failure rate below 1% over a 30-day window. For selecting context that is already indexed, target local p95 overhead below 150 ms on the published configurations, without relaxing permission rules. Each new source must deliver a measured gain relative to its energy cost.
+- **Viability:** across a paying cohort observed for three months, achieve a positive contribution margin after hosting, payment costs and directly attributable support. Publish the costs excluded from this calculation, including research and development. Test demand through renewals rather than inferring it from downloads.
 
-**Règle d’arrêt :** un contournement de l’autorité suspend les opérations concernées. Des erreurs répétées de mémoire suspendent son injection automatique, avec retour au choix explicite. Si les intégrations changent plus vite que l’équipe ne peut les maintenir de manière fiable, réduire la couverture annoncée. La croissance attendra une délégation compréhensible et un service soutenable.
+**Stop rule:** an authority bypass suspends the affected operations. Repeated memory errors suspend automatic context injection, reverting to explicit selection. If integrations change faster than the team can maintain them reliably, reduce the advertised coverage. Growth must wait for understandable delegation and a sustainable service.
 
-## Phase III — Global Mesh : faire circuler la continuité, garder les frontières
+## Phase III — Global Mesh: Let Continuity Travel, Preserve the Boundaries
 
-**Promesse à éprouver :** la personne peut conserver sa continuité entre appareils et opérateurs sans devenir captive d’un nouveau centre.
+**The promise to test:** a person can preserve continuity across devices and operators without becoming captive to a new center.
 
-Le réseau cible relie des autorités personnelles. Il permet de transporter une mémoire, de synchroniser ce qui doit l’être et d’accorder des accès entre systèmes compatibles. Sa conception doit traiter les conflits, la perte d’un appareil, la révocation d’une clé, la récupération et la migration. Chacune de ces opérations devra conserver une signification claire pour la personne.
+The target network connects personal authorities. It lets people move their memory, synchronize what needs synchronizing and grant access across compatible systems. Its design must address conflicts, a lost device, key revocation, recovery and migration. Each of these operations must remain understandable to the person.
 
-Une fédération éventuelle doit fonctionner avec des opérateurs indépendants et des protocoles publiés. Sa valeur dépendra de sorties réellement possibles : changer d’opérateur, migrer un coffre, révoquer un appareil, continuer avec un autre agent.
+Any future federation must work with independent operators and published protocols. Its value will depend on real ways to leave: change operators, migrate a vault, revoke a device, continue with another agent.
 
-L’analytique collective restera un service facultatif. Le plafond du pilote v1 ne permet pas, à lui seul, une observation continue à cette échelle. Toute évolution exigera un protocole revu, une comptabilité explicite des divulgations successives et une étude du cas multiappareil. Les méthodes destinées à réduire l’exposition des métadonnées ou à résister aux contributions fabriquées devront être évaluées séparément. Aucune de ces protections ne découle automatiquement du nombre d’utilisateurs.
+Collective analytics will remain optional. The v1 pilot cap alone does not support continuous observation at this scale. Any evolution will require a revised protocol, explicit accounting for successive disclosures and an examination of the multi-device case. Methods for reducing metadata exposure or resisting fabricated contributions must be evaluated separately. None of these protections emerges automatically from a growing user count.
 
-### Les preuves avant chaque changement d’échelle
+### Evidence Required Before Each Increase in Scale
 
-- **Portabilité :** avant de déclarer la fédération disponible, réussir un aller-retour de migration avec deux opérateurs indépendants, sur un corpus versionné. Aucun souvenir, lien de provenance ou droit ne doit être perdu ou élargi silencieusement.
-- **Récupération :** démontrer les scénarios d’appareil perdu, de clé révoquée et de restauration après incident. Les exigences de récupération et leurs compromis de confiance doivent être présentés avant l’activation de la synchronisation.
-- **Capacité :** franchir des essais distincts correspondant à 10 000, 100 000 puis 1 000 000 d’installations simulées. Pour chaque palier, publier fréquence des événements, simultanéité, taille des rapports, matériel, latences, taux d’erreur et coût. Un million de clients simulés ne sera jamais présenté comme un million de personnes acquises.
-- **Exploitation :** avant chaque palier commercial, tenir pendant 30 jours l’objectif annoncé pour les services gérés, proposé à 99,9 % de disponibilité, puis effectuer une restauration vérifiée. Une panne du SaaS ne doit pas empêcher la consultation locale des souvenirs ni leur export.
-- **Statistiques :** conserver un affichage d’insuffisance de données lorsque la publication n’est pas justifiée. La v1 exige déjà 10 000 rapports hebdomadaires en production, mais ce seuil ne garantit ni représentativité ni précision suffisante. Fixer une précision nécessaire par question, puis vérifier bruit, biais et taille d’échantillon avant de publier une conclusion.
-- **Économie et énergie :** maintenir une contribution positive, mesurer l’énergie et le coût par tâche utile, et vérifier qu’un palier d’infrastructure améliore effectivement la situation. SingleStore, Kubernetes ou un calcul fédéré n’entrent dans la cible retenue qu’après comparaison reproductible avec une solution plus simple.
+- **Portability:** before declaring federation available, complete a round-trip migration involving two independent operators using a versioned corpus. No memory, provenance link or permission may be silently lost or broadened.
+- **Recovery:** demonstrate lost-device, revoked-key and post-incident restoration scenarios. Recovery requirements and their trust tradeoffs must be presented before synchronization is enabled.
+- **Capacity:** pass separate trials representing 10,000, 100,000 and then 1,000,000 simulated installations. At each stage, publish event frequency, concurrency, report sizes, hardware, latencies, error rates and cost. A million simulated clients will never be presented as a million acquired users.
+- **Operations:** before each commercial expansion, meet the published target for managed services, proposed at 99.9% availability, for 30 days, then perform a verified restoration. A SaaS outage must not prevent people from reading or exporting their local memories.
+- **Statistics:** keep an insufficient-data state whenever publication is not justified. The v1 already requires 10,000 weekly reports in production, but that threshold guarantees neither representativeness nor sufficient precision. Set the required precision for each question, then assess noise, bias and sample size before publishing a conclusion.
+- **Economics and energy:** maintain a positive contribution margin, measure energy and cost per useful task, and verify that each infrastructure expansion actually improves the result. SingleStore, Kubernetes or federated computation enter the selected architecture only after a reproducible comparison with a simpler solution.
 
-**Règle d’arrêt :** différer un palier si le coût, l’énergie, la récupération ou le contrôle se dégradent au-delà des seuils annoncés. Suspendre une statistique si elle ne soutient pas la conclusion affichée. Refuser un partenariat qui exige un accès implicite aux mémoires ou une influence cachée sur les recommandations. Une fédération qui empêche de sortir manquerait son propre objectif.
+**Stop rule:** defer a stage if cost, energy, recovery or control deteriorate beyond the announced thresholds. Suspend a statistic if it does not support the conclusion shown. Reject a partnership that requires implicit access to memories or hidden influence over recommendations. A federation that prevents people from leaving would defeat its own purpose.
 
-## La mesure qui traverse les trois phases
+## The Measures That Span All Three Phases
 
-Nous suivrons le temps de contexte évité, les tâches menées à terme, les corrections nécessaires, les divulgations inutiles, les accès refusés à juste titre, les incidents, la rétention, les renouvellements, le coût et l’énergie par tâche utile. Ces mesures doivent rester lisibles séparément. Aucun score unique de « compréhension de la personne » ne les remplace.
+We will track time saved rebuilding context, tasks completed, corrections required, unnecessary disclosures, correctly denied access, incidents, retention, renewals, and cost and energy per useful task. These measures must remain individually legible. No single score for “understanding the person” can replace them.
 
-Chaque expérimentation annoncera sa comparaison, sa durée, ses seuils et ses critères d’arrêt avant de commencer. Les résultats défavorables auront leur place dans la décision suivante.
+Every experiment will state its comparison, duration, thresholds and stop criteria before it begins. Unfavorable results will have a place in the next decision.
 
-Le million est un horizon de diffusion. La promesse à préserver reste intime : retrouver sa continuité, choisir ses limites, garder la possibilité de partir.
+A million is a horizon for reach. The promise to preserve remains personal: recover your continuity, choose your boundaries, keep the freedom to leave.

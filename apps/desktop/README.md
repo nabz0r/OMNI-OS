@@ -12,6 +12,6 @@ The app displays data returned by the core and collector. It never fabricates ag
 
 `node apps/desktop/qa.mjs` runs the real browser smoke flow against a running local development stack, using Playwright and the session token in `.omni/runtime/admin-token` without printing it. It creates and removes an explicitly synthetic test memory, issues then revokes one permission, sends one request, checks the receipt, and captures every view plus a 430 px mobile layout. Use `OMNI_QA_VIEW_ONLY=1` for read-only screenshots. `OMNI_PLAYWRIGHT_MODULE` and `OMNI_QA_CHROMIUM` can point to a bundled Playwright package and Chromium executable. Generated screenshots live in ignored `artifacts/`.
 
-## En français
+## Memory and permissions
 
-La mémoire reste locale et modifiable. Une autorisation désigne une destination exacte, des souvenirs précis et une durée. La révocation empêche les futurs partages via OMNI, mais ne rappelle pas les copies déjà transmises. Le moteur de conversation n'utilise aucune mémoire sans autorisation sélectionnée. Les données de démonstration sont signalées comme synthétiques.
+Memory stays local and editable. A permission specifies an exact destination, selected memories, and a duration. Revocation prevents future sharing through OMNI, but cannot retrieve copies already transmitted. The conversation engine uses no memory unless a permission is selected. Demonstration data is labeled as synthetic.

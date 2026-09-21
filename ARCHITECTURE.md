@@ -1,392 +1,392 @@
-# OMNI-OS — Architecture d'une autorité personnelle de contexte
+# OMNI-OS — Architecture of a Personal Context Authority
 
-Ce document décrit deux objets distincts : **la v1 exécutable de ce dépôt** et **l'architecture cible** qui peut être construite à partir de ses frontières.
-Les mentions **V1**, **Cible** et **Non garanti** font partie de la spécification ; une intention ne doit jamais être présentée comme une propriété déjà démontrée.
-Les procédures de lancement, de transport et de validation restent dans [README.md](README.md), [docs/VPN.md](docs/VPN.md) et [docs/VALIDATION.md](docs/VALIDATION.md).
-Les [schémas](DIAGRAMS.md) donnent les vues de flux et de conteneurs ; la [roadmap](ROADMAP.md) fixe les preuves nécessaires avant chaque évolution.
+This document describes two distinct things: **the executable v1 in this repository** and **the target architecture** that can be built around its boundaries.
+The labels **V1**, **Target**, and **Not guaranteed** are part of the specification; an intention must never be presented as an already demonstrated property.
+Startup, transport, and validation procedures remain in [README.md](README.md), [docs/VPN.md](docs/VPN.md), and [docs/VALIDATION.md](docs/VALIDATION.md).
+The [diagrams](DIAGRAMS.md) provide data flow and container views; the [roadmap](ROADMAP.md) sets the evidence required before each change.
 
-## Repères
+## Navigation
 
-- [1. Thèse et périmètre](#these)
-- [2. Compréhension et compression](#comprehension)
-- [3. Mémoire, provenance et temps](#memoire)
-- [4. Autorité, agents et révocation](#autorite)
-- [5. Flux et frontières de confiance](#flux)
-- [6. TLS, interception et couches réseau](#tls)
-- [7. Clés, admission et rotation](#cles)
-- [8. Contrat de confidentialité différentielle](#dp)
-- [9. Collecteur et incertitude](#collecteur)
-- [10. SingleStore et migration](#singlestore)
-- [11. Déploiement privé et Kubernetes](#kubernetes)
-- [12. Menaces, validation et évolution](#validation)
+- [1. Thesis and scope](#thesis)
+- [2. Understanding and compression](#understanding)
+- [3. Memory, provenance, and time](#memory)
+- [4. Authority, agents, and revocation](#authority)
+- [5. Data flows and trust boundaries](#data-flow)
+- [6. TLS, interception, and network layers](#tls)
+- [7. Keys, admission, and rotation](#keys)
+- [8. Differential privacy contract](#dp)
+- [9. Collector and uncertainty](#collector)
+- [10. SingleStore and migration](#singlestore)
+- [11. Private deployment and Kubernetes](#kubernetes)
+- [12. Threats, validation, and evolution](#validation)
 
-<a id="these"></a>
+<a id="thesis"></a>
 
-## 1. Thèse : la continuité appartient à la personne
+## 1. Thesis: continuity belongs to the person
 
-OMNI vise une infrastructure où changer de modèle ne signifie plus reconstruire son contexte personnel, ses préférences et les limites de leur utilisation.
-La continuité recherchée tient dans trois capacités : conserver une mémoire explicable, sélectionner un contexte utile, puis autoriser sa transmission à un destinataire précis.
-La mémoire sert la personne ; les agents et fournisseurs n'en reçoivent qu'une vue liée à une interaction.
+OMNI aims to provide infrastructure where changing models no longer means rebuilding personal context, preferences, and the limits on their use.
+This continuity rests on three capabilities: maintaining explainable memory, selecting useful context, and authorizing its transmission to a specific recipient.
+Memory serves the person; agents and providers receive only a view tied to an interaction.
 
-Le « vecteur d'identité » est donc une métaphore de produit, pas le schéma de stockage.
-Un vecteur unique ne représente correctement ni le changement d'employeur, ni une préférence temporaire, ni une contradiction entre sources, ni une interdiction de divulgation.
-L'architecture cible combine des sources, des assertions temporelles, leurs relations et des politiques d'accès ; les représentations vectorielles deviennent des index dérivés.
+The “identity vector” is therefore a product metaphor, not the storage schema.
+A single vector cannot adequately represent a change of employer, a temporary preference, contradictory sources, or a prohibition on disclosure.
+The target architecture combines sources, temporal assertions, their relationships, and access policies; vector representations become derived indexes.
 
-L'autorité est ici une capacité technique : décider des lectures et sorties traversant OMNI.
-Elle ne confère aucun pouvoir sur une application qui contourne OMNI, ni sur une copie déjà reçue par un tiers.
-Elle ne transforme pas non plus une inférence en vérité, ou la possession d'un document en droit universel de le redistribuer.
+Authority here is a technical capability: deciding which reads and outputs may pass through OMNI.
+It confers no power over an application that bypasses OMNI or a copy already received by a third party.
+Nor does it turn an inference into truth, or possession of a document into a universal right to redistribute it.
 
-| Domaine       | V1 livrée                                                   | Cible ou limite                                                      |
-| ------------- | ----------------------------------------------------------- | -------------------------------------------------------------------- |
-| Mémoire       | SQLCipher, sources, souvenirs, statuts, historique          | Graphe temporel et index sémantiques dérivés                         |
-| Compréhension | Extraction par modèle local, propositions à confirmer       | Résolution de contradictions et pertinence évaluées                  |
-| Autorisations | Jetons propriétaire/agent, grants par destination et portée | Identité cryptographique et capacités propres à chaque agent         |
-| Intégrations  | Passerelles OpenAI/Anthropic, MCP, capture volontaire       | Connecteurs supplémentaires, sans interception universelle implicite |
-| Transport     | WireGuard, admission authentifiée, outils de déploiement    | Distribution native signée et exploitation à grande échelle          |
-| Analytique    | Rapports OpenDP bornés, collecteur Redis ou SQLite local    | Stockage analytique SingleStore et gouvernance des publications      |
-| Isolation     | Collecteur séparé ; mémoire et passerelle dans le même core | Helpers OS séparés avec droits réseau distincts                      |
-| Preuves ZK    | Aucune                                                      | Attributs vérifiables ciblés, si un cas d'usage le justifie          |
+| Area          | Delivered in v1                                               | Target or limitation                                           |
+| ------------- | ------------------------------------------------------------- | -------------------------------------------------------------- |
+| Memory        | SQLCipher, sources, memories, statuses, history               | Temporal graph and derived semantic indexes                    |
+| Understanding | Extraction by a local model, proposals requiring confirmation | Evaluated contradiction resolution and relevance               |
+| Authorization | Owner/agent tokens, grants by destination and scope           | Cryptographic identity and capabilities specific to each agent |
+| Integrations  | OpenAI/Anthropic gateways, MCP, voluntary capture             | Additional connectors, without implicit universal interception |
+| Transport     | WireGuard, authenticated admission, deployment tools          | Signed native distribution and large-scale operation           |
+| Analytics     | Bounded OpenDP reports, Redis collector or local SQLite       | SingleStore analytics storage and publication governance       |
+| Isolation     | Separate collector; memory and gateway in the same core       | Separate OS helpers with distinct network permissions          |
+| ZK proofs     | None                                                          | Targeted verifiable attributes, if justified by a use case     |
 
-Le produit doit rester utile sans participer aux analytics et sans envoyer sa mémoire à un modèle distant.
-Le succès ne se mesure pas au volume de données absorbées, mais à la qualité des tâches effectuées avec une divulgation maîtrisée.
+The product must remain useful without participating in analytics or sending memory to a remote model.
+Success is measured by the quality of tasks completed with controlled disclosure, not by the volume of data absorbed.
 
-<a id="comprehension"></a>
+<a id="understanding"></a>
 
-## 2. Comprendre, c'est sélectionner une représentation pour une tâche
+## 2. Understanding means selecting a representation for a task
 
-### Compression utile et information perdue
+### Useful compression and lost information
 
-Un résumé personnel est une compression avec perte : des détails sont omis, certaines relations sont simplifiées et le choix des éléments dépend de la tâche.
-OMNI ne revendique ni compression sans perte de la vie d'une personne, ni reconstruction de son état mental.
-Une mémoire utile peut conserver un fait précis en dix mots et garder sa source complète pour vérifier ce qui a été omis.
+A personal summary is lossy compression: details are omitted, some relationships are simplified, and the choice of elements depends on the task.
+OMNI claims neither lossless compression of a person's life nor reconstruction of their mental state.
+Useful memory can retain a precise fact in ten words while keeping its full source to check what was omitted.
 
-La cible est un **compilateur de contexte** : une demande, un destinataire et une autorisation produisent un ensemble minimal d'éléments justifiés.
-Le compilateur doit expliquer ce qu'il a sélectionné, d'où cela vient, pourquoi cela paraît pertinent et quelles restrictions ont écarté d'autres éléments.
-Le modèle de réponse consomme ce résultat ; il ne décide pas lui-même d'élargir les droits de lecture.
+The target is a **context compiler**: a request, a recipient, and an authorization produce a minimal set of supported elements.
+The compiler must explain what it selected, where it came from, why it appears relevant, and which restrictions excluded other elements.
+The response model consumes this result; it does not decide for itself to expand read permissions.
 
-Le gain de compression doit être mesuré à qualité de tâche comparable : tokens transmis, temps de correction, réussite, omissions importantes et divulgations inutiles.
-Réduire le nombre de tokens en supprimant une contrainte essentielle constitue un échec, même si le résumé paraît élégant.
-L'accès complet à l'appareil n'a donc aucun pourcentage de bénéfice présupposé : conversations seules, dossiers choisis puis connecteurs supplémentaires se comparent par ablation.
+Compression gains must be measured at comparable task quality: tokens transmitted, correction time, success, significant omissions, and unnecessary disclosures.
+Reducing token count by removing an essential constraint is a failure, even if the summary looks elegant.
+There is therefore no assumed percentage benefit from full device access: conversations alone, selected folders, and additional connectors are compared through ablation studies.
 
-### L'entropie de la mémoire n'est pas un diagnostic humain
+### Memory entropy is not a diagnosis of the person
 
-Dans cette architecture, « entropie » désigne un ensemble de problèmes de représentation : doublons, ambiguïtés, obsolescence, contradictions et inférences sans appui.
-Ce terme ne correspond pas à un score validé d'intelligence, de fatigue ou de charge cognitive.
-L'incertitude sur un souvenir doit rester attachée à ce souvenir ; elle ne justifie pas de produire un profil psychologique global.
+In this architecture, “entropy” refers to a set of representation problems: duplicates, ambiguity, obsolescence, contradictions, and unsupported inferences.
+The term does not correspond to a validated measure of intelligence, fatigue, or cognitive load.
+Uncertainty about a memory must remain attached to that memory; it does not justify producing a global psychological profile.
 
-Une information absente reste inconnue ; l'absence de mention d'une préférence ne vaut ni refus ni consentement.
-Une nouvelle source contradictoire déclenche une proposition de révision, pas un remplacement silencieux de l'histoire.
-Une répétition peut indiquer plusieurs sources indépendantes ou la copie d'une même erreur : la provenance sert à faire cette distinction.
+Missing information remains unknown; the absence of a stated preference is neither refusal nor consent.
+A new contradictory source triggers a proposed revision, not a silent replacement of history.
+Repetition may indicate several independent sources or copies of the same error: provenance helps distinguish them.
 
-**V1 :** la capture transmet un extrait borné au modèle local configuré, puis valide une sortie JSON contenant au maximum cinq propositions.
-Le modèle ne peut ni confirmer ses propositions ni créer des grants ; l'interface permet au propriétaire de les examiner.
-Si l'extracteur est indisponible ou sa sortie invalide, un extrait de source est conservé avec un statut explicite de repli ; aucune compréhension réussie n'est simulée.
+**V1:** capture sends a bounded excerpt to the configured local model, then validates JSON output containing at most five proposals.
+The model can neither confirm its proposals nor create grants; the interface lets the owner review them.
+If the extractor is unavailable or its output is invalid, a source excerpt is retained with an explicit fallback status; successful understanding is never simulated.
 
-**Cible :** mesurer la pertinence, gérer les conflits, segmenter les contextes personnels/professionnels et reconstruire les index sans altérer les sources.
-L'évaluation doit inclure des informations périmées, des documents contradictoires, des instructions malveillantes dans les sources et des demandes pour lesquelles il faut répondre « inconnu ».
+**Target:** measure relevance, handle conflicts, separate personal and professional contexts, and rebuild indexes without altering sources.
+Evaluation must include stale information, contradictory documents, malicious instructions in sources, and requests that require an “unknown” answer.
 
-<a id="memoire"></a>
+<a id="memory"></a>
 
-## 3. Une mémoire traçable avant un graphe spectaculaire
+## 3. Traceable memory before a spectacular graph
 
-### Les objets réellement persistés
+### The objects actually persisted
 
-**V1 :** `sources` conserve le contenu capturé, son type, ses métadonnées et sa date de création.
-`memories` contient des textes liés à une source, avec dates de création/modification et statut `proposed`, `confirmed`, `disputed` ou `superseded`.
-`memory_history` conserve les versions antérieures lors d'une modification ; `grants` et `receipts` décrivent les autorisations et divulgations.
-Les observations d'usage et rapports analytiques sont également locaux jusqu'à un export explicitement autorisé.
+**V1:** `sources` stores captured content, its type, metadata, and creation date.
+`memories` contains text linked to a source, with creation/modification dates and a `proposed`, `confirmed`, `disputed`, or `superseded` status.
+`memory_history` retains earlier versions when a memory is edited; `grants` and `receipts` describe authorizations and disclosures.
+Usage observations and analytics reports also remain local until an explicitly authorized export.
 
-Seuls les souvenirs confirmés sont injectables dans le contexte d'un fournisseur.
-La recherche MCP est lexicale ; la sélection de contexte est bornée et respecte la portée du grant.
-La v1 n'a ni moteur de graphe sémantique, ni embeddings persistés, ni fusion automatique démontrée des identités ou des contradictions.
+Only confirmed memories can be injected into a provider's context.
+MCP search is lexical; context selection is bounded and respects the grant's scope.
+V1 has no semantic graph engine, persisted embeddings, or demonstrated automatic reconciliation of identities or contradictions.
 
-La visualisation Nebula représente les objets de mémoire disponibles et leur état ; ses positions ne constituent pas une cartographie scientifique du cerveau.
-Une animation de particules n'est jamais une preuve qu'un transfert réel ou qu'un tunnel vérifié existe.
-L'interface doit montrer l'absence de données ou de connexion lorsqu'elle ne dispose pas de cet état.
+The Nebula visualization represents available memory objects and their status; their positions are not a scientific map of the brain.
+A particle animation is never evidence of an actual transfer or a verified tunnel.
+The interface must show the absence of data or a connection when it has no such state available.
 
-### Le graphe local cible
+### The target local graph
 
-**Cible :** un fait relie un sujet, une relation et une valeur, avec source, auteur de l'assertion, confiance, statut et politique d'accès.
-Il distingue le temps du monde — « valable depuis juin » — du temps de connaissance — « appris par OMNI en septembre ».
-Une préférence déclarée, une observation et une inférence portent des types différents ; une confirmation humaine ne supprime pas leur origine.
+**Target:** a fact links a subject, a relation, and a value, with a source, assertion author, confidence, status, and access policy.
+It distinguishes time in the world — “valid since June” — from the time of knowledge — “learned by OMNI in September.”
+A stated preference, an observation, and an inference have different types; human confirmation does not erase their origin.
 
-Les relations entre personnes, projets, documents et objectifs permettent de retrouver un contexte sans construire une fiche globale systématiquement divulguée.
-Les sources restent les pièces justificatives ; les résumés, embeddings et caches sont des vues qui peuvent être périmées ou recalculées.
-Le vocabulaire de provenance peut s'inspirer des entités, activités et agents de [W3C PROV-DM](https://www.w3.org/TR/prov-dm/) ; aucune implémentation PROV complète n'est revendiquée pour la v1.
+Relationships between people, projects, documents, and goals allow context to be retrieved without constructing a global profile that is routinely disclosed.
+Sources remain the supporting evidence; summaries, embeddings, and caches are views that can become stale or be recomputed.
+The provenance vocabulary can draw on the entities, activities, and agents of [W3C PROV-DM](https://www.w3.org/TR/prov-dm/); v1 does not claim a complete PROV implementation.
 
-Le graphe conserve les dépendances : une synthèse doit référencer les faits et sources qui ont permis sa production.
-Supprimer une source doit invalider les dérivés correspondants ; retirer un fait sans supprimer sa source exige une politique empêchant sa réintroduction automatique.
-Les versions du modèle, du schéma et de la procédure d'extraction doivent être connues pour pouvoir expliquer une modification.
+The graph retains dependencies: a synthesis must reference the facts and sources used to produce it.
+Deleting a source must invalidate its derivatives; removing a fact while retaining its source requires a policy that prevents its automatic reintroduction.
+The versions of the model, schema, and extraction procedure must be known so that changes can be explained.
 
-### Effacement et reconstruction
+### Deletion and reconstruction
 
-**V1 :** supprimer une source supprime les souvenirs associés et leur historique par cascades relationnelles.
-Supprimer un seul souvenir conserve sa source si d'autres souvenirs la référencent ; la source est supprimée lorsqu'elle devient orpheline.
-Les reçus peuvent conserver des identifiants historiques sans conserver le texte divulgué.
+**V1:** deleting a source deletes its associated memories and their history through relational cascades.
+Deleting a single memory preserves its source if other memories reference it; the source is deleted when it becomes orphaned.
+Receipts may retain historical identifiers without retaining the disclosed text.
 
-SQLCipher protège la base au repos, mais le contenu est nécessairement déchiffré dans la mémoire du processus qui le traite.
-Une suppression logique, même avec nettoyage des pages SQLite, ne constitue pas une garantie d'effacement physique de toutes les cellules d'un SSD ou de sauvegardes externes.
-**Cible :** politique explicite de sauvegarde, rotation des clés, suppression des dérivés, invalidation des caches et vérification des restaurations.
+SQLCipher protects the database at rest, but its content is necessarily decrypted in the memory of the process handling it.
+Logical deletion, even with SQLite page cleaning, does not guarantee physical erasure from every SSD cell or external backup.
+**Target:** an explicit backup policy, key rotation, deletion of derivatives, cache invalidation, and verified restores.
 
-<a id="autorite"></a>
+<a id="authority"></a>
 
-## 4. La juridiction locale : ce qu'un agent peut réellement obtenir
+## 4. Local jurisdiction: what an agent can actually obtain
 
-### Séparer proposer, autoriser et exécuter
+### Separating proposals, authorization, and execution
 
-**V1 :** le jeton propriétaire administre la mémoire et les grants ; le jeton agent ne peut pas s'attribuer ces droits administratifs.
-Un grant désigne une base de fournisseur exacte, une liste d'identifiants de mémoire ou une portée `*`, une expiration et un état de révocation.
-Le propriétaire confirme les souvenirs et choisit la portée ; le core vérifie le grant avant de transmettre le contexte.
+**V1:** the owner token administers memory and grants; the agent token cannot assign itself these administrative rights.
+A grant specifies an exact provider base URL, a list of memory identifiers or a `*` scope, an expiration, and a revocation state.
+The owner confirms memories and chooses the scope; the core checks the grant before transmitting context.
 
-La portée `*` inclut les souvenirs confirmés admissibles au moment de la demande ; elle est plus large qu'une sélection figée de quelques identifiants.
-La durée d'un grant v1 est bornée à vingt-quatre heures ; l'absence de grant n'injecte aucune mémoire.
-Une requête sans mémoire peut néanmoins contenir le prompt que son auteur a volontairement saisi.
+The `*` scope includes eligible confirmed memories at the time of the request; it is broader than a fixed selection of identifiers.
+A v1 grant's lifetime is capped at twenty-four hours; without a grant, no memory is injected.
+A request without memory can still contain the prompt its author deliberately entered.
 
-MCP utilise une destination distincte, `https://omni.local/mcp`, pour ses lectures autorisées.
-Les outils livrés recherchent des souvenirs autorisés ou proposent un texte à confirmer ; ils n'exécutent pas d'actions système générales.
-Le jeton agent v1 est un secret d'intégration partagé : ce n'est pas encore un registre de capacités distinctes pour chaque agent identifié.
+MCP uses a separate destination, `https://omni.local/mcp`, for authorized reads.
+The delivered tools search authorized memories or propose text for confirmation; they do not execute general system actions.
+The v1 agent token is a shared integration secret: it is not yet a registry of distinct capabilities for each identified agent.
 
-**Cible :** chaque agent possède un principal lié à une clé ; sa capacité précise destinataire, ressources, opérations, échéance, quota et droit éventuel de délégation.
-La décision appartient à un évaluateur déterministe de politique ; un texte généré par un LLM ne devient jamais une autorisation.
-Une capacité liée au détenteur, un nonce et une audience explicite doivent empêcher de réutiliser ailleurs une autorisation obtenue pour une autre tâche.
+**Target:** each agent has a principal bound to a key; its capability specifies the recipient, resources, operations, expiration, quota, and any delegation rights.
+The decision belongs to a deterministic policy evaluator; LLM-generated text never becomes an authorization.
+A holder-bound capability, a nonce, and an explicit audience must prevent an authorization obtained for one task from being reused elsewhere.
 
-### Ce qu'une révocation signifie
+### What revocation means
 
-**V1 :** révoquer un grant bloque les nouvelles lectures et les nouveaux envois autorisés par ce grant dans OMNI.
-Une vérification avant l'émission réduit la fenêtre entre décision et envoi ; elle ne peut pas rappeler des octets déjà confiés au transport.
-Un reçu distingue l'autorisation, l'envoi tenté et une erreur pouvant avoir laissé une transmission partielle ; il ne prouve pas l'effacement chez le destinataire.
+**V1:** revoking a grant blocks new reads and sends authorized by that grant within OMNI.
+A check before transmission reduces the window between decision and sending; it cannot recall bytes already handed to the transport.
+A receipt distinguishes authorization, an attempted send, and an error that may have left a partial transmission; it does not prove deletion at the recipient.
 
-Une interface honnête distingue « accès coupé », « suppression demandée » et « suppression déclarée par le service ».
-L'[invalidation OAuth des jetons](https://www.rfc-editor.org/rfc/rfc7009) illustre cette frontière : arrêter une capacité d'accès n'efface pas rétroactivement les données obtenues.
-Des politiques [ODRL](https://www.w3.org/TR/odrl-model/) peuvent exprimer des usages permis ou interdits ; leur respect extérieur nécessite un système qui les applique et des contrôles vérifiables.
+An honest interface distinguishes “access revoked,” “deletion requested,” and “deletion reported by the service.”
+[OAuth token invalidation](https://www.rfc-editor.org/rfc/rfc7009) illustrates this boundary: terminating access does not retroactively delete data already obtained.
+[ODRL](https://www.w3.org/TR/odrl-model/) policies can express permitted or prohibited uses; compliance outside OMNI requires a system that enforces them and verifiable controls.
 
-### Assertions sélectives, ZK et alignement économique
+### Selective assertions, ZK, and economic alignment
 
-**Cible :** lorsque seul un attribut est nécessaire, fournir une attestation ou une preuve ciblée plutôt que toute la mémoire personnelle.
-Une preuve d'âge sans date de naissance est un cas possible ; sa réalisation dépend du mécanisme cryptographique et d'un émetteur accepté par le vérificateur.
-Les [Verifiable Credentials W3C](https://www.w3.org/TR/vc-data-model-2.0/#zero-knowledge-proofs) décrivent ce type de présentation, sans garantir à elles seules la vérité de toute déclaration.
+**Target:** when only one attribute is needed, provide a targeted attestation or proof instead of the entire personal memory.
+Proof of age without a birth date is one possible case; its implementation depends on the cryptographic mechanism and an issuer accepted by the verifier.
+[W3C Verifiable Credentials](https://www.w3.org/TR/vc-data-model-2.0/#zero-knowledge-proofs) describe this type of presentation without, by themselves, guaranteeing that every claim is true.
 
-**V1 : aucune preuve ZK n'est produite.** La DP des statistiques n'est pas une preuve ZK et une signature ne prouve pas que des interactions réelles ont eu lieu.
-La promesse d'autorité personnelle impose aussi une politique économique : rendre visibles les conflits qui pourraient influencer le choix d'un modèle ou d'un service.
-Un abonnement payé par l'utilisateur ne suffit pas, à lui seul, à prouver l'absence de vente de profils ou de commissions biaisant les recommandations.
+**V1: no ZK proof is produced.** Differential privacy for statistics is not a ZK proof, and a signature does not prove that actual interactions occurred.
+The promise of personal authority also requires an economic policy: make visible any conflicts that could influence the choice of a model or service.
+A user-paid subscription alone does not prove the absence of profile sales or commissions that bias recommendations.
 
-<a id="flux"></a>
+<a id="data-flow"></a>
 
-## 5. Flux de données et frontières de confiance
+## 5. Data flows and trust boundaries
 
 ```mermaid
 flowchart LR
-  U[Personne / console] --> C[Core local : autorisations]
-  A[Agent intégré / MCP] --> C
-  B[Capture volontaire] --> L[Extracteur local]
-  L --> V[Coffre SQLCipher : propositions]
+  U[Person / console] --> C[Local core: authorization]
+  A[Integrated agent / MCP] --> C
+  B[Voluntary capture] --> L[Local extractor]
+  L --> V[SQLCipher vault: proposals]
   V <--> C
-  C --> P[Fournisseur choisi : contexte autorisé]
-  C --> O[Observations locales bornées]
-  O --> D[OpenDP : rapport fixe et persisté]
-  D --> S[Émetteur de rapports]
-  S --> G[Collecteur : sommes et déduplication]
+  C --> P[Selected provider: authorized context]
+  C --> O[Bounded local observations]
+  O --> D[OpenDP: fixed, persisted report]
+  D --> S[Report sender]
+  S --> G[Collector: sums and deduplication]
 ```
 
-Ce diagramme représente les responsabilités ; ses rectangles ne signifient pas tous des processus isolés.
-**V1 :** le collecteur et le runtime du modèle local sont séparés du core ; coffre, décisions et connecteur fournisseur partagent le processus Rust local.
-Les types de rapport et modules rendent les flux auditables, mais un module Rust n'est pas une frontière de sécurité OS.
+This diagram represents responsibilities; its rectangles do not all denote isolated processes.
+**V1:** the collector and local model runtime are separate from the core; the vault, decisions, and provider connector share the local Rust process.
+Report types and modules make the flows auditable, but a Rust module is not an OS security boundary.
 
-| Acteur                         | Informations accessibles dans le fonctionnement prévu                                   |
-| ------------------------------ | --------------------------------------------------------------------------------------- |
-| Core local déverrouillé        | Sources, souvenirs autorisés, prompts nécessaires au traitement, observations           |
-| Runtime d'extraction local     | Extrait de capture remis pour produire des propositions                                 |
-| Fournisseur distant choisi     | Prompt et contexte explicitement transmis ; métadonnées de son service                  |
-| Relais VPN/SOCKS de production | Connexions, destinations, horaires et volumes ; flux TLS fournisseur chiffré            |
-| Collecteur OMNI                | Rapports bruités, semaine, identifiant aléatoire de rapport et métadonnées de transport |
-| Lecteur des tendances          | Agrégats publiés, effectif de rapports et incertitude annoncée                          |
+| Actor                      | Information accessible during intended operation                              |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| Unlocked local core        | Sources, authorized memories, prompts required for processing, observations   |
+| Local extraction runtime   | Captured excerpt supplied to produce proposals                                |
+| Selected remote provider   | Explicitly transmitted prompt and context; its own service metadata           |
+| Production VPN/SOCKS relay | Connections, destinations, timing, and volumes; encrypted provider TLS stream |
+| OMNI collector             | Noised reports, week, random report identifier, and transport metadata        |
+| Reader of trends           | Published aggregates, report count, and stated uncertainty                    |
 
-Le SaaS analytique ne reçoit pas les sources, prompts, réponses, embeddings ou reçus personnels par son protocole d'ingestion.
-Cette propriété du protocole ne signifie pas qu'un opérateur ne voit aucune IP, ni qu'un reverse proxy ne peut journaliser des métadonnées.
-Une passerelle applicative sans historique de conversations central ne certifie pas la rétention du fournisseur, ses cookies, son compte utilisateur ou ses pratiques internes.
+The analytics SaaS does not receive sources, prompts, responses, embeddings, or personal receipts through its ingestion protocol.
+This protocol property does not mean that an operator sees no IP addresses or that a reverse proxy cannot log metadata.
+An application gateway without centralized conversation history does not certify the provider's retention, cookies, user account, or internal practices.
 
-**Cible :** séparer un worker coffre sans réseau, un connecteur fournisseur recevant un contexte limité et un émetteur ne recevant que des rapports déjà bruités.
-Les capacités OS, l'IPC fermé, les signatures des binaires et les tests de trafic devront établir ces frontières ; elles ne se déduisent pas du nom des composants.
-Le modèle de menace doit inclure le fournisseur de mises à jour et le logiciel local compromis, pas seulement un serveur analytique curieux.
+**Target:** separate a vault worker with no network access, a provider connector receiving limited context, and a sender receiving only reports that have already been noised.
+OS capabilities, restricted IPC, binary signatures, and traffic tests must establish these boundaries; they cannot be inferred from component names.
+The threat model must include the update provider and compromised local software, not only a curious analytics server.
 
 <a id="tls"></a>
 
-## 6. Position réseau : middleware applicatif explicite
+## 6. Network position: explicit application middleware
 
-La compréhension du langage appartient à la couche applicative : il faut recevoir un message déchiffré en tant que participant autorisé pour le sélectionner ou l'enrichir.
-WireGuard transporte des paquets ; il ne donne pas accès au contenu de toutes les sessions HTTPS qu'il transporte.
-Descendre vers L4, L3 ou L2 change le contrôle du transport, pas cette propriété cryptographique.
+Language understanding belongs at the application layer: a message must be received in decrypted form by an authorized participant to be selected or enriched.
+WireGuard transports packets; it does not provide access to the content of every HTTPS session it carries.
+Moving down to L4, L3, or L2 changes transport control, not this cryptographic property.
 
-**V1 :** une application ou un agent configure volontairement OMNI comme endpoint OpenAI/Anthropic, ou utilise la console et les outils MCP/capture.
-La console et le core communiquent en HTTP sur loopback dans le runtime de développement ; aucune terminaison TLS entrante n'y est prétendue.
-Pour un fournisseur distant, le core ouvre une nouvelle session HTTPS et lui transmet le contexte autorisé ; les redirections ne peuvent pas changer silencieusement la destination.
+**V1:** an application or agent deliberately configures OMNI as its OpenAI/Anthropic endpoint, or uses the console and MCP/capture tools.
+The console and core communicate over loopback HTTP in the development runtime; no inbound TLS termination is claimed there.
+For a remote provider, the core opens a new HTTPS session and transmits the authorized context; redirects cannot silently change the destination.
 
-Dans un futur déploiement doté d'une entrée HTTPS locale, cette connexion TLS se terminera sur la passerelle OMNI choisie par le client, puis une connexion TLS distincte partira vers le fournisseur.
-Ce placement est celui d'un intermédiaire applicatif déclaré ; il n'est pas celui d'une capture transparente de toutes les applications.
-La confidentialité TLS porte sur les segments entre leurs endpoints ; le fournisseur recevant le message peut le lire. Voir [TLS 1.3, RFC 8446](https://www.rfc-editor.org/rfc/rfc8446).
+In a future deployment with a local HTTPS entry point, that TLS connection will terminate at the OMNI gateway selected by the client, and a separate TLS connection will be established with the provider.
+This is an explicitly configured application intermediary, not transparent capture of every application.
+TLS confidentiality applies to the segments between their endpoints; the provider receiving the message can read it. See [TLS 1.3, RFC 8446](https://www.rfc-editor.org/rfc/rfc8446).
 
-**Non livré :** installation d'une autorité de certification globale, interception TLS transparente universelle, capture des frappes de toutes les applications ou visibilité sémantique générale sur le trafic AI.
-Une fonction future de MITM TLS général exigerait un consentement distinct, un périmètre limité, une gestion sûre des certificats et des exclusions explicites.
-Le certificate pinning, les protocoles applicatifs, QUIC et les applications fermées doivent être traités comme des contraintes d'intégration ; aucune promesse de compatibilité universelle n'en découle.
+**Not delivered:** installation of a global certificate authority, universal transparent TLS interception, capture of keystrokes across all applications, or general semantic visibility into AI traffic.
+A future general TLS MITM feature would require separate consent, a limited scope, secure certificate management, and explicit exclusions.
+Certificate pinning, application protocols, QUIC, and closed applications must be treated as integration constraints; no promise of universal compatibility follows from them.
 
-La v1 configure un relais SOCKS5h privé lorsque le VPN est utilisé : la résolution distante et la connexion fournisseur suivent alors ce transport configuré.
-`OMNI_VPN_REQUIRED=true` sans proxy provoque un refus de démarrage ; une panne du proxy distant ne déclenche pas de connexion directe de secours.
-Les modèles strictement loopback utilisent un client local séparé ; ce chemin est une exception explicite pour l'inférence sur l'appareil.
+V1 configures a private SOCKS5h relay when the VPN is used: remote name resolution and the provider connection then follow that configured transport.
+`OMNI_VPN_REQUIRED=true` without a proxy causes startup to fail; a remote proxy failure does not trigger a direct fallback connection.
+Strictly loopback models use a separate local client; this path is an explicit exception for on-device inference.
 
-<a id="cles"></a>
+<a id="keys"></a>
 
-## 7. Clés, admission et rotation : trois mécanismes distincts
+## 7. Keys, admission, and rotation: three distinct mechanisms
 
-La clé du coffre est aléatoire, de 256 bits, conservée par défaut dans le Keychain macOS. Hors macOS, la v1 utilise par défaut un fichier de développement protégé par permissions ; ce mode peut aussi être choisi explicitement sur macOS.
-Elle n'est pas dérivée de l'empreinte matérielle ou biométrique de la personne.
-La v1 ne prétend pas que chaque lecture de clé exige une authentification biométrique ni qu'elle possède une intégration Secure Enclave complète.
+The vault key is a random 256-bit key, stored in the macOS Keychain by default. Outside macOS, v1 defaults to a development file protected by permissions; this mode can also be explicitly selected on macOS.
+It is not derived from the person's hardware or biometric fingerprint.
+V1 does not claim that every key read requires biometric authentication or that it provides complete Secure Enclave integration.
 
-Les clés de transport WireGuard sont distinctes de cette clé de stockage et des jetons applicatifs.
-WireGuard utilise un protocole de la famille Noise, avec ses renouvellements de session ; il n'utilise pas IKE. [Description officielle WireGuard](https://www.wireguard.com/protocol/)
-La rotation OMNI de l'identité cliente est une politique supplémentaire, pas une modification de l'échange cryptographique natif de WireGuard.
+WireGuard transport keys are separate from this storage key and from application tokens.
+WireGuard uses a Noise-family protocol with session rekeying; it does not use IKE. [Official WireGuard description](https://www.wireguard.com/protocol/)
+OMNI's client identity rotation is an additional policy, not a modification of WireGuard's native cryptographic exchange.
 
-L'admission utilise un paquet authentifié — Single Packet Authorization — avec HMAC, horodatage, nonce et protection contre le rejeu.
-Elle réduit l'exposition du service ; elle ne remplace pas l'authentification du pair WireGuard et n'est pas une simple séquence secrète de numéros de ports.
-La persistance des nonces acceptés avant accusé de réception est nécessaire pour que le redémarrage ne réautorise pas leur rejeu.
+Admission uses an authenticated packet — Single Packet Authorization — with an HMAC, timestamp, nonce, and replay protection.
+It reduces service exposure; it neither replaces WireGuard peer authentication nor consists of a simple secret sequence of port numbers.
+Accepted nonces must be persisted before acknowledgment so that restarting does not allow them to be replayed.
 
-La politique implémentée prévoit une nouvelle identité aléatoire toutes les **1 800 secondes**, préparation, handshake sur le nouveau chemin, commit authentifié, puis chevauchement de **30 secondes**.
-Un timeout ne vaut jamais accusé de réception ; l'ancienne identité doit expirer côté serveur même si le client disparaît.
-Le changement d'adresse interne peut interrompre un flux TCP long : une requête fournisseur déjà partie ne doit pas être rejouée automatiquement comme si elle n'avait jamais existé.
+The implemented policy provides for a new random identity every **1,800 seconds**, preparation, a handshake over the new path, an authenticated commit, and then a **30-second** overlap.
+A timeout is never an acknowledgment; the old identity must expire on the server even if the client disappears.
+Changing the internal address can interrupt a long TCP stream: a provider request already sent must not be replayed automatically as though it had never existed.
 
-Les outils de déploiement privilégiés et la simulation cryptographique ne sont pas une extension VPN macOS signée et distribuée aux utilisateurs.
-Les tests accélèrent l'horloge de la politique de rotation ; les paquets chiffrés et handshakes utilisés dans le laboratoire sont réels.
-Les conditions de déploiement, prérequis administratifs et frontières de validation sont précisées dans [le guide VPN](docs/VPN.md).
+The privileged deployment tools and cryptographic simulation are not a signed macOS VPN extension distributed to users.
+Tests accelerate the rotation policy clock; the encrypted packets and handshakes used in the laboratory are real.
+Deployment conditions, administrative prerequisites, and validation boundaries are detailed in [the VPN guide](docs/VPN.md).
 
 <a id="dp"></a>
 
-## 8. Confidentialité différentielle : un contrat fini, pas une impossibilité absolue
+## 8. Differential privacy: a bounded guarantee
 
-« Privacy absolue et analytique globale » n'est pas une garantie technique cohérente sans préciser les adversaires, les sorties et la fuite acceptée.
-La confidentialité différentielle borne l'effet des données protégées sur les probabilités des résultats ; elle n'interdit pas toute inférence et ne cache pas automatiquement le réseau.
-Le choix de l'unité protégée et la composition sont essentiels ; le [NIST SP 800-226](https://csrc.nist.gov/pubs/sp/800/226/final) décrit notamment les pièges des unités trop faibles et des budgets répétés.
+“Absolute privacy and global analytics” is not a coherent technical guarantee without specifying the adversaries, outputs, and accepted leakage.
+Differential privacy bounds the effect of protected data on the probabilities of outcomes; it neither prevents every inference nor automatically conceals the network.
+The protected unit and composition are essential; [NIST SP 800-226](https://csrc.nist.gov/pubs/sp/800/226/final) describes, among other pitfalls, overly weak units and repeated budgets.
 
-### Unité, mécanisme et composition implémentés
+### Implemented unit, mechanism, and composition
 
-**V1 :** un rapport résume l'activité locale observée pour une semaine ISO ; remplacer tout l'historique de cette installation-semaine constitue l'adjacence considérée.
-Il comporte trois histogrammes normalisés de huit cases : sujet, latence et tokens ; leurs dictionnaires sont fixes, sans texte libre.
-Les cases « inactif » et « autre/inconnu » évitent de publier un dénominateur ou une liste de catégories dépendant de l'activité privée.
+**V1:** a report summarizes observed local activity for one ISO week; replacing the entire history of that installation-week defines the adjacency considered here.
+It contains three normalized histograms with eight bins each: topic, latency, and tokens; their dictionaries are fixed, with no free text.
+The “inactive” and “other/unknown” bins avoid publishing a denominator or a list of categories that depends on private activity.
 
-Les sujets sont issus d'une heuristique locale explicitement identifiée ; ils ne sont pas des mesures psychologiques validées.
-La latence mesure l'attente jusqu'aux en-têtes du fournisseur ; les tokens proviennent de l'usage retourné lorsque disponible, sinon de la case inconnue.
-La v1 ne déduit ni frustration ni charge cognitive du tempo de frappe.
+Topics come from an explicitly identified local heuristic; they are not validated psychological measurements.
+Latency measures the wait until the provider's response headers; tokens come from returned usage when available, or otherwise fall into the unknown bin.
+V1 does not infer frustration or cognitive load from typing tempo.
 
-Chaque histogramme est projeté sur une grille binaire exacte de pas `1/65536`, avec une somme égale à un ; le résidu est affecté à la case autre/inconnu.
-Pour deux histogrammes possibles `h` et `h'`, `||h - h'||₁ ≤ 2` : cette borne ne dépend pas du nombre d'interactions de la semaine.
-OpenDP applique un mécanisme Laplace sur vecteur non-NaN, avec échelle **`b = 6.00000000000001`** ; la légère marge rend conservatrice la vérification numérique de `ε ≤ 1/3` par groupe.
+Each histogram is projected onto an exact binary grid with step `1/65536` and a sum of one; the remainder is assigned to the other/unknown bin.
+For any two possible histograms `h` and `h'`, `||h - h'||₁ ≤ 2`: this bound does not depend on the number of interactions that week.
+OpenDP applies a Laplace mechanism to a non-NaN vector, with scale **`b = 6.00000000000001`**; the small margin makes the numerical check of `ε ≤ 1/3` per group conservative.
 
-La composition des trois groupes donne **`ε ≤ 1` par rapport**, avec `δ = 0` pour le mécanisme retenu.
-Le pilote limite une installation à **quatre rapports**, soit **`ε ≤ 4`** par composition sur les historiques couverts, sous conservation de son registre local.
-Le mécanisme est celui d'[OpenDP](https://docs.opendp.org/en/stable/api/user-guide/measurements/additive-noise-mechanisms.html) ; les principes de sensibilité et composition sont exposés dans [Dwork et Roth](https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf).
+Composing the three groups gives **`ε ≤ 1` per report**, with `δ = 0` for the chosen mechanism.
+The pilot limits an installation to **four reports**, or **`ε ≤ 4`** by composition over the histories covered, provided its local ledger is preserved.
+The mechanism is provided by [OpenDP](https://docs.opendp.org/en/stable/api/user-guide/measurements/additive-noise-mechanisms.html); the principles of sensitivity and composition are set out in [Dwork and Roth](https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf).
 
-### Persistance avant divulgation
+### Persistence before disclosure
 
-Le consentement est désactivé par défaut ; la v1 prépare et envoie un rapport sur action explicite, sans cadence automatique d'émission.
-Le rapport bruité est persisté transactionnellement avant d'être retourné ou envoyé ; toute reprise pour la même semaine réutilise ce rapport et son identifiant.
-La sérialisation conserve les valeurs numériques entre lectures : une nouvelle tentative réseau ne génère pas un nouvel échantillon de bruit.
+Consent is disabled by default; v1 prepares and sends a report on explicit action, with no automatic transmission schedule.
+The noised report is persisted transactionally before it is returned or sent; every retry for the same week reuses that report and its identifier.
+Serialization preserves numeric values across reads: another network attempt does not generate a new noise sample.
 
-La préparation consomme le budget, même si l'utilisateur n'envoie finalement pas le rapport au collecteur, puisqu'une sortie a déjà été produite pour la console.
-Un rapport préparé en cours de semaine est un instantané arrêté à sa préparation ; il n'est pas recalculé avec les interactions ultérieures.
-Le budget ne se réinitialise ni au changement de semaine, ni lors d'un retrait puis rétablissement du consentement.
+Preparation consumes the budget even if the user ultimately does not send the report to the collector, because an output has already been produced for the console.
+A report prepared during a week is a snapshot frozen at preparation; it is not recomputed with later interactions.
+The budget resets neither at the start of a new week nor when consent is withdrawn and then restored.
 
-**Non garanti :** une borne globale par personne couvrant plusieurs appareils, une réinstallation destructive, une restauration ancienne du registre ou un client modifié.
-La garantie documentée porte sur les valeurs des rapports du pilote ; l'heure de l'action, la participation, les pannes et l'adresse IP ne sont pas rendues privées par ce mécanisme.
-Une cadence indépendante de l'activité, du padding et un relais indépendant seraient des travaux distincts ; [OHTTP, RFC 9458](https://www.rfc-editor.org/rfc/rfc9458), ne dispense pas d'analyser corrélation et hypothèses de confiance.
+**Not guaranteed:** a global per-person bound covering multiple devices, a destructive reinstall, restoration of an older ledger, or a modified client.
+The documented guarantee applies to the values in the pilot's reports; the timing of the action, participation, failures, and IP address are not made private by this mechanism.
+An activity-independent schedule, padding, and an independent relay would be separate work; [OHTTP, RFC 9458](https://www.rfc-editor.org/rfc/rfc9458), does not remove the need to analyze correlation and trust assumptions.
 
-<a id="collecteur"></a>
+<a id="collector"></a>
 
-## 9. Collecteur : statistiques bruitées et limites de publication
+## 9. Collector: noised statistics and publication limits
 
-Le schéma reçu est fermé : version, identifiant aléatoire de rapport, semaine, epsilon fixé et trois tableaux numériques de huit éléments.
-Les champs supplémentaires sont refusés ; un prompt ou une réponse n'a aucun emplacement autorisé dans le contrat.
-L'émetteur Rust construit sa requête à partir du type de rapport persisté, et non d'un payload arbitraire fourni par le navigateur.
+The ingestion schema is closed: version, random report identifier, week, fixed epsilon, and three numeric arrays of eight elements.
+Additional fields are rejected; there is no permitted field for a prompt or response in this contract.
+The Rust sender constructs its request from the persisted report type, not from an arbitrary payload supplied by the browser.
 
-**V1 :** Redis est le backend prévu en production ; SQLite est le backend local de développement et de simulation.
-Le stockage conserve des sommes et effectifs par semaine, plus identifiants et empreintes de déduplication ; il n'expose pas une recherche dans des conversations individuelles.
-Un même identifiant avec le même contenu n'incrémente pas deux fois l'agrégat ; le réemploi de cet identifiant avec un contenu différent est un conflit.
-Le collecteur est donc un service avec état : qualifier le rôle de réponse d'un LLM de « stateless » ne dispense ni de ce registre ni d'une analyse de rétention chez ce fournisseur.
+**V1:** Redis is the intended production backend; SQLite is the local development and simulation backend.
+Storage retains weekly sums and counts, plus deduplication identifiers and digests; it does not expose search over individual conversations.
+The same identifier with the same content does not increment the aggregate twice; reusing that identifier with different content is a conflict.
+The collector is therefore a stateful service: describing an LLM's response role as “stateless” removes neither the need for this ledger nor the need to analyze that provider's retention.
 
-La publication de production exige **au moins 10 000 rapports**, et ce nombre désigne des rapports acceptés, jamais des personnes distinctes vérifiées.
-Avec une échelle voisine de six, l'écart-type du bruit sur une moyenne vaut approximativement `6 × sqrt(2/n)`.
-À `n = 10 000`, l'intervalle normal ponctuel à 95 % associé à ce bruit seul a une demi-largeur d'environ **0,166**, soit **16,6 points de pourcentage**.
+Production publication requires **at least 10,000 reports**, and this number refers to accepted reports, never verified distinct people.
+With a scale close to six, the standard deviation of noise on a mean is approximately `6 × sqrt(2/n)`.
+At `n = 10,000`, the pointwise 95% normal interval associated with this noise alone has a half-width of approximately **0.166**, or **16.6 percentage points**.
 
-Cet intervalle ne couvre ni biais de recrutement, ni classification erronée, ni rapports fabriqués ; il n'est pas un intervalle simultané pour les vingt-quatre coordonnées.
-Les valeurs bruitées ne doivent pas être tronquées individuellement dans `[0,1]` avant agrégation : cela modifierait l'estimateur.
-Une tendance issue du pilote reste une estimation sur ses participants volontaires, pas un indicateur représentatif de l'humanité.
+This interval covers neither recruitment bias, misclassification, nor fabricated reports; it is not a simultaneous interval for all twenty-four coordinates.
+Noised values must not be individually clipped to `[0,1]` before aggregation: doing so would change the estimator.
+A trend from the pilot remains an estimate about its voluntary participants, not a representative indicator of humanity.
 
-La v1 actualise les agrégats au fil des rapports et les diffuse par WebSocket lorsque le seuil est atteint.
-La différence entre deux états successifs peut révéler une contribution déjà bruitée ; la protection LDP demeure, mais le seuil ne garantit pas qu'un lecteur ne reconstitue jamais un tel rapport.
-**Cible :** une politique de publications par fenêtres ou lots explicites, avec analyse des différences entre sorties et de leur utilité réelle.
+V1 updates aggregates as reports arrive and broadcasts them over WebSocket once the threshold is met.
+The difference between two successive states can reveal an already noised contribution; LDP protection remains, but the threshold does not guarantee that a reader can never reconstruct such a report.
+**Target:** an explicit publication policy based on windows or batches, with analysis of differences between outputs and their actual utility.
 
-La DP protège la confidentialité des valeurs dans son modèle ; elle n'atteste pas leur authenticité et ne résout pas les attaques Sybil.
-La limitation de débit réduit certains abus opérationnels sans certifier une installation unique ni une population représentative.
-La simulation utilise des stores et fournisseurs séparés, affiche son origine synthétique et ne doit jamais être agrégée aux données d'une population réelle.
+DP protects the confidentiality of values within its model; it does not attest to their authenticity or solve Sybil attacks.
+Rate limiting reduces some operational abuse without certifying a unique installation or a representative population.
+Simulation uses separate stores and providers, displays its synthetic origin, and must never be aggregated with data from a real population.
 
 <a id="singlestore"></a>
 
-## 10. SingleStore : cible analytique, jamais coffre central implicite
+## 10. SingleStore: an analytics target, never an implicit central vault
 
-**Cible, non implémentée :** SingleStore peut devenir le backend SQL des agrégats bruités et de leur registre technique de déduplication.
-Ce changement ne déplace ni les sources, ni le graphe personnel, ni les embeddings sur le SaaS.
-Un besoin d'analytique plus rapide n'autorise pas à élargir le schéma de télémétrie ou à produire des jointures avec l'identité applicative.
+**Target, not implemented:** SingleStore could become the SQL backend for noised aggregates and their technical deduplication ledger.
+This change moves neither sources, the personal graph, nor embeddings to the SaaS.
+A need for faster analytics does not authorize a broader telemetry schema or joins with application identity.
 
-Le contrat à préserver est « au plus une contribution comptée par identifiant de rapport », avec détection des réemplois conflictuels et réponse idempotente après un timeout.
-Ce contrat décrit l'effet observable ; une livraison réseau exactement une fois n'est pas présumée.
-Une [opération INSERT/gestion des doublons](https://docs.singlestore.com/cloud/reference/sql-reference/data-manipulation-language-dml/insert/) est une primitive possible, pas une preuve à elle seule de ce contrat distribué.
+The contract to preserve is “at most one counted contribution per report identifier,” with detection of conflicting reuse and an idempotent response after a timeout.
+This contract describes the observable effect; exactly-once network delivery is not assumed.
+An [INSERT operation with duplicate handling](https://docs.singlestore.com/cloud/reference/sql-reference/data-manipulation-language-dml/insert/) is one possible primitive, not proof of this distributed contract on its own.
 
-La migration devra versionner schéma, dictionnaires, mécanisme DP et règles d'agrégation ; deux versions incompatibles ne partagent pas silencieusement un histogramme.
-Un nouvel adaptateur devra valider dans une même opération cohérente déduplication et agrégation, puis restituer un statut déterministe aux reprises.
-Les clés d'unicité, la répartition des données et la stratégie transactionnelle devront être testées sur la topologie SingleStore réellement retenue.
-Si des [Pipelines vers une procédure](https://docs.singlestore.com/cloud/reference/sql-reference/pipelines-commands/create-pipeline-into-procedure/) sont utilisés, leur gestion des transactions doit être respectée ; la procédure ne doit pas ajouter ses propres `BEGIN`/`COMMIT`.
-La garantie portant sur un offset de source ne déduplique pas deux requêtes HTTP identiques entrées à des offsets différents : `report_id`, empreinte et modification d'agrégat restent un contrat applicatif à vérifier atomiquement.
+Migration must version the schema, dictionaries, DP mechanism, and aggregation rules; two incompatible versions must not silently share a histogram.
+A new adapter must validate deduplication and aggregation within one consistent operation, then return a deterministic status on retries.
+Uniqueness keys, data distribution, and the transaction strategy must be tested on the SingleStore topology actually selected.
+If [Pipelines into a procedure](https://docs.singlestore.com/cloud/reference/sql-reference/pipelines-commands/create-pipeline-into-procedure/) are used, their transaction management must be respected; the procedure must not add its own `BEGIN`/`COMMIT`.
+A guarantee tied to a source offset does not deduplicate two identical HTTP requests ingested at different offsets: `report_id`, digest, and aggregate update remain an application contract that must be verified atomically.
 
-Les stores actuels ne conservent pas tous les rapports individuels : une migration doit donc pouvoir importer les agrégats existants et leurs empreintes de déduplication, sans exiger des conversations ni un rejeu inexistant.
-Le basculement utilisera un point de coupure identifié, comparaison des effectifs/sommes, validation des doublons et retour arrière conservant les mêmes identifiants.
-L'archivage, la rétention du registre et les reprises après panne font partie du contrat ; effacer les identifiants trop tôt permettrait de recompter d'anciens rapports.
+The current stores do not retain every individual report: a migration must therefore be able to import existing aggregates and their deduplication digests without requiring conversations or a replay that is unavailable.
+Cutover will use an identified cutoff point, comparison of counts/sums, duplicate validation, and rollback that preserves the same identifiers.
+Archiving, ledger retention, and recovery after failure are part of the contract; deleting identifiers too early would allow old reports to be counted again.
 
 <a id="kubernetes"></a>
 
-## 11. Déploiement privé : « on-prem » ne signifie pas « personnel »
+## 11. Private deployment: “on-prem” does not mean “personal”
 
-**Cible, non livrée :** Kubernetes peut orchestrer collecteurs, interfaces et services d'autorité privés ; aucun ensemble de manifests ne constitue actuellement cette offre dans la v1.
-Un cluster exploité par une entreprise possède des administrateurs, sauvegardes, secrets et observabilités qui forment une frontière de confiance différente de l'appareil de la personne.
-Déplacer un coffre sur ce cluster n'est donc pas une simple optimisation d'hébergement : c'est un changement de contrôle à expliquer et autoriser.
+**Target, not delivered:** Kubernetes could orchestrate collectors, interfaces, and private authority services; no set of manifests currently delivers this offering in v1.
+An enterprise-operated cluster has administrators, backups, secrets, and observability systems that form a different trust boundary from the person's device.
+Moving a vault to that cluster is therefore more than a hosting optimization: it is a change in control that must be explained and authorized.
 
-Le plan personnel et le plan organisationnel doivent distinguer propriétaires des données, clés de chiffrement, administrateurs, identités d'agents et destinataires autorisés.
-Une clé de tenant ne doit pas ouvrir implicitement tous les coffres personnels ; une requête ne doit pas traverser une frontière de tenant parce qu'elle connaît un identifiant d'objet.
-L'inférence distante sur un cluster privé reçoit du clair lorsque son modèle le traite : « on-prem » ne supprime pas cette divulgation.
+The personal and organizational planes must distinguish data owners, encryption keys, administrators, agent identities, and authorized recipients.
+A tenant key must not implicitly unlock every personal vault; a request must not cross a tenant boundary merely because it knows an object identifier.
+Remote inference on a private cluster receives plaintext when its model processes it: “on-prem” does not remove this disclosure.
 
-Les exigences cibles comprennent service accounts minimaux, identités de service, restrictions d'egress, séparation des secrets, volumes et sauvegardes, et tests inter-tenants.
-Un namespace ne sera jamais décrit comme une preuve suffisante d'isolation face à l'administrateur du cluster ou à un nœud compromis.
-Le déploiement devra publier qui peut déchiffrer, restaurer, mettre à jour et accéder aux journaux ; ces réponses précèdent le choix des charts ou de l'autoscaling.
+Target requirements include minimally privileged service accounts, service identities, egress restrictions, separation of secrets, volumes, and backups, and tests across tenants.
+A namespace will never be described as sufficient proof of isolation from a cluster administrator or a compromised node.
+The deployment must publish who can decrypt, restore, update, and access logs; these answers come before the choice of charts or autoscaling.
 
 <a id="validation"></a>
 
-## 12. Menaces, preuves attendues et ordre d'évolution
+## 12. Threats, required evidence, and order of evolution
 
-| Menace                                | Protection v1 ou réponse actuelle                                    | Limite à conserver visible                                   |
-| ------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Lecture du disque sans clé            | SQLCipher, clé aléatoire, Keychain ou permissions de développement   | Le processus déverrouillé voit le clair                      |
-| Agent voulant s'autoriser lui-même    | Jetons séparés, routes administratives interdites au jeton agent     | Pas encore d'identités/capacités propres à chaque agent      |
-| Mauvaise destination ou grant révoqué | Comparaison exacte, expiration, vérification avant envoi             | Aucune reprise de données déjà divulguées                    |
-| Source contenant des instructions     | Extraction bornée, propositions, autorisation indépendante du modèle | Le modèle peut toujours proposer un fait erroné              |
-| Exfiltration par analytics conforme   | Schéma fermé, OpenDP local, budget et sorties persistés              | Métadonnées réseau visibles ; client compromis hors garantie |
-| Rejeu de rapports ou de paquets       | Déduplication analytique, nonces SPA, protection WireGuard           | Sauvegardes/retours arrière doivent préserver les registres  |
-| Tendances manipulées                  | Schéma, débit limité, distinction simulation/production              | Authenticité des contributions non prouvée                   |
-| Compromission de l'OS ou du core      | Frontières documentées, surface locale limitée                       | Confinement signé et audit indépendant encore nécessaires    |
+| Threat                                   | V1 protection or current response                                     | Limitation that must remain visible                                              |
+| ---------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Reading the disk without a key           | SQLCipher, random key, Keychain or development permissions            | The unlocked process sees plaintext                                              |
+| An agent attempting to authorize itself  | Separate tokens; administrative routes reject the agent token         | No identities/capabilities specific to each agent yet                            |
+| Wrong destination or revoked grant       | Exact matching, expiration, checks before sending                     | No recall of data already disclosed                                              |
+| Instructions embedded in a source        | Bounded extraction, proposals, authorization independent of the model | The model can still propose an incorrect fact                                    |
+| Exfiltration through compliant analytics | Closed schema, local OpenDP, persisted budget and outputs             | Network metadata remains visible; compromised clients fall outside the guarantee |
+| Replaying reports or packets             | Analytics deduplication, SPA nonces, WireGuard protection             | Backups and rollbacks must preserve ledgers                                      |
+| Manipulated trends                       | Schema, rate limiting, separation of simulation and production        | Contribution authenticity is not proven                                          |
+| Compromise of the OS or core             | Documented boundaries, limited local attack surface                   | Signed components with confinement and an independent audit are still required   |
 
-Les tests du coffre vérifient une base effectivement chiffrée, le refus d'une mauvaise clé, les suppressions liées et les historiques.
-Les tests d'autorisation vérifient fuite de canaris, destinataires, portée, séparation propriétaire/agent et révocation ; les tests réseau conservent les octets des flux fournisseurs.
-Les tests DP vérifient schéma, borne de budget, persistance et reprise du même bruit ; ils complètent l'analyse mathématique sans la remplacer.
+Vault tests verify that the database is actually encrypted, that an incorrect key is rejected, and that related deletions and histories work.
+Authorization tests check for canary leaks, recipients, scope, owner/agent separation, and revocation; network tests check preservation of provider stream bytes.
+DP tests verify the schema, budget bound, persistence, and retries with the same noise; they complement rather than replace the mathematical analysis.
 
-Le laboratoire multi-client utilise des données synthétiques et des vérifications machine ; une démonstration visuelle ne remplace pas les assertions ni les journaux de résultats.
-Les essais de déploiement doivent distinguer transport cryptographique local, interopérabilité Linux, chemin macOS privilégié, distribution signée et service public exploité.
-L'état de ces validations est centralisé dans [docs/VALIDATION.md](docs/VALIDATION.md), plutôt que figé dans une promesse générale de production.
+The multi-client laboratory uses synthetic data and machine checks; a visual demonstration does not replace assertions or result logs.
+Deployment tests must distinguish local cryptographic transport, Linux interoperability, the privileged macOS path, signed distribution, and an operated public service.
+The status of these validations is centralized in [docs/VALIDATION.md](docs/VALIDATION.md), rather than frozen into a general claim of production readiness.
 
-L'ordre d'évolution recommandé est : utilité de la mémoire vérifiée, capacités par agent, isolation OS, graphe temporel traçable, puis analytique élargie seulement si son signal justifie sa collecte.
-SingleStore et Kubernetes viennent répondre à des besoins de stockage ou d'exploitation mesurés ; ils n'ajoutent pas, par leur seule présence, de compréhension ou de confidentialité.
-La propriété structurante reste vérifiable à chaque étape : **qui sait quoi, sur quelle source, pour quelle tâche, avec quelle autorisation et sous quelle limite démontrée**.
+The recommended order of evolution is: verified memory utility, per-agent capabilities, OS isolation, a traceable temporal graph, and then broader analytics only if its signal justifies collection.
+SingleStore and Kubernetes address measured storage or operational needs; their presence alone adds neither understanding nor privacy.
+The defining property remains verifiable at every step: **who knows what, from which source, for which task, with which authorization, and within which demonstrated limit**.
