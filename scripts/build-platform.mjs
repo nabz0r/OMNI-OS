@@ -6,14 +6,17 @@ import {
   access,
   cp,
   mkdir,
+  open,
   readFile,
+  realpath,
+  rename,
   readdir,
   rm,
   stat,
   writeFile,
 } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { basename, join, resolve } from "node:path";
+import { homedir, tmpdir } from "node:os";
+import { basename, delimiter, dirname, join, resolve } from "node:path";
 import { createRequire } from "node:module";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -23,13 +26,19 @@ const native = join(desktop, "src-tauri");
 const require = createRequire(import.meta.url);
 const platforms = ["macos", "windows", "linux", "android", "ios"];
 const [platform, ...flags] = process.argv.slice(2);
-const allowedFlags = ["--debug", "--init-only", "--smoke", "--dry-run"];
+const allowedFlags = [
+  "--debug",
+  "--init-only",
+  "--smoke",
+  "--dry-run",
+  "--device",
+];
 if (
   !platforms.includes(platform) ||
   flags.some((flag) => !allowedFlags.includes(flag))
 ) {
   console.error(
-    "Usage: node scripts/build-platform.mjs <macos|windows|linux|android|ios> [--debug] [--init-only] [--smoke] [--dry-run]",
+    "Usage: node scripts/build-platform.mjs <macos|windows|linux|android|ios> [--debug] [--init-only] [--smoke] [--dry-run] [--device (iOS only)]",
   );
   process.exit(1);
 }
@@ -38,9 +47,13 @@ const debug = mobile || flags.includes("--debug");
 const initOnly = flags.includes("--init-only");
 const smoke = flags.includes("--smoke");
 const dryRun = flags.includes("--dry-run");
+const device = flags.includes("--device");
+if (device && platform !== "ios")
+  throw new Error("--device applies only to the unsigned iPhone archive.");
+const artifactPlatform = device ? "ios-device" : platform;
 if (initOnly && !mobile)
   throw new Error("--init-only applies to Android and iOS.");
-if (smoke && (platform === "android" || initOnly))
+if (smoke && (platform === "android" || initOnly || device))
   throw new Error(
     "--smoke supports desktop applications and the iOS simulator, after a build.",
   );
@@ -55,7 +68,7 @@ const host = {
 }[platform];
 if (!dryRun && host && process.platform !== host)
   throw new Error(`${platform} must be built on its native host (${host}).`);
-if (!dryRun && platform === "ios" && process.arch !== "arm64")
+if (!dryRun && platform === "ios" && !device && process.arch !== "arm64")
   throw new Error(
     "This iOS build targets the arm64 simulator; use an Apple Silicon Mac.",
   );
@@ -77,8 +90,9 @@ const targetDir = resolve(
       : join(native, "target")),
 );
 env.CARGO_TARGET_DIR = targetDir;
-const output = join(root, "artifacts/platforms", platform);
-const cli = require.resolve("@tauri-apps/cli/tauri.js");
+const output = join(root, "artifacts/platforms", artifactPlatform);
+require.resolve("@tauri-apps/cli/tauri.js");
+const npmCli = dryRun ? null : await resolveNpmCli();
 const config = JSON.parse(
   await readFile(join(native, "tauri.conf.json"), "utf8"),
 );
@@ -96,7 +110,9 @@ const buildInfo = {
       : "No distribution signing or notarization",
   distribution:
     platform === "ios"
-      ? "Apple Silicon iOS simulator only; not installable on an iPhone"
+      ? device
+        ? "Unsigned iPhone ARM64 archive; requires an Apple signing identity and provisioning before installation or distribution"
+        : "Apple Silicon iOS simulator only; not installable on an iPhone"
       : "Development evaluation; not a signed store release",
   runtime: "Embedded Rust core; no Node.js service bundled",
   smoke: { status: "not_run", scope: "No runtime claim from packaging alone" },
@@ -132,7 +148,33 @@ function run(command, args, options = {}) {
 
 function tauri(args) {
   console.log(`Tauri: ${args.join(" ")}`);
-  return run(process.execPath, [cli, ...args]);
+  // A real npm invocation lets Tauri generate valid Xcode/Gradle callbacks.
+  // Calling tauri.js directly makes mobile init incorrectly generate `node tauri`.
+  return run(process.execPath, [npmCli, "run", "--", "tauri", ...args]);
+}
+
+async function resolveNpmCli() {
+  const candidates = [
+    env.npm_execpath,
+    join(dirname(process.execPath), "node_modules/npm/bin/npm-cli.js"),
+    join(dirname(process.execPath), "../lib/node_modules/npm/bin/npm-cli.js"),
+  ];
+  for (const directory of (env.PATH || env.Path || "").split(delimiter)) {
+    try {
+      candidates.push(await realpath(join(directory, "npm")));
+    } catch {}
+    candidates.push(join(directory, "node_modules/npm/bin/npm-cli.js"));
+  }
+  for (const candidate of candidates)
+    if (
+      candidate &&
+      basename(candidate) === "npm-cli.js" &&
+      (await exists(candidate))
+    )
+      return candidate;
+  throw new Error(
+    "Cannot locate npm-cli.js. Install Node.js with npm and add it to PATH.",
+  );
 }
 
 async function walk(directory, match, skip = () => false) {
@@ -230,12 +272,39 @@ async function prepareAndroid() {
     env[`CC_${key}`] = compiler;
     env[`CXX_${key}`] = join(bin, `${target}24-clang++${wrapper}`);
     env[`AR_${key}`] = join(bin, `llvm-ar${executable}`);
+    // openssl-src asks cc::Build for ranlib separately from the archive tool.
+    env[`RANLIB_${key}`] = join(bin, `llvm-ranlib${executable}`);
     env[`CARGO_TARGET_${key.toUpperCase()}_LINKER`] = compiler;
   }
   run("java", ["-version"]);
   const project = join(native, "gen/android");
   if (!(await exists(join(project, "app/build.gradle.kts"))))
     tauri(["android", "init", "--ci", "--skip-targets-install"]);
+  // Repair projects generated by older script versions before Gradle invokes them.
+  for (const path of await walk(
+    join(project, "buildSrc"),
+    (entry) => entry.name === "BuildTask.kt",
+  )) {
+    const kotlin = await readFile(path, "utf8");
+    const repaired = kotlin
+      .replace(
+        /val executable = """[^\r\n]*""";/,
+        'val executable = """npm""";',
+      )
+      .replace(
+        /val args = listOf\([^\r\n]*\);/,
+        'val args = listOf("run", "--", "tauri", "android", "android-studio-script");',
+      );
+    if (
+      !repaired.includes(
+        '"run", "--", "tauri", "android", "android-studio-script"',
+      )
+    )
+      throw new Error(
+        "The Android build callback template changed; review it before building.",
+      );
+    await writeFile(path, repaired);
+  }
   const manifestPath = join(project, "app/src/main/AndroidManifest.xml");
   let manifest = await readFile(manifestPath, "utf8");
   if (!/<application\b[^>]*>/.test(manifest))
@@ -275,7 +344,7 @@ async function prepareAndroid() {
     join(resources, "xml/omni_data_extraction_rules.xml"),
     `<?xml version="1.0" encoding="utf-8"?>\n<data-extraction-rules>\n  <cloud-backup>\n${exclusions}\n  </cloud-backup>\n  <device-transfer>\n${exclusions}\n  </device-transfer>\n</data-extraction-rules>\n`,
   );
-  // Keep SDK selection explicit; Gradle must not silently provision a different SDK or NDK.
+  // Pin the application's SDK and NDK. Plugin subprojects can require extra build tools.
   const gradlePath = join(project, "app/build.gradle.kts");
   let gradle = await readFile(gradlePath, "utf8");
   if (!/compileSdk\s*=/.test(gradle) || !/targetSdk\s*=/.test(gradle))
@@ -306,6 +375,19 @@ async function prepareIos() {
   run("xcodebuild", ["-version"]);
   run("pod", ["--version"]);
   const project = join(native, "gen/apple");
+  // Old generated callbacks (`node tauri`) cannot locate the CLI from Xcode.
+  // Regenerate only that ignored project, preserving any custom project for manual repair.
+  if (await exists(join(project, "project.yml"))) {
+    const previous = await readFile(join(project, "project.yml"), "utf8");
+    if (/\bnode"?\s+tauri\s+ios\s+xcode-script/.test(previous)) {
+      const previousProject = `${project}.previous-callback`;
+      if (await exists(previousProject))
+        throw new Error(
+          "An earlier generated iOS project backup exists; review gen/apple.previous-callback before retrying.",
+        );
+      await rename(project, previousProject);
+    }
+  }
   if (!(await exists(join(project, "project.yml"))))
     tauri(["ios", "init", "--ci", "--skip-targets-install"]);
   const minimum = overlay.bundle.iOS.minimumSystemVersion;
@@ -340,7 +422,7 @@ async function prepareIos() {
   );
   buildInfo.ios = {
     minimum_system_version: minimum,
-    target: "aarch64-apple-ios-sim",
+    target: device ? "aarch64-apple-ios" : "aarch64-apple-ios-sim",
     signing_identity: null,
     development_team: null,
   };
@@ -354,6 +436,21 @@ async function smokeDesktop(binary) {
         !/^(OMNI_|OPENAI_API_KEY$|ANTHROPIC_API_KEY$|TAURI_DEV_)/.test(key),
     ),
   );
+  const base =
+    platform === "macos"
+      ? join(homedir(), "Library/Application Support")
+      : platform === "windows"
+        ? runtimeEnv.LOCALAPPDATA
+        : runtimeEnv.XDG_DATA_HOME || join(homedir(), ".local/share");
+  if (!base)
+    throw new Error(
+      "Cannot determine the operating system's local application data directory.",
+    );
+  const vault = join(base, config.identifier, "vault-v1/vault.db");
+  if (await exists(vault))
+    throw new Error(
+      "The smoke test requires a fresh CI vault; existing application data was left untouched.",
+    );
   const log = createWriteStream(join(output, "smoke.log"));
   const child = spawn(binary, [], {
     cwd: output,
@@ -379,10 +476,12 @@ async function smokeDesktop(binary) {
       throw new Error(
         `Packaged application stopped during startup (${failure}); inspect smoke.log.`,
       );
+    const encryption = await awaitVault(vault, () => failure);
     buildInfo.smoke = {
       status: "passed",
       scope:
-        "Native process remained alive for 12 seconds; not an end-to-end UI or provider test",
+        "Native process started and its frontend initialized a fresh embedded vault through the OS key store; no provider request or end-to-end conversation tested",
+      vault: encryption,
     };
   } finally {
     child.kill("SIGTERM");
@@ -391,6 +490,47 @@ async function smokeDesktop(binary) {
       child.kill("SIGKILL");
     await new Promise((resolveLog) => log.end(resolveLog));
   }
+}
+
+async function awaitVault(path, stopped = () => false) {
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    if (stopped())
+      throw new Error(
+        "The application stopped before its embedded vault initialized.",
+      );
+    if (await exists(path)) {
+      const size = (await stat(path)).size;
+      if (size >= 4096) {
+        // Examine only the fixed SQLite header, never decrypted content or key material.
+        const file = await open(path, "r");
+        try {
+          const header = Buffer.alloc(16);
+          const { bytesRead } = await file.read(header, 0, header.length, 0);
+          if (
+            bytesRead !== 16 ||
+            header.equals(Buffer.from("SQLite format 3\0")) ||
+            header.every((value) => value === 0)
+          )
+            throw new Error(
+              "The initialized vault failed the encrypted-file header check.",
+            );
+        } finally {
+          await file.close();
+        }
+        return {
+          created_during_smoke: true,
+          bytes: size,
+          plain_sqlite_header: false,
+          header_bytes_examined: 16,
+        };
+      }
+    }
+    await delay(250);
+  }
+  throw new Error(
+    "The app remained open but did not initialize its encrypted vault. Inspect the native bridge and OS key store; smoke.log may contain startup diagnostics.",
+  );
 }
 
 async function smokeIos(app) {
@@ -414,9 +554,25 @@ async function smokeIos(app) {
   try {
     run("xcrun", ["simctl", "bootstatus", device.udid, "-b"]);
     run("xcrun", ["simctl", "install", device.udid, app]);
+    const container = run(
+      "xcrun",
+      ["simctl", "get_app_container", device.udid, config.identifier, "data"],
+      { stdio: ["ignore", "pipe", "inherit"] },
+    );
+    const vault = join(
+      container,
+      "Library/Application Support",
+      config.identifier,
+      "vault-v1/vault.db",
+    );
+    if (await exists(vault))
+      throw new Error(
+        "The simulator smoke test requires a fresh CI vault; existing application data was left untouched.",
+      );
     run("xcrun", ["simctl", "launch", device.udid, config.identifier]);
     await delay(8_000);
-    // A second launch returns an existing process; --terminate-running-process is deliberately absent.
+    const encryption = await awaitVault(vault);
+    // Confirm the process is still alive after opening the embedded vault.
     const result = run(
       "xcrun",
       ["simctl", "spawn", device.udid, "launchctl", "list"],
@@ -440,8 +596,9 @@ async function smokeIos(app) {
     buildInfo.smoke = {
       status: "passed",
       scope:
-        "Installed and launched on an iPhone simulator; process remained registered for 8 seconds; no physical-device or provider claim",
+        "Installed and launched on an iPhone simulator; frontend and OS key store initialized a fresh embedded encrypted vault; no physical-device or provider request tested",
       device: device.name,
+      vault: encryption,
     };
   } finally {
     spawnSync(
@@ -502,7 +659,7 @@ async function build() {
       "--ci",
       "--debug",
       "--target",
-      "aarch64-sim",
+      device ? "aarch64" : "aarch64-sim",
       "--no-sign",
       "--archive-only",
       ...cargoArgs,
@@ -511,19 +668,33 @@ async function build() {
       join(project, "build"),
       (entry) => entry.isDirectory() && entry.name.endsWith(".xcarchive"),
     );
-    if (!archives.length)
-      throw new Error("The iOS build returned no simulator archive.");
+    if (!archives.length) throw new Error("The iOS build returned no archive.");
     const archive = archives.sort()[0];
     const apps = await walk(
       join(archive, "Products/Applications"),
       (entry) => entry.isDirectory() && entry.name.endsWith(".app"),
     );
     if (apps.length !== 1)
+      throw new Error("Expected exactly one application in the iOS archive.");
+    const sdk = run(
+      "plutil",
+      [
+        "-extract",
+        "CFBundleSupportedPlatforms.0",
+        "raw",
+        "-o",
+        "-",
+        join(apps[0], "Info.plist"),
+      ],
+      { stdio: ["ignore", "pipe", "inherit"] },
+    );
+    if (sdk !== (device ? "iPhoneOS" : "iPhoneSimulator"))
       throw new Error(
-        "Expected exactly one simulator application in the iOS archive.",
+        `The archived application targets ${sdk}, not the requested iOS target.`,
       );
-    await archiveApp(apps[0], "OMNI-ios-arm64-simulator.app.zip");
-    await archiveApp(archive, "OMNI-ios-arm64-simulator.xcarchive.zip");
+    const flavor = device ? "device-unsigned" : "simulator";
+    await archiveApp(apps[0], `OMNI-ios-arm64-${flavor}.app.zip`);
+    await archiveApp(archive, `OMNI-ios-arm64-${flavor}.xcarchive.zip`);
     if (smoke) await smokeIos(apps[0]);
   } else {
     const hostVersion = run("rustc", ["-vV"], {
@@ -593,7 +764,8 @@ if (dryRun) {
         generated_project: mobile
           ? `apps/desktop/src-tauri/gen/${platform === "ios" ? "apple" : "android"}`
           : null,
-        output: `artifacts/platforms/${platform}`,
+        output: `artifacts/platforms/${artifactPlatform}`,
+        device,
         signing: buildInfo.signing,
         distribution: buildInfo.distribution,
         init_only: initOnly,
@@ -613,7 +785,7 @@ if (dryRun) {
     await build();
     await saveInfo();
     console.log(
-      `${buildInfo.status === "initialized" ? "Initialized" : "Built"} ${platform}. Evidence: artifacts/platforms/${platform}/build-info.json`,
+      `${buildInfo.status === "initialized" ? "Initialized" : "Built"} ${platform}. Evidence: artifacts/platforms/${artifactPlatform}/build-info.json`,
     );
   } catch (error) {
     buildInfo.status = "failed";

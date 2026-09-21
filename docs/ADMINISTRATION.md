@@ -1,12 +1,12 @@
 # Administration console
 
-OMNI's console manages the local gateway, its provider connections and the evidence produced by requests that pass through it. Provider settings, credentials, interaction metadata and audit events persist inside the encrypted SQLCipher vault. The console reads them from the local Rust service; it does not retrieve an account-wide history from OpenAI, Anthropic or a browser.
+OMNI's console manages the local gateway, its provider connections and the evidence produced by requests that pass through it. Provider settings, credentials, interaction metadata and audit events persist inside the encrypted SQLCipher vault. The native console reads them through authenticated IPC to its embedded Rust core; the browser development console uses authenticated loopback HTTP. Neither retrieves an account-wide history from OpenAI, Anthropic or a browser.
 
 This document describes the implemented administration features. See [Integrations](INTEGRATIONS.md) for the gateway and capture interfaces, [Privacy](PRIVACY.md) for analytics accounting, and [Security](SECURITY.md) for the broader trust boundaries.
 
 ## Using the console
 
-Start OMNI through the [repository launch instructions](../README.md), then unlock the console with its local owner token. The standard web address is `http://localhost:3006`; the core listens on loopback, normally port `3007`. Custom launch ports change these addresses.
+Open the native application or follow the [repository development instructions](../README.md). Native startup provisions its device session and opens no HTTP listener. After an explicit interface lock, use **Unlock on this device** to reopen it; this does not perform OS authentication. The browser development address is `http://localhost:3006`, with its external core normally on loopback port `3007`. Normal browser opening pairs automatically once; manual owner-token entry remains available for expired links or headless sessions. [Deployment modes →](PLATFORMS.md)
 
 | View        | What it controls or shows                                                                                   |
 | ----------- | ----------------------------------------------------------------------------------------------------------- |
@@ -21,7 +21,9 @@ Add or edit a connection in **Models**, check the connection, select a model, an
 
 History and Logs support search, provider filters, time windows and pagination. History adds a status filter; Logs adds a severity filter. Open a History row to inspect its complete metadata. **Refresh** retrieves current service state.
 
-CSV and JSON exports from History and Logs contain only the current page of metadata. Usage exports contain per-model totals for the selected period. These downloaded files are ordinary local files, outside SQLCipher encryption. Configuration export excludes saved provider credentials and local authentication tokens, but still contains endpoint addresses and operational settings.
+CSV and JSON exports from History and Logs contain only the current page of metadata. Usage exports contain per-model totals for the selected period. Configuration export excludes saved provider credentials and local authentication tokens, but still contains endpoint addresses and operational settings. These files are outside SQLCipher encryption and are not complete memory or vault backups.
+
+Browser mode uses a normal download. Native desktop saves in `Documents/OMNI`, creating a distinct filename if a file already exists. Mobile opens the system share sheet with temporary access to a private export file and no automatic recipient. The interface acknowledges opening the share sheet, not successful saving: cancelling it does not export to a destination. The native bridge accepts bounded JSON/CSV exports only, with an `omni-` filename and a two-MiB limit; it is not arbitrary filesystem access. A chosen receiving app controls its copy afterward.
 
 ## Provider profiles and credentials
 
@@ -29,7 +31,7 @@ A profile has a generated `id`, a human-readable `label`, `kind`, `base_url`, de
 
 Provider URLs must use HTTPS, except for explicitly local loopback HTTP. URL credentials, query strings and fragments are rejected. The `ollama` kind requires a loopback destination because its discovery also uses native local endpoints. The base URL includes the API prefix, such as `https://api.openai.com/v1` or `http://127.0.0.1:11434/v1`.
 
-The first initialization seeds profiles and extraction settings from the process configuration. Subsequent starts preserve the settings saved in the vault. Changing an environment variable does not overwrite an existing saved provider profile. Process-level network policy remains separate and authoritative.
+The first initialization seeds profiles and extraction settings from the runtime configuration: explicit options for a standalone native app, environment values for the external development core. Subsequent starts preserve settings saved in the vault. Changing an environment variable does not overwrite an existing profile or reconfigure the native bootstrap. Deployment network policy remains separate and authoritative. Desktop native defaults point to Ollama; mobile starts with an unconfigured remote profile and requires a credential and model choice.
 
 The API returns `has_api_key`, never the saved key. On a profile update:
 
@@ -154,7 +156,7 @@ Deletion removes records from the current database's logical history. It does no
 
 ## Local administration API
 
-All endpoints in this section require `Authorization: Bearer <owner-token>`. The restricted agent token cannot administer providers or read the journal. If a browser sends `Origin`, it must match an explicitly configured allowed origin. CORS is not a substitute for authentication. JSON mutations use `Content-Type: application/json`.
+All router endpoints in this section require `Authorization: Bearer <owner-token>`. Native `core_request` validates its main-window owner session and supplies that bearer to the shared router; the application exposes no HTTP listener by default. The restricted agent token cannot administer providers or read the journal. On an explicitly exposed HTTP service, a browser's `Origin` must match an allowed origin. CORS is not a substitute for authentication. JSON mutations use `Content-Type: application/json`.
 
 | Method and path                  | Result                                                           |
 | -------------------------------- | ---------------------------------------------------------------- |
@@ -186,7 +188,7 @@ Settings patches accept only these optional fields:
 }
 ```
 
-The extractor endpoint must remain loopback. It never falls back to a cloud provider. Select an actually installed compatible model; the example identifier is not an installation instruction. Changing extraction settings affects future captures, not facts already saved.
+The extractor endpoint must remain loopback. It never falls back to a cloud provider. Select an actually installed compatible model; the example identifier is not an installation instruction. No local model is bundled in the mobile package. Without a compatible local service, a capture saves its source and proposes an excerpt. Changing extraction settings affects future captures, not facts already saved.
 
 A minimal local profile creation payload is:
 
@@ -202,7 +204,7 @@ A minimal local profile creation payload is:
 
 Profile patches additionally accept `api_key`, `clear_api_key`, `rates` and `clear_rates`. Omitting `rates` preserves the existing object when the model is unchanged; changing the model without replacement rates clears the old rates. `rates: null` or `clear_rates: true` removes rates explicitly. Setting and clearing rates simultaneously is rejected. Unknown settings or profile fields are rejected rather than silently persisted.
 
-Redacted profile responses include `id`, `label`, `kind`, `base_url`, `model`, `enabled`, `has_api_key`, `rates`, `status`, `checked_at`, `models`, `loaded_models`, `error` and `policy_allowed`. Runtime output includes the service address, key-storage mode, simulation flag, configured network policy and collector address, without bearer tokens or proxy credentials.
+Redacted profile responses include `id`, `label`, `kind`, `base_url`, `model`, `enabled`, `has_api_key`, `rates`, `status`, `checked_at`, `models`, `loaded_models`, `error` and `policy_allowed`. Runtime output includes the address or `in-process` transport, actual platform key-storage label, simulation flag, configured network policy and collector address, without bearer tokens or proxy credentials. Embedded mode has `listen_address: null`. `analytics_configured` states whether a collector destination exists; it does not attest to that collector's health.
 
 ### Filters, pagination and usage responses
 
@@ -234,9 +236,11 @@ cost_basis: "manual_rate_snapshots; not a bill"
 
 The journal stays local and encrypted at rest. It is not the payload sent to the analytics collector. The collector receives only the separately prepared, consented and noised analytics DTO; clearing or disabling History cannot reset its privacy accounting.
 
+The standalone native app has no collector configured and does not launch one. Enabling analytics, preparing a report and sending one fail clearly in that configuration before any privacy-budget spending. Personal memory and inference remain available. An explicitly configured deployment still requires analytics consent; the Settings toggle cannot invent or configure a SaaS destination.
+
 The console does not automatically monitor ChatGPT or Claude website conversations, inspect all device traffic, read global keystrokes or execute arbitrary agent tools. Explicit capture and routed model requests define its present observation boundary. A provider can retain data after a permitted disclosure according to its own behavior; a local receipt or history deletion does not control that remote copy.
 
-Owner authentication, loopback binding, destination policy, memory grants and encryption serve different purposes. None replaces process isolation, which the current runtime explicitly reports as absent. Protect the owner session and vault key, keep encrypted backups under a separate policy, and preserve the independent privacy ledger when restoring a vault.
+Owner authentication, native IPC or loopback binding, destination policy, memory grants and encryption serve different purposes. None replaces process isolation, which the current runtime explicitly reports as absent. The interface lock does not erase the running core's key or revoke other credentials. Protect the owner session and key, and preserve the independent privacy ledger in any valid restore. Native device-bound keys mean a database copy alone is not a portable backup; see [PLATFORMS.md](PLATFORMS.md).
 
 Implementation references: [administration settings and profiles](../crates/omni-core/src/administration.rs), [HTTP routes and exchange tracking](../crates/omni-core/src/http.rs), [encrypted journal and aggregation](../crates/omni-core/src/journal.rs), [provider console](../apps/desktop/src/Administration.tsx) and [operations console](../apps/desktop/src/Operations.tsx).
 

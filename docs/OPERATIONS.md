@@ -1,10 +1,18 @@
 # Operations
 
-## Local application
+## Standalone native application
+
+The native application owns an embedded Rust core and SQLCipher vault. Its UI dispatches through authenticated native IPC, with no HTTP listener, Node.js collector or Vite server by default. The vault is under the OS application-local-data directory in `vault-v1`, separate from development and synthetic vaults. Native key custody and platform prerequisites are documented in [PLATFORMS.md](PLATFORMS.md).
+
+Native startup uses explicit runtime options rather than reading the development environment. Missing key material for an existing vault fails closed. The default package has no analytics collector configured: memory and model requests work independently, while analytics consent, preparation and sending remain unavailable. An exclusive runtime lease prevents concurrent embedded access to the same vault directory. The optional listener in the Rust runtime is a deployment feature; the packaged bootstrap does not enable it.
+
+The interface lock clears transient UI state; it does not stop the engine, remove its key from memory or perform OS reauthentication. Mobile suspension is controlled by the operating system. Do not operate the app as a guaranteed background service or mobile VPN; neither is implemented. Actual package and device results belong in [VALIDATION.md](VALIDATION.md).
+
+## Source development stack
 
 `./run.sh --web` starts the gateway, collector and local UI. The default real inference endpoint is Ollama on `127.0.0.1:11434/v1`. On a new vault, `OMNI_LLM_MODEL` seeds the model choice. Thereafter use **Models** to manage persistent provider profiles and **Settings** to manage the extractor and local history. `./run.sh --web --simulate` substitutes explicitly marked local fixtures and runs the synthetic scenario. Runtime material goes under the ignored `.omni/` directory. The launcher starts only its own processes and terminates them on exit. `--web` opens the browser after readiness through an expiring, single-use pairing link; `--no-open` suppresses browser and native opening. `--doctor` runs a read-only startup diagnostic and exits. See [GETTING_STARTED.md](GETTING_STARTED.md) for the user path.
 
-The native shell is available through `./run.sh`. On macOS, Command Line Tools suffice for desktop compilation; trusted public distribution needs a Developer ID and notarization. The server-side VPN and privileged macOS interface setup have their own explicit commands in [VPN.md](VPN.md).
+The native development window is available through `./run.sh`, which sets `OMNI_EXTERNAL_CORE=1` to use the services it just started. It does not open the standalone native vault. On macOS, Command Line Tools suffice for desktop compilation; trusted public distribution needs a Developer ID and notarization. The server-side VPN and privileged macOS interface setup have their own explicit commands in [VPN.md](VPN.md).
 
 JavaScript dependencies are refreshed with `npm ci` when the installation stamp no longer matches the root/workspace manifests, lockfile, runtime or platform. The stamp is written only after installation succeeds. Native build prerequisites remain platform-specific.
 
@@ -14,7 +22,9 @@ Use the [console guide](ADMINISTRATION.md) for the complete operator workflow. C
 
 History defaults to 30 days and is enabled locally. Retention controls request metadata and audit events; disabling new request history does not disable the minimal audit trail. Pruning runs during journal operations, and interrupted in-flight records are marked aborted at core restart. Clearing History removes request records and their derived local usage totals without touching privacy accounting. Export configuration for inspection, not as a complete vault backup: secrets are excluded and there is no configuration-import feature.
 
-Provider profiles, rates and extractor settings are stored inside the vault. Initial environment values seed a new vault only. Deployment settings such as the loopback binding, key storage, collector destination, SOCKS transport and explicit upstream allowlist remain process configuration and require restart. Preserve the vault and its key to preserve these settings.
+Provider profiles, rates and extractor settings are stored inside the vault. Initial configuration seeds a new vault only: environment values for the external development core, explicit options for the embedded runtime. Transport exposure, key custody, collector destination, SOCKS transport and explicit upstream allowlist remain deployment configuration and require restart. Preserve the vault and its usable key to preserve these settings.
+
+Native desktop metadata exports go to `Documents/OMNI`; mobile exports open the system share sheet with no automatic recipient. Browser mode uses a normal download. Exported files contain private metadata outside SQLCipher protection. They are neither a complete memory export nor a vault backup; cancelling a mobile share sheet does not save a file.
 
 ## Collector deployment
 
@@ -30,6 +40,8 @@ Caddy obtains HTTPS certificates; only ports 80/443 are public. Redis and the co
 No production endpoint is deployed automatically by publishing source code. VPN and collector can be deployed independently. Real credentials, DNS configuration and operating-system permissions are inputs, not generated substitutes.
 
 ## Interface inventory
+
+These routes describe the shared core router. The native UI calls them through its authenticated IPC bridge; the HTTP addresses apply only to an explicitly running external core or opt-in embedded listener. Browser pairing is disabled in the standalone embedded runtime.
 
 | Endpoint                                                                  | Authentication                                               | Role                                                            |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------- |
@@ -65,4 +77,6 @@ Track CPU time, resident memory, processing latency, bytes transmitted and queue
 
 ## Backups and upgrades
 
-Back up encrypted vaults and their recoverable key material separately; loss of a key makes the vault unreadable. Never commit live databases, model weights, tokens or enrollment secrets. Preserve the privacy ledger together with the vault when restoring, and treat concurrent cloned installations as separate privacy-accounting risks. Keep dependency locks and run the full checks before updating the network or DP implementation.
+An encrypted database copy is useful only with an actually recoverable key. Native Android wrapping keys and iOS device-only Keychain items do not supply a cross-device recovery flow; Android automatic backup is disabled in the platform application configuration. No complete key migration or backup-and-restore wizard is implemented. Loss or invalidation of a key can make the vault unreadable, and the app will not replace a missing key for an existing database.
+
+Never commit live databases, model weights, tokens or enrollment secrets. Preserve the privacy ledger together with the vault when restoring, and treat concurrent cloned installations as separate privacy-accounting risks. Keep dependency locks and run the full checks before updating the network or DP implementation. Source development, desktop packaging, simulator execution, physical-device testing and signed public distribution each need their own evidence.

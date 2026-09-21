@@ -6,19 +6,19 @@ These views complement the [architecture guide](ARCHITECTURE.md). **Implemented*
 
 ## 1. One request, one authorization, one response
 
-**Implemented — explicit application integration.** The application or agent calls the OMNI gateway. The VPN does not reveal the text of an HTTPS conversation. Memory, policy, and the gateway currently run as modules within the same Rust process.
+**Implemented — explicit application integration.** The native UI reaches its embedded core through authenticated IPC. An application or agent can instead call an explicitly exposed HTTP gateway. The VPN does not reveal the text of an HTTPS conversation. Memory, policy, and the gateway run as modules within the same Rust process, embedded in the native application when that mode is used.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User as User
-    participant UI as Launcher or integrated application
+    participant UI as Native UI or integrated application
     participant Core as Local OMNI / Rust
     participant Vault as SQLCipher vault
     participant LLM as Selected model
 
     User->>UI: Asks a question
-    UI->>Core: Authenticated request and optional grant
+    UI->>Core: Authenticated IPC or HTTP request / optional grant
     Core->>Core: Checks destination, expiration, and revocation
     alt Supplied grant is invalid
         Core-->>UI: Rejects before calling the provider
@@ -46,7 +46,9 @@ The conversation is not sent to the OMNI collector. The **selected provider** ne
 
 A memory extracted from a capture remains a **proposal** until confirmed. A receipt records an attempted disclosure by OMNI; it does not prove that a provider deleted its copies or used each memory correctly.
 
-The gateway selects authorized, confirmed memories, up to 24 entries and 12,000 bytes. This selection does not yet perform semantic retrieval based on the question. Query-based lexical search is available through MCP. Observations do not automatically archive the conversation; token counts remain unknown for streamed responses.
+The gateway selects authorized, confirmed memories, up to 24 entries and 12,000 bytes. This selection does not yet perform semantic retrieval based on the question. Query-based lexical search is available through MCP. Observations do not automatically archive the conversation. Supported stream events contribute token counters when present; missing counters remain unknown. The native UI bridge returns a bounded complete body, while the external gateway preserves stream bytes.
+
+Standalone native startup opens no HTTP listener or collector and uses its own OS application-data vault. `run.sh` explicitly chooses external development services through `OMNI_EXTERNAL_CORE=1`. Neither mobile source support nor this diagram implies a background capture service or mobile VPN. [Platform boundaries →](docs/PLATFORMS.md)
 
 ## 2. A landscape that evolves
 
@@ -101,7 +103,7 @@ C4Container
     Person(user, "User", "Chooses memories and their recipients")
 
     System_Boundary(device, "Personal device") {
-        Container(core, "OMNI client", "Rust + OpenDP", "Gateway, policy, and local DP computation")
+        Container(core, "OMNI native app", "Tauri + Rust + OpenDP", "UI IPC, gateway, policy, and local DP")
         ContainerDb(localdb, "Personal vault", "SQLCipher", "Memory, permissions, receipts, and DP budget")
     }
 
@@ -126,7 +128,7 @@ C4Container
 
 The LLM SaaS provides computation. The OMNI SaaS maintains durable statistical state. **Neither is assigned the role of authoritative personal memory by this architecture.** Calling a model as a stateless engine does not guarantee that its provider keeps no logs.
 
-This view focuses on processing and storage. Nebula also queries the analytics API and receives its publications over WebSocket: only trends that meet the required publication threshold, accompanied by their uncertainty.
+This view focuses on processing and storage in a deployment with analytics configured. The default standalone native app supplies no collector and cannot activate or prepare analytics. In the external development deployment, Nebula queries the configured analytics API and receives publications over WebSocket: only trends that meet the required publication threshold, accompanied by their uncertainty. Separate native modules here do not imply OS process isolation.
 
 SingleStore would receive only reports that have already been randomized and minimal technical ingestion data. A transaction must couple deduplication with aggregate updates. If a durable queue and pipeline are added, their guarantees alone will not prevent identical HTTP requests from being counted twice at different journal positions. In the target local isolation model, the network sender receives only the already randomized report; it has no direct access to the personal database.
 
@@ -134,7 +136,7 @@ Mermaid's C4 syntax is [experimental](https://mermaid.js.org/syntax/c4). The blo
 
 ## 4. A statistical report should spend its budget only once
 
-**Implemented — explicitly prepared weekly reports and voluntary export.** Analytics is disabled by default outside simulation. The server accepts only the specified closed numeric schema; no unrestricted field can hold a conversation.
+**Implemented — explicitly prepared weekly reports and voluntary export, when a collector is configured.** Analytics is disabled by default outside simulation. The standalone native configuration has no collector and rejects activation, preparation and sending before budget consumption. The server accepts only the specified closed numeric schema; no unrestricted field can hold a conversation.
 
 ```mermaid
 sequenceDiagram
@@ -214,7 +216,7 @@ sequenceDiagram
 
 **WireGuard uses Noise; IKE belongs to IPsec.** Identity key rotation every thirty minutes is additional to WireGuard's automatic session key renewal. It is not an IKE mode. Changing the internal address during the switch can interrupt a TCP connection; application-level recovery remains necessary.
 
-BoringTun ↔ Linux WireGuard interoperability, admission, rotation, and rejection of the old key have been tested. The local simulation installs no privileged routes. The macOS `utun` supervisor requires a separate privileged launch; its complete path still needs validation on the target machine. [Deployment, servers, and secrets →](docs/VPN.md)
+BoringTun ↔ Linux WireGuard interoperability, admission, rotation, and rejection of the old key have been tested in the scenarios recorded in [validation evidence](docs/VALIDATION.md). The local simulation installs no privileged routes. The macOS `utun` supervisor requires a separate privileged launch; its complete path needs its own target-machine validation. The native mobile app installs no system VPN extension. [Deployment, servers, and secrets →](docs/VPN.md)
 
 ## Read the arrows without inventing guarantees
 

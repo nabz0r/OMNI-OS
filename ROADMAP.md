@@ -24,15 +24,21 @@ Transport uses **WireGuard/BoringTun**, admission through an authenticated packe
 
 Still **to be built or evaluated**: a vault process isolated through OS permissions, a temporal semantic graph, granular authority per agent and action, personal synchronization across devices, and federation between operators. **SingleStore, Kubernetes and federation are not implemented components of this v1.** Their value must be established through a demonstrated need and a comparative trial. The detailed technical state remains documented in the [architecture](ARCHITECTURE.md), [privacy protocol](docs/PRIVACY.md), [VPN transport](docs/VPN.md) and [validation evidence](docs/VALIDATION.md).
 
+The shared native application now embeds the Rust engine, uses authenticated IPC without a listener by default, and has key-store adapters for macOS, Windows, Linux, Android and iOS. Each application installation owns a separate local vault. Build tooling targets desktop packages, Android debug APKs, an unsigned iOS simulator app and a distinct unsigned iPhone ARM64 archive through `ios --device`. That device archive still requires signing and provisioning before installation; source support, an unsigned archive or a passing desktop build does not establish phone readiness. The [platform guide](docs/PLATFORMS.md) states the architecture and prerequisites, while [validation evidence](docs/VALIDATION.md) records measured results. There is no bundled mobile inference model, background capture service or mobile VPN extension.
+
+The fifth browser QA suite, `test:native`, exercises native frontend behavior through a mocked Tauri invocation bridge backed by a real isolated core and encrypted vault. It adds evidence for routing, setup, lock behavior and metadata-only export calls. Actual Tauri IPC, OS key stores, native share sheets, package execution and physical devices remain separate verification boundaries.
+
 ## Phase I — Genesis: Earn a Place in the Day
 
 **The promise to test:** continue a task across several AIs with less repetition while knowing what was shared.
 
 The proposed first audience is independent professionals, developers and small teams using several assistants on ongoing projects. Distribution begins with supported pilots in professional communities the team can reach. Each participant brings real work and chooses their sources. One complete use case is worth more than a long list of connectors.
 
-The guided first run now connects a provider, optionally saves one confirmed memory without granting access, and opens a first conversation. The browser launch uses an expiring, single-use pairing exchange; the native launcher provisions its own session. A read-only startup diagnostic and dependency freshness checks improve recovery. The home screen places conversation and guided setup beside the private memory view. These are implemented MVP behaviors, not a signed one-click public installer.
+The guided first run now connects a provider, optionally saves one confirmed memory without granting access, and opens a first conversation. The browser development launch uses an expiring, single-use pairing exchange; standalone native startup creates an in-process owner session. A read-only development diagnostic and dependency freshness checks improve recovery. The home screen places conversation and guided setup beside the private memory view. Public signing, notarization, device validation and store acceptance remain separate release gates.
 
-The product must continue to make it simple to correct a first memory, grant limited permission, send a request with context and inspect the resulting receipt. Export and verified vault restoration are work to complete before a public beta. Withdrawing permission must be understandable without reading code.
+The product must continue to make it simple to correct a first memory, grant limited permission, send a request with context and inspect the resulting receipt. Metadata export is distinct from complete memory portability or a recoverable encrypted backup. Verified key recovery and vault restoration remain work to complete before a public beta, particularly for device-bound mobile keys. Withdrawing permission must be understandable without reading code.
+
+Platform release work must test cold start, key-store denial, existing-vault recovery, app suspension, network loss, touch and keyboard input, metadata export and reopening after an explicit interface lock on each claimed target. Windows and Linux need their own packaging checks; Apple device distribution requires actual signing credentials. None of these gates is satisfied merely by generating a project or an unsigned simulator artifact.
 
 ### Evidence Required Before Expanding
 

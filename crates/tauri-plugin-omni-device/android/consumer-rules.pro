@@ -2,3 +2,4 @@
 -keep class local.omni.device.OmniDevicePlugin { *; }
 -keep class local.omni.device.VaultKeyArgs { *; }
 -keep class local.omni.device.MetadataExportArgs { *; }
+-keep class local.omni.device.OmniExportProvider { *; }

@@ -23,10 +23,12 @@ Compare conversation-only context, selected project documents and additional aut
 
 ## Scope chosen for this repository
 
-Local analysis, actual provider integrations, explicit permissions, a genuine VPN transport and a synthetic network laboratory. Analytics is an opt-in experiment with a finite privacy budget. All networking is classical. Production deployment, Apple signing, third-party API credentials and user consent remain real external requirements.
+Local analysis, actual provider integrations, explicit permissions, a genuine optional VPN transport and a synthetic network laboratory. The native application embeds its Rust core, uses authenticated IPC and platform key stores, and keeps a separate local vault per installation. Source targets cover macOS, Windows, Linux, Android and iOS; [platform evidence](VALIDATION.md) determines what has actually been built and exercised. There is no bundled mobile model, system-wide mobile VPN or background capture service.
+
+Analytics is an opt-in experiment with a finite privacy budget. The standalone native app configures no collector, so its personal workspace works without an analytics service. All networking is classical. Production deployment, signing and store credentials, third-party API credentials and user consent remain real external requirements. Metadata export does not yet constitute complete memory portability or verified cross-device recovery.
 
 ## An inspectable daily workspace
 
 The delivered console makes provider choice, loaded local models, individual requests, permissions, token observations and configuration visible in one place. This is the first measurement surface for the product hypothesis: it exposes what happened without pretending that fewer context bytes prove better task outcomes. Costs require explicit rates; cloud API catalogs do not imply surveillance of ChatGPT or Claude website sessions. See the [administration guide](ADMINISTRATION.md).
 
-The guided first run reduces setup to a chosen connection, an optional local preference and a first conversation. It does not invent an account, a cloud credential, an installed model or a permission on the user's behalf. Startup diagnostics and visible recovery paths are part of the experience; signed installation and broader device validation remain release gates.
+The guided first run reduces setup to a chosen connection, an optional local preference and a first conversation. It does not invent an account, a cloud credential, an installed model or a permission on the user's behalf. The native interface can be locked and deliberately reopened on the device; this is a convenience boundary, not OS reauthentication. Startup diagnostics and visible recovery paths are part of the experience; signed installation, key recovery and broader device validation remain release gates. [Platform architecture and limits →](PLATFORMS.md)

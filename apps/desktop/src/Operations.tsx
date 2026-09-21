@@ -732,12 +732,13 @@ export default function Operations({
   const [exportError, setExportError] = useState("");
   const [exportStatus, setExportStatus] = useState("");
   useEffect(() => {
+    if (query.trim() === search) return;
     const timer = setTimeout(() => {
       setSearch(query.trim());
       setOffset(0);
     }, 250);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, search]);
   useEffect(() => {
     setOffset(0);
     setQuery("");

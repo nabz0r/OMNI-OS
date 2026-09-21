@@ -1,18 +1,20 @@
 # OMNI Nebula
 
-A local interface built with React, Three.js and an optional Tauri 2 desktop shell. It makes saved memories, sharing permissions and disclosure receipts inspectable without treating a model's interpretation as a fact.
+A shared interface built with React, Three.js and Tauri 2 for desktop and mobile targets. Native applications embed the Rust engine and use platform key stores; the historical `apps/desktop` directory name does not limit the source to desktop. The interface makes saved memories, sharing permissions and disclosure receipts inspectable without treating a model's interpretation as a fact.
 
 ## Start the interface
 
-Run the repository's `run.sh` first to start the authenticated core and collector. `npm run dev --workspace @omni/desktop` starts the development server at `http://127.0.0.1:3006`; `npm run build --workspace @omni/desktop` checks types and builds the bundle.
+Standalone native startup initializes the embedded Rust core in the application process, with its own OS application-data vault and authenticated IPC. It starts no HTTP listener, Node.js collector or Vite server by default. See [Platforms](../../docs/PLATFORMS.md) for native build targets, prerequisites and limits, and [Validation](../../docs/VALIDATION.md) for actual package/device results.
 
-For the native shell, run `npm run tauri --workspace @omni/desktop -- dev` with the core already running. If Vite is already running on port 3006, use `npm run tauri --workspace @omni/desktop -- dev --no-dev-server-wait --config '{"build":{"beforeDevCommand":""}}'`. The native global shortcut is **Alt + Shift + Space**. Within either interface, **Command/Ctrl + K** opens the request launcher. The Tauri crate is independent of the core Cargo workspace.
+For native source development, run `npm run tauri --workspace @omni/desktop -- dev` with the platform prerequisites installed. The Tauri app embeds the core unless explicitly placed in external development mode. For the separate browser/demo stack, use repository `run.sh`; its native-window mode sets `OMNI_EXTERNAL_CORE=1` to connect to its external core and collector instead. `npm run dev --workspace @omni/desktop` starts only Vite at `http://127.0.0.1:3006`, and `npm run build --workspace @omni/desktop` checks types and builds the UI bundle. Neither command alone starts the browser's external API services.
+
+The desktop global shortcut is **Alt + Shift + Space** when the OS permits registration. Within the interface, **Command/Ctrl + K** opens the request launcher; mobile also offers touch controls. No mobile global shortcut, background capture service or system-wide VPN is installed.
 
 Normal browser startup receives a one-time `#connect=` fragment. The UI removes it synchronously and exchanges it at `/api/session/claim`; the generated link never contains the owner bearer token. React effect replay shares the same pending exchange. An existing browser credential cannot override a new pairing attempt. Expired or consumed links fall back to manual unlock.
 
-The session token is held in `sessionStorage` and attached as a Bearer header to loopback API requests. Legacy `?token=` parameters are removed and discarded rather than adopted as a session. Explicit lock always returns to manual unlock. In native mode, the restricted `local_session_token` command reads only `OMNI_LOCAL_TOKEN` from the launcher process environment and supplies it to the main webview. It does not read arbitrary files. Tauri exposes no filesystem, shell, clipboard or HTTP plugin commands to the frontend.
+The session token is held in `sessionStorage`. Browser development requests attach it as a bearer header to the loopback API. Native `native_session` initializes the embedded runtime and provisions its owner token; `core_request` validates the main window and token before dispatching to the same router. Legacy `?token=` parameters are removed and discarded rather than adopted as a session. The database key never enters the webview. The device plugin rejects frontend calls to native key operations, and the frontend has no general-purpose filesystem or shell command.
 
-**Lock session** clears the token, conversation and drafts from the interface and aborts its pending requests. The same running interface does not immediately provision the native token again after an explicit lock. This action locks the interface session; it does not stop the core or revoke credentials held by other clients.
+**Lock session** clears the token, conversation and drafts from the interface and stops pending waits. It does not immediately provision another token after an explicit lock. Native **Unlock on this device** deliberately reopens the session; browser development retains manual token entry. This is an interface lock, not biometric or OS authentication. It does not stop the core, destroy its key, revoke another client's credentials or prove cancellation of a dispatched provider request.
 
 ## A guided first run
 
@@ -46,7 +48,7 @@ Responses render as Markdown with tables and code blocks. Raw HTML is omitted, a
 
 A failed request restores the message for manual retry unless you have already entered a different draft. Empty responses are treated as errors instead of entering the conversation history. **Stop waiting** cancels the interface's wait; it does not establish that the provider stopped processing or never received the request. A retry is another request. Check **History → Requests** and **Disclosure receipts** before retrying an uncertain delivery. Receipts distinguish sent context, authorization and failed or possibly partial delivery.
 
-The interface displays core and collector data without inventing global percentages. An installation report is not a count of unique people. A disconnected core leaves the last loaded state visible with an offline notice; collector snapshots identify when live updates are interrupted.
+The interface displays core and configured collector data without inventing global percentages. Standalone native bootstrap has no collector; Collective remains unconnected and analytics cannot be enabled or prepared. An installation report is not a count of unique people. A disconnected external core leaves the last loaded state visible with an offline notice; configured collector snapshots identify when live updates are interrupted.
 
 ## Administer the installation
 
@@ -54,7 +56,9 @@ The console adds **Models**, **History**, **Usage**, **Logs** and **Settings** a
 
 Use **Check connection** to read a provider catalog. For Ollama, the result also lists models reported loaded at the time of the check; cloud model catalogs do not expose running instances. Discovery does not download or load a model. The launcher shows enabled, policy-permitted profiles and their model choices.
 
-**History → Requests** offers filters, pages and a request detail dialog. **Disclosure receipts** remains a separate record of memory authorization and delivery. The request journal stores metadata only; the conversation itself is still transient interface state. **Usage** separates provider token reports, measured JSON/SSE body sizes, source-versus-context estimates and optional manually priced costs. **Logs** presents structured events such as profile edits, grants and request completion, not raw operating-system log files. The current filtered metadata page can be exported as JSON or CSV.
+**History → Requests** offers filters, pages and a request detail dialog. **Disclosure receipts** remains a separate record of memory authorization and delivery. The request journal stores metadata only; the conversation itself is still transient interface state. **Usage** separates provider token reports, measured JSON/SSE body sizes, source-versus-context estimates and optional manually priced costs. **Logs** presents structured audit events such as profile edits, grants and history clearing, not raw operating-system log files. The current filtered metadata page can be exported as JSON or CSV.
+
+Browser exports use downloads. Native desktop saves under `Documents/OMNI`; mobile opens the system share sheet without selecting a recipient or claiming that a cancelled sheet saved anything. The native export operation restricts names, formats and payload size; it does not expose arbitrary filesystem writes. These metadata files are outside SQLCipher encryption and are not vault backups.
 
 **Settings** controls whether new requests are journaled, retention from 1 to 365 days, the local-only extractor, analytics consent and low-energy rendering. Clearing request history requires confirmation and preserves memories, permissions, receipts, audit events and the DP budget. Network policy and key custody are installation details that require a service restart to change. Exporting configuration excludes secrets and discovery state.
 
@@ -63,6 +67,8 @@ The [administration guide](../../docs/ADMINISTRATION.md) documents every field, 
 ## Browser verification
 
 Install the browser once with `npx playwright install chromium`. Run `npm run test:ui` and `npm run test:console` against the isolated local `--simulate --no-open` stack. They use Playwright and read `.omni/runtime/admin-token` without printing it. Their mutation flows require the core to identify itself as a simulation. Then run `npm run test:onboarding` and `npm run test:setup`: these launch separate temporary cores and encrypted vaults against loopback fixture providers, using the same UI server. They cover one-time browser pairing, guided setup, first conversation, profile creation and recovery from authentication or catalog failures. Generated screenshots live in ignored `apps/desktop/artifacts/`.
+
+Run `npm run test:native` as the fifth suite, with the core built and the UI server still available. It supplies a mocked Tauri invocation bridge for iOS/Android frontend behavior, while all API results come from a real isolated Rust core and encrypted temporary vault. It checks that requests use the bridge rather than browser API fetches, exercises setup and deliberate unlocking, and checks metadata export calls for private-content leaks. Export presentation is mocked. This browser suite does not exercise real Tauri IPC, OS credential stores, a native share sheet, packaged binaries or phone hardware; those checks need independent evidence.
 
 The expanded flow is designed to check:
 

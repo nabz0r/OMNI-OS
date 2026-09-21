@@ -57,6 +57,7 @@ jobs:
           npm run test:console
           npm run test:onboarding
           npm run test:setup
+          npm run test:native
       - uses: actions/upload-artifact@v4
         if: always()
         with:

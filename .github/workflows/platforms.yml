@@ -11,6 +11,7 @@ on:
       - "Cargo.lock"
       - "package*.json"
       - "scripts/build-platform.mjs"
+      - "scripts/smoke-android.mjs"
       - ".github/workflows/platforms.yml"
   pull_request:
     paths:
@@ -20,6 +21,7 @@ on:
       - "Cargo.lock"
       - "package*.json"
       - "scripts/build-platform.mjs"
+      - "scripts/smoke-android.mjs"
       - ".github/workflows/platforms.yml"
 
 permissions:
@@ -27,7 +29,7 @@ permissions:
 
 concurrency:
   group: native-platforms-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 # These are evaluation artifacts, not store releases. No signing credentials are
 # read. Android uses a development debug key; iOS targets an unsigned simulator.
@@ -83,7 +85,9 @@ jobs:
             xvfb-run -a node scripts/build-platform.mjs linux --smoke
           SCRIPT
       - name: Test the native runtime
-        run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --locked --features custom-protocol --target ${{ matrix.target }}
+        run: |
+          cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --locked --features custom-protocol --target ${{ matrix.target }}
+          cargo test --manifest-path crates/tauri-plugin-omni-device/Cargo.toml --locked --target ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -93,7 +97,7 @@ jobs:
           retention-days: 14
 
   android:
-    name: Android debug APK (arm64 and x86_64)
+    name: Android APK, emulator startup and Keystore tests
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
@@ -124,6 +128,67 @@ jobs:
       - run: npm ci
       - name: Generate the Android project and build both native ABIs
         run: node scripts/build-platform.mjs android
+      - name: Install the AOSP emulator using the runner's accepted SDK license
+        shell: bash
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "emulator" "system-images;android-35;default;x86_64" < /dev/null
+          printf 'no\n' | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --name omni-ci --package "system-images;android-35;default;x86_64" --device pixel_5
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - name: Exercise fresh native startup, reopening and Android Keystore
+        shell: bash
+        env:
+          ANDROID_SERIAL: emulator-5554
+          TAURI_ANDROID_PROJECT_PATH: ${{ github.workspace }}/apps/desktop/src-tauri/gen/android
+        run: |
+          mkdir -p artifacts/platforms/android
+          "$ANDROID_HOME/emulator/emulator" -avd omni-ci -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on -memory 2048 -cores 2 > artifacts/platforms/android/emulator.log 2>&1 &
+          omni_emulator_pid=$!
+          cleanup() {
+            "$ANDROID_HOME/platform-tools/adb" -s "$ANDROID_SERIAL" emu kill >/dev/null 2>&1 || true
+            kill "$omni_emulator_pid" >/dev/null 2>&1 || true
+            wait "$omni_emulator_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          mapfile -t omni_apks < <(rg --files artifacts/platforms/android -g '*.apk')
+          test "${#omni_apks[@]}" -eq 1
+          node scripts/smoke-android.mjs --serial "$ANDROID_SERIAL" --apk "${omni_apks[0]}" --output artifacts/platforms/android/android-smoke.json
+          cd apps/desktop/src-tauri/gen/android
+          ./gradlew --no-daemon :tauri-plugin-omni-device:connectedDebugAndroidTest
+          cd "$GITHUB_WORKSPACE"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from xml.etree import ElementTree
+
+          reports = Path("crates/tauri-plugin-omni-device/android/build/outputs/androidTest-results")
+          expected = {
+              "keySurvivesStoreRecreationAndOnlyCiphertextIsPersisted",
+              "missingKeyForExistingVaultDoesNotCreateCredential",
+              "corruptedEnvelopeIsNeverOverwritten",
+              "authenticatedEnvelopeRejectsModifiedCiphertext",
+              "missingWrappingKeyDoesNotReplaceSavedEnvelope",
+          }
+          cases = []
+          for report in reports.rglob("*.xml"):
+              cases.extend(case for case in ElementTree.parse(report).iter("testcase")
+                           if case.get("classname") == "local.omni.device.VaultKeyStoreTest")
+          passed = (len(cases) == 5 and {case.get("name") for case in cases} == expected
+                    and all(not any(case.find(tag) is not None for tag in ("failure", "error", "skipped")) for case in cases))
+          Path("artifacts/platforms/android/keystore-tests.json").write_text(
+              json.dumps({"status": "passed" if passed else "failed", "expected_tests": 5,
+                          "observed_tests": len(cases), "scope": "Android emulator Keystore instrumentation"}, indent=2) + "\n")
+          if not passed:
+              raise SystemExit("All five Android Keystore instrumented tests must run and pass.")
+          PY
+      - name: Collect Android Keystore test reports
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/platforms/android/keystore-tests
+          if test -d crates/tauri-plugin-omni-device/android/build/outputs/androidTest-results; then
+            cp -R crates/tauri-plugin-omni-device/android/build/outputs/androidTest-results/. artifacts/platforms/android/keystore-tests/
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -133,7 +198,19 @@ jobs:
           retention-days: 14
 
   ios-simulator:
-    name: iOS unsigned arm64 simulator
+    name: iOS unsigned arm64 ${{ matrix.flavor }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: simulator
+            target: aarch64-apple-ios-sim
+            arguments: --smoke
+            output: ios
+          - flavor: device
+            target: aarch64-apple-ios
+            arguments: --device
+            output: ios-device
     runs-on: macos-15
     timeout-minutes: 90
     env:
@@ -146,11 +223,11 @@ jobs:
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-ios-sim
+          targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri
-          key: native-ios-simulator
+          key: native-ios-${{ matrix.flavor }}
       - name: Verify Xcode and simulator prerequisites
         shell: bash
         run: |
@@ -159,12 +236,12 @@ jobs:
           command -v pod >/dev/null || brew install cocoapods
           command -v xcodegen >/dev/null || brew install xcodegen
       - run: npm ci
-      - name: Archive without signing and launch the simulator application
-        run: node scripts/build-platform.mjs ios --smoke
+      - name: Archive without signing (launch only on the simulator)
+        run: node scripts/build-platform.mjs ios ${{ matrix.arguments }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: omni-ios-unsigned-arm64-simulator
-          path: artifacts/platforms/ios/
+          name: omni-ios-unsigned-arm64-${{ matrix.flavor }}
+          path: artifacts/platforms/${{ matrix.output }}/
           if-no-files-found: warn
           retention-days: 14

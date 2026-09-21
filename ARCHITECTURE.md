@@ -2,7 +2,7 @@
 
 This document describes two distinct things: **the executable v1 in this repository** and **the target architecture** that can be built around its boundaries.
 The labels **V1**, **Target**, and **Not guaranteed** are part of the specification; an intention must never be presented as an already demonstrated property.
-Startup, transport, and validation procedures remain in [README.md](README.md), [docs/VPN.md](docs/VPN.md), and [docs/VALIDATION.md](docs/VALIDATION.md).
+Startup, platform, transport, and validation procedures remain in [README.md](README.md), [docs/PLATFORMS.md](docs/PLATFORMS.md), [docs/VPN.md](docs/VPN.md), and [docs/VALIDATION.md](docs/VALIDATION.md).
 The [diagrams](DIAGRAMS.md) provide data flow and container views; the [roadmap](ROADMAP.md) sets the evidence required before each change.
 
 ## Navigation
@@ -43,12 +43,13 @@ Nor does it turn an inference into truth, or possession of a document into a uni
 | Authorization  | Owner/agent tokens, grants by destination and scope                             | Cryptographic identity and capabilities specific to each agent |
 | Integrations   | OpenAI/Anthropic gateways, MCP, voluntary capture                               | Additional connectors, without implicit universal interception |
 | Administration | Persistent profiles/settings, model discovery, request journal, audit and usage | No hidden observation of third-party website sessions          |
+| Native runtime | Embedded Rust core, authenticated UI IPC, platform key-store adapters           | Separate build/device/signing evidence for each target         |
 | Transport      | WireGuard, authenticated admission, deployment tools                            | Signed native distribution and large-scale operation           |
 | Analytics      | Bounded OpenDP reports, Redis collector or local SQLite                         | SingleStore analytics storage and publication governance       |
 | Isolation      | Separate collector; memory and gateway in the same core                         | Separate OS helpers with distinct network permissions          |
 | ZK proofs      | None                                                                            | Targeted verifiable attributes, if justified by a use case     |
 
-The guided first run uses these same boundaries: catalog discovery, an optional confirmed local preference and a primary-provider choice. It creates no sharing grant and no inference request. Browser startup uses an expiring one-time pairing capability; owner-token provisioning and the transient UI session remain separate from provider authority. See the [first-run guide](docs/GETTING_STARTED.md).
+The guided first run uses these same boundaries: catalog discovery, an optional confirmed local preference and a primary-provider choice. It creates no sharing grant and no inference request. Browser development startup uses an expiring one-time pairing capability; standalone native startup provisions an embedded session through a restricted main-window command. The transient UI session remains separate from provider authority. See the [first-run guide](docs/GETTING_STARTED.md).
 
 The product must remain useful without participating in analytics or sending memory to a remote model.
 Success is measured by the quality of tasks completed with controlled disclosure, not by the volume of data absorbed.
@@ -195,6 +196,16 @@ This diagram represents responsibilities; its rectangles do not all denote isola
 **V1:** the collector and local model runtime are separate from the core; the vault, decisions, and provider connector share the local Rust process.
 Report types and modules make the flows auditable, but a Rust module is not an OS security boundary.
 
+### Embedded native runtime and source development
+
+The native Tauri application links the Rust core as a library and initializes its SQLCipher vault in the OS application-local-data directory under `vault-v1`. Platform code supplies the random database key from its native key-store adapter. Initialization uses explicit options, not process-environment defaults. Owner and restricted agent capabilities are generated per runtime session; the native bootstrap writes no development token or plaintext key files.
+
+The native interface calls an owner-authenticated main-window IPC command. That command validates the token in constant time and dispatches a bounded local request into the same Axum router used by the external core. The packaged bootstrap starts **no HTTP listener**, collector or Node.js server. The reusable runtime supports an explicitly enabled ephemeral loopback listener for integrations, but that is a separate deployment choice. The native UI bridge collects a bounded response body; pass-through HTTP gateway streaming remains a separate transport contract.
+
+An exclusive lease prevents two embedded runtimes from opening one vault directory and remains attached to the vault while active request references exist. Shutdown stops accepting new requests and drains or terminates an optional listener within a bounded interval. The interface lock clears its transient token, draft and conversation; it does not destroy the core's key, stop provider processing or perform OS authentication. Deliberately reopening the native interface is allowed on the current device session.
+
+`run.sh` remains the external source-development workflow. It starts separate core, collector and UI services, and explicitly sets `OMNI_EXTERNAL_CORE=1` when opening its native window. That mode and simulation do not silently share or migrate a standalone app's vault. Desktop/mobile build targets, exact key stores and validation limits are specified in [PLATFORMS.md](docs/PLATFORMS.md). Mobile has no bundled local model, background interception daemon or system VPN extension.
+
 | Actor                      | Information accessible during intended operation                              |
 | -------------------------- | ----------------------------------------------------------------------------- |
 | Unlocked local core        | Sources, authorized memories, prompts required for processing, observations   |
@@ -221,7 +232,7 @@ WireGuard transports packets; it does not provide access to the content of every
 Moving down to L4, L3, or L2 changes transport control, not this cryptographic property.
 
 **V1:** an application or agent deliberately configures OMNI as its OpenAI/Anthropic endpoint, or uses the console and MCP/capture tools.
-The console and core communicate over loopback HTTP in the development runtime; no inbound TLS termination is claimed there.
+The standalone native console uses authenticated in-process IPC. The console and external core communicate over loopback HTTP in the source-development workflow; no inbound TLS termination is claimed there. A native installation does not expose an integration port by default.
 For a remote provider, the core opens a new HTTPS session and transmits the authorized context; redirects cannot silently change the destination.
 
 In a future deployment with a local HTTPS entry point, that TLS connection will terminate at the OMNI gateway selected by the client, and a separate TLS connection will be established with the provider.
@@ -240,9 +251,11 @@ Strictly loopback models use a separate local client; this path is an explicit e
 
 ## 7. Keys, admission, and rotation: three distinct mechanisms
 
-The vault key is a random 256-bit key, stored in the macOS Keychain by default. Outside macOS, v1 defaults to a development file protected by permissions; this mode can also be explicitly selected on macOS.
-It is not derived from the person's hardware or biometric fingerprint.
-V1 does not claim that every key read requires biometric authentication or that it provides complete Secure Enclave integration.
+The native vault key is random and 256 bits. Desktop adapters use macOS Keychain, Windows Credential Manager or Linux Secret Service. iOS uses an unsynchronized, device-only Keychain item available while unlocked; Android uses a non-exportable Keystore AES-GCM key to wrap the SQLCipher key in an authenticated encrypted envelope. Linux requires an available unlocked Secret Service session. Native startup has no development-file fallback and refuses to replace missing or corrupt key material for an existing vault.
+
+The separate CLI/source-development path retains its macOS Keychain default and explicit file-key option; outside macOS its development default is a permissions-protected file. Simulation uses an isolated, clearly labeled development-file vault. These defaults do not describe installed native key custody.
+
+No key is derived from the person's hardware or biometric fingerprint. V1 does not require biometric approval for every key read or claim universal Secure Enclave/StrongBox backing. The SQLCipher key exists in native memory during use. A copied database does not establish recoverability on another device, particularly with Android wrapping keys or iOS device-only items; no complete cross-device key recovery workflow is implemented.
 
 WireGuard transport keys are separate from this storage key and from application tokens.
 WireGuard uses a Noise-family protocol with session rekeying; it does not use IKE. [Official WireGuard description](https://www.wireguard.com/protocol/)
@@ -288,7 +301,7 @@ The mechanism is provided by [OpenDP](https://docs.opendp.org/en/stable/api/user
 
 ### Persistence before disclosure
 
-Consent is disabled by default; v1 prepares and sends a report on explicit action, with no automatic transmission schedule.
+Consent is disabled by default; v1 prepares and sends a report on explicit action, with no automatic transmission schedule. The standalone native bootstrap supplies no collector, so enabling analytics, preparing a report or sending one is rejected before budget consumption until a deployment explicitly configures a destination.
 The noised report is persisted transactionally before it is returned or sent; every retry for the same week reuses that report and its identifier.
 Serialization preserves numeric values across reads: another network attempt does not generate a new noise sample.
 
@@ -371,16 +384,16 @@ The deployment must publish who can decrypt, restore, update, and access logs; t
 
 ## 12. Threats, required evidence, and order of evolution
 
-| Threat                                   | V1 protection or current response                                     | Limitation that must remain visible                                              |
-| ---------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Reading the disk without a key           | SQLCipher, random key, Keychain or development permissions            | The unlocked process sees plaintext                                              |
-| An agent attempting to authorize itself  | Separate tokens; administrative routes reject the agent token         | No identities/capabilities specific to each agent yet                            |
-| Wrong destination or revoked grant       | Exact matching, expiration, checks before sending                     | No recall of data already disclosed                                              |
-| Instructions embedded in a source        | Bounded extraction, proposals, authorization independent of the model | The model can still propose an incorrect fact                                    |
-| Exfiltration through compliant analytics | Closed schema, local OpenDP, persisted budget and outputs             | Network metadata remains visible; compromised clients fall outside the guarantee |
-| Replaying reports or packets             | Analytics deduplication, SPA nonces, WireGuard protection             | Backups and rollbacks must preserve ledgers                                      |
-| Manipulated trends                       | Schema, rate limiting, separation of simulation and production        | Contribution authenticity is not proven                                          |
-| Compromise of the OS or core             | Documented boundaries, limited local attack surface                   | Signed components with confinement and an independent audit are still required   |
+| Threat                                   | V1 protection or current response                                             | Limitation that must remain visible                                                |
+| ---------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Reading the disk without a key           | SQLCipher, random key, native platform key store or explicit development file | The unlocked process sees plaintext; native device-bound keys need a recovery plan |
+| An agent attempting to authorize itself  | Separate tokens; administrative routes reject the agent token                 | No identities/capabilities specific to each agent yet                              |
+| Wrong destination or revoked grant       | Exact matching, expiration, checks before sending                             | No recall of data already disclosed                                                |
+| Instructions embedded in a source        | Bounded extraction, proposals, authorization independent of the model         | The model can still propose an incorrect fact                                      |
+| Exfiltration through compliant analytics | Closed schema, local OpenDP, persisted budget and outputs                     | Network metadata remains visible; compromised clients fall outside the guarantee   |
+| Replaying reports or packets             | Analytics deduplication, SPA nonces, WireGuard protection                     | Backups and rollbacks must preserve ledgers                                        |
+| Manipulated trends                       | Schema, rate limiting, separation of simulation and production                | Contribution authenticity is not proven                                            |
+| Compromise of the OS or core             | Documented boundaries, limited local attack surface                           | Signed components with confinement and an independent audit are still required     |
 
 Vault tests verify that the database is actually encrypted, that an incorrect key is rejected, and that related deletions and histories work.
 Authorization tests check for canary leaks, recipients, scope, owner/agent separation, and revocation; network tests check preservation of provider stream bytes.

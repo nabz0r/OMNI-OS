@@ -1748,9 +1748,9 @@ function OmniSpace({
                   <h3>Configured destination</h3>
                   <code>{core.provider.base_url}</code>
                   <p>
-                    Provider settings are configured locally by environment
-                    variables. This status shows configuration, not a successful
-                    provider health check.
+                    Manage connections and API keys in Models. This destination
+                    is your selected default; check its catalog or send a
+                    request to verify availability.
                   </p>
                   <button
                     className="secondary"
@@ -1798,6 +1798,7 @@ function OmniSpace({
                 action={
                   <button
                     className="secondary"
+                    disabled={!COLLECTOR}
                     onClick={() => void loadCollective()}
                   >
                     <RefreshCw size={16} />
@@ -1838,7 +1839,7 @@ function OmniSpace({
                   </div>
                   <button
                     className="secondary full"
-                    disabled={busy}
+                    disabled={busy || !COLLECTOR}
                     onClick={async () => {
                       if (
                         await mutate("/api/analytics/consent", "POST", {
@@ -1852,14 +1853,16 @@ function OmniSpace({
                         );
                     }}
                   >
-                    {core.analytics.opt_in
-                      ? "Disable participation"
-                      : "Enable participation"}
+                    {!COLLECTOR
+                      ? "Analytics service not configured"
+                      : core.analytics.opt_in
+                        ? "Disable participation"
+                        : "Enable participation"}
                   </button>
                   <button
                     className="primary full"
                     style={{ marginTop: 12 }}
-                    disabled={busy || !core.analytics.opt_in}
+                    disabled={busy || !core.analytics.opt_in || !COLLECTOR}
                     onClick={() => void prepareAnalytics()}
                   >
                     Review this week’s report
@@ -2274,7 +2277,7 @@ function OmniSpace({
             </pre>
             <button
               className="primary full"
-              disabled={busy || !core.analytics.opt_in}
+              disabled={busy || !core.analytics.opt_in || !COLLECTOR}
               onClick={async () => {
                 if (
                   await mutate("/api/analytics/send", "POST", {

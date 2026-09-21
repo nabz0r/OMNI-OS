@@ -29,9 +29,19 @@ sequenceDiagram
 
 Local inference uses a loopback provider and does not require the tunnel. When VPN routing is configured, the gateway must use the configured SOCKS transport without direct fallback. A failed tunnel is an error, not authorization to bypass it.
 
+The diagram shows the explicitly configured VPN path. A standalone native app does not install that path or a mobile VPN extension. Native UI requests enter the same core through authenticated IPC and return a bounded complete body; the optional external gateway preserves supported provider streams.
+
+## Native application boundary
+
+Tauri links `omni-core` directly and starts it with explicit `EmbeddedOptions`. The native device adapter retrieves or creates a random 32-byte key in the platform secure store, then passes it directly to Rust; frontend plugin invocations cannot read that key. SQLCipher opens a separate `vault-v1` directory under the OS application-local-data location. An exclusive lease prevents simultaneous embedded runtimes from opening that vault.
+
+The main-window `native_session` command provisions an owner session. `core_request` checks the window and owner token, bounds concurrent calls, and dispatches local paths into the shared Axum router. The router retains owner/agent checks, exact destination grants and deployment policy. This mode opens no HTTP listener by default. An optional loopback listener exists in the reusable runtime for explicit integration deployments; the native bootstrap leaves it disabled.
+
+The app's interface lock clears transient UI state and requires an explicit device-unlock action to reopen it. It is not biometric authentication, OS confinement or key destruction. Mobile execution follows the platform application lifecycle; no background service, global capture or mobile VPN is implemented. The platform/key-store map and build procedures are in [PLATFORMS.md](PLATFORMS.md); measured results remain in [VALIDATION.md](VALIDATION.md).
+
 ## First-run session boundary
 
-The local launcher creates a temporary random pairing secret for automatic browser opening. Its fragment is consumed before rendering; `/api/session/claim` returns the owner token exactly once within 120 seconds, with allowed-Origin checks and non-cacheable responses. The core retains a hash and atomic consumed state in memory. Native startup uses its restricted provisioning command instead. The setup UI then calls existing owner-only profile and memory APIs; it does not bypass grants or infer new agent authority.
+The source-development launcher creates a temporary random pairing secret for automatic browser opening. Its fragment is consumed before rendering; `/api/session/claim` returns the owner token exactly once within 120 seconds, with allowed-Origin checks and non-cacheable responses. The core retains a hash and atomic consumed state in memory. `run.sh` explicitly sets `OMNI_EXTERNAL_CORE=1` for a native window connected to those same external services. Standalone native startup instead provisions its embedded session, with browser pairing disabled. The setup UI calls existing owner-only profile and memory APIs; it does not bypass grants or infer new agent authority.
 
 ## Data model
 
@@ -91,7 +101,7 @@ The diagram is the logical model; JSON arrays may represent scope and memory ref
 
 ## Local administration and observability
 
-The console reads owner-only administration endpoints in the same Rust core. Encrypted settings hold provider profiles, write-only credentials, manual rates, the primary destination, the local extractor and history preferences. The environment seeds new vaults; explicit deployment network policy remains an upper bound on profile routing.
+The console reads owner-only administration endpoints in the same Rust core. Encrypted settings hold provider profiles, write-only credentials, manual rates, the primary destination, the local extractor and history preferences. Explicit native options or the external core's environment seed new vaults; deployment network policy remains an upper bound on profile routing.
 
 Two additional SQLCipher tables, `journal_interactions` and `journal_audit`, hold operational metadata independently of DP observations. A request starts before provider egress and ends with a terminal status, body-byte counters and any supported usage fields. A drop guard marks interrupted requests; restart recovery marks unfinished records aborted. The journal does not store conversation content. Aggregates are derived from retained journal rows, preserving unknown usage, observation coverage and request-time rate snapshots.
 
@@ -123,9 +133,11 @@ Two paths are deliberately tested separately: the application path checks memory
 
 ## Process and trust boundaries
 
-The collector is a separate process and deployment from the core. The local model runtime is a separate service. Database and authorization operations are modules of the local core in this development release; this is **not yet an OS-isolated vault worker**. Local code compromise can access the unlocked vault. Native signed helper confinement requires additional deployment work and must not be inferred from module names.
+A configured collector is a separate process and deployment from the core. The local model runtime is a separate service and is not bundled in the native app. Standalone native bootstrap supplies no collector: analytics activation, preparation and sending fail before report creation or budget use. Database and authorization operations are modules of the local core; in native mode the core is also part of the Tauri application process. This is **not an OS-isolated vault worker**. Local code compromise can access the unlocked vault. Signed helper confinement requires additional deployment work and must not be inferred from module names.
 
 ## Ports
+
+These are source-development and explicit integration defaults. The standalone native UI uses IPC and starts none of these listeners; an explicitly enabled embedded listener chooses an ephemeral loopback port instead.
 
 | Service                   | Default binding          | Purpose                                |
 | ------------------------- | ------------------------ | -------------------------------------- |

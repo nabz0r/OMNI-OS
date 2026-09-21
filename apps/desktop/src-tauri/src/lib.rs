@@ -3,6 +3,7 @@ use std::{
     process::{Command, Stdio},
     time::{Duration, Instant},
 };
+#[cfg(desktop)]
 use tauri::Manager;
 mod native;
 use native::{core_request, native_session, save_metadata, NativeState};

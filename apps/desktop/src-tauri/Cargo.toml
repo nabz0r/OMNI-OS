@@ -27,3 +27,8 @@ tauri-plugin-global-shortcut = "2"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]
+
+# Evaluation APKs retain debug signing and runtime checks without shipping
+# hundreds of megabytes of Rust DWARF symbols in each architecture.
+[profile.dev]
+debug = 0
