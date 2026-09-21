@@ -22,7 +22,7 @@ const api = async (path, body) => {
       ...(body ? { "Content-Type": "application/json" } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(20000),
+    signal: AbortSignal.timeout(body ? 65000 : 10000),
   });
   if (!response.ok) {
     let detail = "";

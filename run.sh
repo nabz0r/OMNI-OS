@@ -7,10 +7,11 @@ omni_simulation=0
 for omni_arg in "$@"; do
   case "$omni_arg" in --web) omni_mode=web;; --simulate) omni_simulation=1;; --help) echo './run.sh [--web] [--simulate]'; exit 0;; *) echo "Unknown argument: $omni_arg" >&2; exit 1;; esac
 done
-./scripts/bootstrap.sh
-export CARGO_TARGET_DIR="$(node scripts/build-dir.mjs)"
 omni_ports=(3006 3007 3008)
 if [[ "$omni_simulation" = 1 ]]; then omni_ports+=(4101 4102); fi
+if command -v node >/dev/null; then node scripts/check-ports.mjs "${omni_ports[@]}"; fi
+./scripts/bootstrap.sh
+export CARGO_TARGET_DIR="$(node scripts/build-dir.mjs)"
 node scripts/check-ports.mjs "${omni_ports[@]}"
 export OMNI_CORE_PORT=3007 OMNI_COLLECTOR_PORT=3008 OMNI_COLLECTOR_HOST=127.0.0.1
 mkdir -p .omni/runtime
@@ -25,36 +26,46 @@ printf '%s' "$OMNI_LOCAL_TOKEN" > .omni/runtime/admin-token
 printf '%s' "$OMNI_AGENT_TOKEN" > .omni/runtime/agent-token
 export OMNI_LLM_BASE="${OMNI_LLM_BASE:-http://127.0.0.1:11434/v1}"
 export OMNI_LLM_MODEL="${OMNI_LLM_MODEL:-qwen3:0.6b}"
-omni_pids=()
-cleanup() { for omni_pid in "${omni_pids[@]}"; do kill "$omni_pid" 2>/dev/null || true; done; }
-trap cleanup EXIT INT TERM
+source scripts/lifecycle.sh
+trap omni_stop_services EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 if [[ "$omni_simulation" = 1 ]]; then
   unset REDIS_URL OMNI_UPSTREAM_ALLOWLIST OMNI_SOCKS_PROXY
   export NODE_ENV=development OMNI_VPN_REQUIRED=false
   export OMNI_LLM_API_KEY='' OPENAI_API_KEY='' ANTHROPIC_API_KEY=''
   export OMNI_SIMULATION=1 OMNI_MIN_REPORTS=2 OMNI_ANALYTICS_OPT_IN=true
-  export OMNI_DATA_DIR="$PWD/.omni/simulation-viewer"
+  # Keep synthetic data and its development key separate from any Keychain-backed vault.
+  # Never switch the encryption backend of an existing personal or simulation vault.
+  export OMNI_KEY_STORAGE=file
+  export OMNI_DATA_DIR="$PWD/.omni/simulation-viewer-file-v1"
   export OMNI_COLLECTOR_DB="$PWD/.omni/simulation-collector.sqlite"
   export OMNI_LLM_BASE=http://127.0.0.1:4101/v1
+  export OMNI_LLM_MODEL=omni-synthetic
   export OMNI_ANTHROPIC_BASE=http://127.0.0.1:4102/v1
   export OMNI_ANALYTICS_URL=http://127.0.0.1:3008/api/v1/analytics
-  node scripts/mock-providers.mjs > .omni/runtime/providers.log 2>&1 & omni_pids+=("$!")
+  omni_start_service 'Synthetic providers' .omni/runtime/providers.log node scripts/mock-providers.mjs
 fi
-"$CARGO_TARGET_DIR/debug/omni-core" > .omni/runtime/core.log 2>&1 & omni_pids+=("$!")
-node services/collector/src/server.mjs > .omni/runtime/collector.log 2>&1 & omni_pids+=("$!")
-npm run dev --workspace @omni/desktop -- --host 127.0.0.1 > .omni/runtime/desktop.log 2>&1 & omni_pids+=("$!")
-node scripts/wait-ready.mjs http://127.0.0.1:3007/health http://127.0.0.1:3008/health http://127.0.0.1:3006
-for omni_pid in "${omni_pids[@]}"; do
-  kill -0 "$omni_pid" 2>/dev/null || { echo 'A launched service exited; inspect .omni/runtime logs.' >&2; exit 1; }
-done
+omni_start_service 'OMNI core' .omni/runtime/core.log "$CARGO_TARGET_DIR/debug/omni-core"
+omni_start_service 'Analytics collector' .omni/runtime/collector.log node services/collector/src/server.mjs
+omni_start_service 'Desktop interface' .omni/runtime/desktop.log npm run dev --workspace @omni/desktop -- --host 127.0.0.1
+OMNI_SERVICE_PIDS="${omni_pids[*]}" node scripts/wait-ready.mjs http://127.0.0.1:3007/health http://127.0.0.1:3008/health http://127.0.0.1:3006
+omni_check_services
 echo 'OMNI ready: http://localhost:3006'
 echo 'Local console token: .omni/runtime/admin-token (never share or commit it).'
 if [[ "$omni_simulation" = 1 ]]; then
   OMNI_SIM_USE_EXISTING=1 node scripts/simulate.mjs
 fi
 if [[ "$omni_mode" = native ]]; then
-  cargo run --manifest-path apps/desktop/src-tauri/Cargo.toml
+  cargo run --manifest-path apps/desktop/src-tauri/Cargo.toml &
+  omni_native_pid=$!
+  while kill -0 "$omni_native_pid" 2>/dev/null; do
+    omni_check_services
+    sleep 0.5
+  done
+  wait "$omni_native_pid"
 else
   echo 'Press Ctrl+C to stop the services started by this session.'
-  wait "${omni_pids[0]}"
+  while omni_check_services; do sleep 0.5; done
+  exit 1
 fi

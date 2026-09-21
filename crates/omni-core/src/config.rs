@@ -115,9 +115,12 @@ impl Config {
                 env::var("OPENAI_API_KEY").unwrap_or_default()
             }
         });
+        let local_token = load_token(&data_dir, "local-token", "OMNI_LOCAL_TOKEN")?;
+        let agent_token = load_token(&data_dir, "agent-token", "OMNI_AGENT_TOKEN")?;
+        validate_tokens(&local_token, &agent_token)?;
         Ok(Self {
-            local_token: load_token(&data_dir, "local-token", "OMNI_LOCAL_TOKEN")?,
-            agent_token: load_token(&data_dir, "agent-token", "OMNI_AGENT_TOKEN")?,
+            local_token,
+            agent_token,
             port: env::var("OMNI_CORE_PORT")
                 .unwrap_or_else(|_| "3007".into())
                 .parse()?,
@@ -174,6 +177,18 @@ impl Config {
     }
 }
 
+fn validate_tokens(owner: &str, agent: &str) -> Result<()> {
+    if owner == agent {
+        bail!("Owner and agent tokens must be different; sharing a token removes the permission boundary");
+    }
+    for token in [owner, agent] {
+        if token.trim() != token || !token.bytes().all(|byte| byte.is_ascii_graphic()) {
+            bail!("Local bearer tokens must contain only visible ASCII characters without spaces");
+        }
+    }
+    Ok(())
+}
+
 fn load_token(dir: &Path, filename: &str, env_name: &str) -> Result<String> {
     if let Ok(token) = env::var(env_name) {
         if token.len() < 16 {
@@ -227,9 +242,7 @@ pub fn normalize_base(raw: &str) -> Result<String> {
     {
         bail!("Provider URL cannot contain credentials, query, or fragment");
     }
-    let local = url
-        .host_str()
-        .is_some_and(|h| h == "localhost" || h.parse::<IpAddr>().is_ok_and(|ip| ip.is_loopback()));
+    let local = url_is_loopback(&url);
     if url.scheme() != "https" && !(url.scheme() == "http" && local) {
         bail!("Providers require HTTPS; HTTP is allowed only for loopback addresses");
     }
@@ -239,10 +252,15 @@ pub fn normalize_base(raw: &str) -> Result<String> {
 pub fn is_loopback_url(base: &str) -> bool {
     reqwest::Url::parse(base)
         .ok()
-        .and_then(|u| u.host_str().map(str::to_string))
-        .is_some_and(|host| {
-            host == "localhost" || host.parse::<IpAddr>().is_ok_and(|ip| ip.is_loopback())
-        })
+        .is_some_and(|url| url_is_loopback(&url))
+}
+
+fn url_is_loopback(url: &reqwest::Url) -> bool {
+    url.host_str().is_some_and(|host| {
+        // URL hosts retain brackets around IPv6 literals; IpAddr does not.
+        let host = host.trim_start_matches('[').trim_end_matches(']');
+        host == "localhost" || host.parse::<IpAddr>().is_ok_and(|ip| ip.is_loopback())
+    })
 }
 
 #[cfg(test)]
@@ -251,8 +269,19 @@ mod tests {
     #[test]
     fn only_local_http_and_no_url_credentials() {
         assert!(normalize_base("http://127.0.0.1:11434/v1").is_ok());
+        assert!(normalize_base("http://[::1]:11434/v1").is_ok());
+        assert!(is_loopback_url("http://[::1]:11434/v1"));
+        assert!(!is_loopback_url("https://[2001:db8::1]/v1"));
+        assert!(normalize_base("http://[2001:db8::1]/v1").is_err());
         assert!(normalize_base("http://192.168.1.1/v1").is_err());
         assert!(normalize_base("https://key:secret@example.org/v1").is_err());
         assert!(normalize_base("https://example.org/v1?q=secret").is_err());
+    }
+    #[test]
+    fn integration_tokens_cannot_be_owner_tokens_or_invalid_headers() {
+        assert!(validate_tokens("owner-token-01234567", "agent-token-01234567").is_ok());
+        assert!(validate_tokens("shared-token-0123456", "shared-token-0123456").is_err());
+        assert!(validate_tokens("owner-token-01234567", "agent-token\r\nsecret").is_err());
+        assert!(validate_tokens("owner-token-01234567", "agent token 01234567").is_err());
     }
 }

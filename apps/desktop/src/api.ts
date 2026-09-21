@@ -4,6 +4,7 @@ export type MemoryStatus = "proposed" | "confirmed" | "disputed" | "superseded";
 export interface Memory {
   id: string;
   source_id: string;
+  source: string;
   content: string;
   status: MemoryStatus;
   created_at: string;
@@ -21,6 +22,7 @@ export interface Receipt {
   destination: string;
   memory_ids: string[];
   created_at: string;
+  status: "authorized" | "sent" | "send_failed_or_partial";
 }
 export interface CoreState {
   memories: Memory[];
@@ -39,7 +41,7 @@ export interface CoreState {
     budget_limit: number;
     reports: number;
   };
-  provider: { base_url: string; model: string };
+  provider: { base_url: string; model: string; local: boolean };
   vault: { encrypted: boolean; key_storage: string };
   simulation?: boolean;
 }
@@ -58,31 +60,59 @@ export function initialToken() {
   }
   return sessionStorage.getItem("omni.token") || "";
 }
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 export async function request<T>(
   token: string,
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(`${CORE}${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...options.headers,
-    },
-    signal: options.signal ?? AbortSignal.timeout(90000),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${CORE}${path}`, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...options.headers,
+      },
+      signal: options.signal ?? AbortSignal.timeout(90000),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError")
+      throw error;
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new ApiError(
+        "The request timed out. Check Activity before retrying; it may already have reached its destination.",
+        0,
+      );
+    }
+    throw new ApiError(
+      "Cannot reach your local OMNI service. Start OMNI, then try again.",
+      0,
+    );
+  }
   if (!response.ok) {
-    let detail = "";
+    const body = await response.text();
+    let detail = body.slice(0, 500);
     try {
-      const error = await response.json();
+      const error = JSON.parse(body);
       detail =
         typeof error.error === "string" ? error.error : JSON.stringify(error);
     } catch {
-      detail = await response.text().catch(() => "");
+      /* Plain-text errors remain readable. */
     }
-    throw new Error(
+    throw new ApiError(
       `${response.status === 401 ? "Session token not accepted" : `Request failed (${response.status})`}${detail ? `: ${detail}` : ""}`,
+      response.status,
     );
   }
   return response.status === 204 ? (undefined as T) : response.json();

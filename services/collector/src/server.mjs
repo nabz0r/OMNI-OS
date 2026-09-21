@@ -211,21 +211,31 @@ export async function createServer(options = {}) {
         : error.statusCode === 413
           ? 413
           : 500;
-    reply
-      .code(code)
-      .send({
-        error:
-          code === 400
-            ? "invalid_analytics_schema"
-            : code === 429
-              ? "rate_limited"
-              : code === 413
-                ? "report_too_large"
-                : "collector_unavailable",
-      });
+    reply.code(code).send({
+      error:
+        code === 400
+          ? "invalid_analytics_schema"
+          : code === 429
+            ? "rate_limited"
+            : code === 413
+              ? "report_too_large"
+              : "collector_unavailable",
+    });
+  });
+  app.addHook("preClose", async () => {
+    // Event subscriptions carry no uncommitted report. Do not let an unresponsive
+    // browser keep the process alive for the WebSocket close-handshake timeout.
+    const closed = [...app.websocketServer.clients].map(
+      (socket) =>
+        new Promise((resolve) => {
+          if (socket.readyState === 3) return resolve();
+          socket.once("close", resolve);
+          socket.terminate();
+        }),
+    );
+    await Promise.all(closed);
   });
   app.addHook("onClose", async () => {
-    for (const socket of sockets) socket.close();
     await store.close();
   });
   return app;

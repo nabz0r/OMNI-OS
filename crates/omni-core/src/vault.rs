@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use std::path::Path;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Memory {
     pub id: String,
     pub source_id: String,
@@ -87,9 +87,7 @@ impl Vault {
         if !valid_status(status) {
             bail!("Invalid memory status");
         }
-        if source.len() > 80 || source.is_empty() {
-            bail!("Source kind must have 1–80 characters");
-        }
+        check_source(source)?;
         let source_id = Uuid::new_v4().to_string();
         let id = Uuid::new_v4().to_string();
         let timestamp = now();
@@ -188,6 +186,7 @@ impl Vault {
         proposals: Vec<String>,
     ) -> Result<(String, Vec<Memory>)> {
         check_content(raw)?;
+        check_source(kind)?;
         if proposals.len() > 5 {
             bail!("At most five capture proposals are allowed");
         }
@@ -354,6 +353,26 @@ impl Vault {
         Ok(receipt)
     }
 
+    /// Revalidate the exact selected content immediately before recording a
+    /// disclosure. A valid grant alone does not authorize an obsolete snapshot
+    /// after a concurrent edit, deletion, or change of memory status.
+    pub fn current_context_receipt(
+        &mut self,
+        destination: &str,
+        grant_id: &str,
+        selected: &[Memory],
+    ) -> Result<Option<Receipt>> {
+        let current = self.context(grant_id, destination, None)?;
+        if current != selected {
+            bail!("Memory context changed before sending; review the current memories and retry");
+        }
+        if selected.is_empty() {
+            return Ok(None);
+        }
+        self.receipt(destination, selected, Some(grant_id))
+            .map(Some)
+    }
+
     pub fn receipt_status(&self, id: &str, status: &str) -> Result<()> {
         self.db.execute(
             "UPDATE receipts SET status=?1 WHERE id=?2",
@@ -423,6 +442,13 @@ impl Vault {
         )?;
         Ok(())
     }
+    pub fn complete_interaction(&self, id: &str, tokens: u8) -> Result<()> {
+        self.db.execute(
+            "UPDATE interactions SET token_bucket=?1,success=1 WHERE id=?2",
+            params![tokens, id],
+        )?;
+        Ok(())
+    }
     pub fn interaction_count(&self) -> Result<i64> {
         Ok(self
             .db
@@ -444,6 +470,13 @@ fn memory_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Memory> {
 fn check_content(s: &str) -> Result<()> {
     if s.trim().is_empty() || s.len() > 100_000 {
         bail!("Memory content must contain 1–100000 bytes");
+    }
+    Ok(())
+}
+
+pub fn check_source(source: &str) -> Result<()> {
+    if source.trim().is_empty() || source.len() > 80 {
+        bail!("Source kind must contain 1–80 UTF-8 bytes");
     }
     Ok(())
 }
@@ -511,6 +544,73 @@ mod tests {
         assert_eq!(
             v.db.query_row("SELECT count(*) FROM memory_history", [], |r| r
                 .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
+    }
+
+    #[test]
+    fn stale_memory_snapshots_cannot_receive_disclosure_receipts() {
+        for change in ["edit", "dispute", "delete", "revoke", "expire"] {
+            let dir = tempfile::tempdir().unwrap();
+            let mut vault = Vault::open(&dir.path().join("vault.db"), &[5; 32]).unwrap();
+            let memory = vault
+                .add_memory("PRIVATE-STALE-CANARY", "confirmed", "manual", &json!({}))
+                .unwrap();
+            let grant = vault
+                .create_grant("https://provider.test/v1", vec![memory.id.clone()], 3600)
+                .unwrap();
+            let selected = vault.context(&grant.id, &grant.destination, None).unwrap();
+            match change {
+                "edit" => {
+                    vault
+                        .update_memory(&memory.id, Some("Corrected fact"), None)
+                        .unwrap();
+                }
+                "dispute" => {
+                    vault
+                        .update_memory(&memory.id, None, Some("disputed"))
+                        .unwrap();
+                }
+                "delete" => {
+                    vault.delete_memory(&memory.id).unwrap();
+                }
+                "revoke" => {
+                    vault.revoke(&grant.id).unwrap();
+                }
+                "expire" => {
+                    vault
+                        .db
+                        .execute(
+                            "UPDATE grants SET expires_at='2000-01-01T00:00:00Z' WHERE id=?1",
+                            [&grant.id],
+                        )
+                        .unwrap();
+                }
+                _ => unreachable!(),
+            }
+            assert!(
+                vault
+                    .current_context_receipt(&grant.destination, &grant.id, &selected)
+                    .is_err(),
+                "{change}"
+            );
+            assert!(vault.receipts().unwrap().is_empty(), "{change}");
+        }
+    }
+
+    #[test]
+    fn invalid_capture_source_does_not_persist_an_orphan() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut vault = Vault::open(&dir.path().join("vault.db"), &[6; 32]).unwrap();
+        assert!(vault
+            .add_capture("Captured source", " ", &json!({}), vec!["A fact".into()])
+            .is_err());
+        assert_eq!(
+            vault
+                .db
+                .query_row("SELECT count(*) FROM sources", [], |row| row
+                    .get::<_, i64>(0))
                 .unwrap(),
             0
         );

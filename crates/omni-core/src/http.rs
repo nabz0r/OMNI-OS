@@ -17,7 +17,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use std::{
     sync::{Arc, Mutex, MutexGuard},
-    time::Instant,
+    time::{Duration, Instant},
 };
 use subtle::ConstantTimeEq;
 use tower_http::cors::CorsLayer;
@@ -84,6 +84,83 @@ impl IntoResponse for ApiError {
     }
 }
 type ApiResult<T> = Result<T, ApiError>;
+
+const PROVIDER_BODY_LIMIT: usize = 8 * 1024 * 1024;
+const EXTRACTOR_BODY_LIMIT: usize = 256 * 1024;
+const PROVIDER_STREAM_LIMIT: usize = 32 * 1024 * 1024;
+const STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(45);
+
+enum ResponseMode {
+    Launcher,
+    Proxy,
+}
+
+fn provider_read_error(error: reqwest::Error) -> ApiError {
+    if error.is_timeout() {
+        ApiError(
+            StatusCode::GATEWAY_TIMEOUT,
+            "Provider response timed out".into(),
+        )
+    } else {
+        ApiError(
+            StatusCode::BAD_GATEWAY,
+            "Provider response interrupted".into(),
+        )
+    }
+}
+
+async fn read_bounded_body(
+    mut response: reqwest::Response,
+    limit: usize,
+) -> ApiResult<bytes::Bytes> {
+    if response
+        .content_length()
+        .is_some_and(|length| length > limit as u64)
+    {
+        return Err(ApiError(
+            StatusCode::BAD_GATEWAY,
+            "Provider response exceeds the allowed size".into(),
+        ));
+    }
+    let mut body = bytes::BytesMut::new();
+    while let Some(chunk) = response.chunk().await.map_err(provider_read_error)? {
+        if chunk.len() > limit.saturating_sub(body.len()) {
+            return Err(ApiError(
+                StatusCode::BAD_GATEWAY,
+                "Provider response exceeds the allowed size".into(),
+            ));
+        }
+        body.extend_from_slice(&chunk);
+    }
+    Ok(body.freeze())
+}
+
+fn bounded_stream(
+    response: reqwest::Response,
+    limit: usize,
+    idle: Duration,
+) -> impl futures_util::Stream<Item = Result<bytes::Bytes, std::io::Error>> {
+    futures_util::stream::try_unfold(
+        (response.bytes_stream(), 0usize),
+        move |(mut stream, used)| async move {
+            match tokio::time::timeout(idle, stream.next()).await {
+                Ok(Some(Ok(chunk))) if chunk.len() <= limit.saturating_sub(used) => {
+                    let next_used = used + chunk.len();
+                    Ok(Some((chunk, (stream, next_used))))
+                }
+                Ok(Some(Ok(_))) => Err(std::io::Error::other(
+                    "Provider stream exceeds the allowed size",
+                )),
+                Ok(Some(Err(_))) => Err(std::io::Error::other("Provider stream interrupted")),
+                Ok(None) => Ok(None),
+                Err(_) => Err(std::io::Error::new(
+                    std::io::ErrorKind::TimedOut,
+                    "Provider stream stalled",
+                )),
+            }
+        },
+    )
+}
 
 fn auth(headers: &HeaderMap, state: &AppState, admin: bool) -> ApiResult<()> {
     let token = headers
@@ -352,6 +429,59 @@ struct Chat {
     message: String,
     grant_id: Option<String>,
     model: Option<String>,
+    #[serde(default)]
+    history: Vec<ChatMessage>,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ChatMessage {
+    role: ChatRole,
+    content: String,
+}
+#[derive(Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+enum ChatRole {
+    User,
+    Assistant,
+}
+
+fn chat_messages(message: String, history: Vec<ChatMessage>) -> ApiResult<Vec<Value>> {
+    if message.trim().is_empty() || message.len() > 100_000 {
+        return Err(ApiError::bad("Message must contain 1–100000 bytes"));
+    }
+    if history.len() > 20 || !history.len().is_multiple_of(2) {
+        return Err(ApiError::bad(
+            "History must contain at most 20 messages in complete user/assistant pairs",
+        ));
+    }
+    let mut bytes = message.len();
+    let mut messages = Vec::with_capacity(history.len() + 1);
+    for (index, entry) in history.into_iter().enumerate() {
+        let expected = if index % 2 == 0 {
+            ChatRole::User
+        } else {
+            ChatRole::Assistant
+        };
+        if entry.role != expected || entry.content.trim().is_empty() {
+            return Err(ApiError::bad(
+                "History must alternate non-empty user and assistant messages",
+            ));
+        }
+        bytes = bytes.saturating_add(entry.content.len());
+        if bytes > 100_000 {
+            return Err(ApiError::bad(
+                "Conversation content must not exceed 100000 UTF-8 bytes",
+            ));
+        }
+        let role = if entry.role == ChatRole::User {
+            "user"
+        } else {
+            "assistant"
+        };
+        messages.push(json!({"role":role,"content":entry.content}));
+    }
+    messages.push(json!({"role":"user","content":message}));
+    Ok(messages)
 }
 async fn chat(
     State(state): State<AppState>,
@@ -359,42 +489,47 @@ async fn chat(
     Json(input): Json<Chat>,
 ) -> ApiResult<Json<Value>> {
     auth(&headers, &state, true)?;
-    if input.message.trim().is_empty() || input.message.len() > 100_000 {
-        return Err(ApiError::bad("Message must contain 1–100000 bytes"));
-    }
+    let messages = chat_messages(input.message, input.history)?;
     let model = input
         .model
         .unwrap_or_else(|| state.config.llm_model.clone());
-    let request =
-        json!({"model":model,"messages":[{"role":"user","content":input.message}],"stream":false});
-    let (response, receipt_id, interaction_id) =
-        upstream(&state, request, input.grant_id.as_deref(), false).await?;
+    let request = json!({"model":model,"messages":messages,"stream":false});
+    let (response, receipt_id, interaction_id) = upstream(
+        &state,
+        request,
+        input.grant_id.as_deref(),
+        false,
+        ResponseMode::Launcher,
+    )
+    .await?;
     let status = response.status();
-    let value: Value = response.json().await.map_err(|_| {
-        ApiError(
-            StatusCode::BAD_GATEWAY,
-            "Provider returned an invalid response".into(),
-        )
-    })?;
     if !status.is_success() {
         return Err(ApiError(
             StatusCode::BAD_GATEWAY,
             format!("Provider rejected the request (HTTP {})", status.as_u16()),
         ));
     }
-    state.vault()?.update_interaction_tokens(
-        &interaction_id,
-        analytics::token_bucket(usage_tokens(&value)),
-    )?;
+    let bytes = read_bounded_body(response, PROVIDER_BODY_LIMIT).await?;
+    let value: Value = serde_json::from_slice(&bytes).map_err(|_| {
+        ApiError(
+            StatusCode::BAD_GATEWAY,
+            "Provider returned an invalid response".into(),
+        )
+    })?;
     let reply = value
         .pointer("/choices/0/message/content")
         .and_then(Value::as_str)
+        .filter(|text| !text.trim().is_empty())
         .ok_or_else(|| {
             ApiError(
                 StatusCode::BAD_GATEWAY,
                 "Provider returned no text content".into(),
             )
         })?;
+    state.vault()?.complete_interaction(
+        &interaction_id,
+        analytics::token_bucket(usage_tokens(&value)),
+    )?;
     Ok(Json(
         json!({"reply":reply,"receipt_id":receipt_id,"model":model}),
     ))
@@ -423,7 +558,8 @@ async fn proxy(
     auth(&headers, &state, false)?;
     let grant = headers.get("x-omni-grant").and_then(|s| s.to_str().ok());
     let streaming = body.get("stream").and_then(Value::as_bool).unwrap_or(false);
-    let (response, receipt, interaction_id) = upstream(&state, body, grant, anthropic).await?;
+    let (response, receipt, interaction_id) =
+        upstream(&state, body, grant, anthropic, ResponseMode::Proxy).await?;
     let status =
         StatusCode::from_u16(response.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
     let mut builder = Response::builder().status(status);
@@ -442,10 +578,7 @@ async fn proxy(
     }
     builder = builder.header("x-accel-buffering", "no");
     if !streaming {
-        let bytes = response
-            .bytes()
-            .await
-            .map_err(|_| ApiError(StatusCode::BAD_GATEWAY, "Upstream body interrupted".into()))?;
+        let bytes = read_bounded_body(response, PROVIDER_BODY_LIMIT).await?;
         if let Ok(value) = serde_json::from_slice::<Value>(&bytes) {
             state.vault()?.update_interaction_tokens(
                 &interaction_id,
@@ -456,9 +589,7 @@ async fn proxy(
             .body(Body::from(bytes))
             .map_err(|_| ApiError::internal("Cannot construct response"));
     }
-    let stream = response
-        .bytes_stream()
-        .map(|chunk| chunk.map_err(|_| std::io::Error::other("Upstream stream interrupted")));
+    let stream = bounded_stream(response, PROVIDER_STREAM_LIMIT, STREAM_IDLE_TIMEOUT);
     builder
         .body(Body::from_stream(stream))
         .map_err(|_| ApiError::internal("Cannot construct response"))
@@ -542,12 +673,17 @@ async fn upstream(
     mut body: Value,
     grant: Option<&str>,
     anthropic: bool,
+    response_mode: ResponseMode,
 ) -> ApiResult<(reqwest::Response, Option<String>, String)> {
     if !body.is_object() || !body.get("messages").is_some_and(Value::is_array) {
         return Err(ApiError::bad("A messages array is required"));
     }
-    if body.get("model").and_then(Value::as_str).is_none() {
-        return Err(ApiError::bad("A model is required"));
+    if !body
+        .get("model")
+        .and_then(Value::as_str)
+        .is_some_and(|model| !model.trim().is_empty())
+    {
+        return Err(ApiError::bad("A non-empty model is required"));
     }
     let base = if anthropic {
         &state.config.anthropic_base
@@ -558,22 +694,17 @@ async fn upstream(
         return Err(ApiError::denied("Upstream destination is not allowlisted"));
     }
     let text = request_text(&body);
-    let receipt = {
-        let mut vault = state.vault()?;
-        let memories = if let Some(grant) = grant {
+    let memories = {
+        let vault = state.vault()?;
+        if let Some(grant) = grant {
             vault
                 .context(grant, base, None)
                 .map_err(|e| ApiError::denied(e.to_string()))?
         } else {
             vec![]
-        };
-        inject_context(&mut body, &memories, anthropic)?;
-        if memories.is_empty() {
-            None
-        } else {
-            Some(vault.receipt(base, &memories, grant)?.id)
         }
     };
+    inject_context(&mut body, &memories, anthropic)?;
     let endpoint = if anthropic {
         "messages"
     } else {
@@ -595,12 +726,15 @@ async fn upstream(
     }
     // Last synchronous check occurs immediately before starting network I/O.
     // Revocation cannot retract bytes already handed to the HTTP client.
-    if let Some(grant) = grant {
+    let receipt = if let Some(grant) = grant {
         state
             .vault()?
-            .context(grant, base, None)
-            .map_err(|e| ApiError::denied(e.to_string()))?;
-    }
+            .current_context_receipt(base, grant, &memories)
+            .map_err(|e| ApiError::denied(e.to_string()))?
+            .map(|receipt| receipt.id)
+    } else {
+        None
+    };
     let start = Instant::now();
     let result = request.send().await;
     let vault = state.vault()?;
@@ -609,7 +743,10 @@ async fn upstream(
     } else {
         None
     };
-    let success = result.as_ref().is_ok_and(|r| r.status().is_success());
+    // A launcher interaction is only successful after its complete body has
+    // been validated as non-empty text; headers alone are insufficient.
+    let success = matches!(response_mode, ResponseMode::Proxy)
+        && result.as_ref().is_ok_and(|r| r.status().is_success());
     let interaction_id = vault.interaction(
         &analytics::current_week(),
         analytics::topic(&text),
@@ -628,11 +765,18 @@ async fn upstream(
         )?;
     }
     drop(vault);
-    let response = result.map_err(|_| {
-        ApiError(
-            StatusCode::BAD_GATEWAY,
-            "Provider unavailable; verify the configured endpoint and model".into(),
-        )
+    let response = result.map_err(|error| {
+        if error.is_timeout() {
+            ApiError(
+                StatusCode::GATEWAY_TIMEOUT,
+                "Provider request timed out".into(),
+            )
+        } else {
+            ApiError(
+                StatusCode::BAD_GATEWAY,
+                "Provider unavailable; verify the configured endpoint and model".into(),
+            )
+        }
     })?;
     Ok((response, receipt, interaction_id))
 }
@@ -663,6 +807,7 @@ async fn capture(
     if input.content.trim().is_empty() || input.content.len() > 100_000 {
         return Err(ApiError::bad("Capture must contain 1–100000 bytes"));
     }
+    crate::vault::check_source(input.source.as_deref().unwrap_or("browser"))?;
     // The extractor endpoint is validated as loopback at configuration time;
     // it has a separate direct client and never falls back to a cloud model.
     let excerpt: String = input.content.chars().take(12_000).collect();
@@ -675,25 +820,27 @@ async fn capture(
         .send()
         .await;
     let (proposals, extraction) = match outcome {
-        Ok(response) if response.status().is_success() => match response
-            .json::<Value>()
-            .await
-            .ok()
-            .and_then(|v| {
-                v.pointer("/choices/0/message/content")
-                    .and_then(Value::as_str)
-                    .map(str::to_string)
-            })
-            .and_then(|s| parse_proposals(&s).ok())
-        {
-            Some(proposals) => (proposals, "local_model_proposals"),
-            None => (
-                vec![input.content.clone()],
-                "local_model_invalid_output_source_excerpt_saved",
-            ),
-        },
+        Ok(response) if response.status().is_success() => {
+            match read_bounded_body(response, EXTRACTOR_BODY_LIMIT)
+                .await
+                .ok()
+                .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+                .and_then(|v| {
+                    v.pointer("/choices/0/message/content")
+                        .and_then(Value::as_str)
+                        .map(str::to_string)
+                })
+                .and_then(|s| parse_proposals(&s).ok())
+            {
+                Some(proposals) => (proposals, "local_model_proposals"),
+                None => (
+                    vec![utf8_excerpt(&input.content, 4000)],
+                    "local_model_invalid_output_source_excerpt_saved",
+                ),
+            }
+        }
         _ => (
-            vec![input.content.clone()],
+            vec![utf8_excerpt(&input.content, 4000)],
             "local_model_unavailable_source_excerpt_saved",
         ),
     };
@@ -701,6 +848,14 @@ async fn capture(
     Ok(Json(
         json!({"source_id":source_id,"memories":memories,"extraction":extraction}),
     ))
+}
+
+fn utf8_excerpt(source: &str, max_bytes: usize) -> String {
+    let mut end = source.len().min(max_bytes);
+    while !source.is_char_boundary(end) {
+        end -= 1;
+    }
+    source[..end].to_owned()
 }
 
 pub fn parse_proposals(raw: &str) -> anyhow::Result<Vec<String>> {
@@ -800,6 +955,30 @@ fn mcp_call(state: &AppState, params: &Value) -> ApiResult<Value> {
 mod tests {
     use super::*;
     use tower::ServiceExt;
+
+    struct TestProvider {
+        base: String,
+        task: tokio::task::JoinHandle<()>,
+    }
+    impl Drop for TestProvider {
+        fn drop(&mut self) {
+            self.task.abort();
+        }
+    }
+    async fn provider(router: Router) -> TestProvider {
+        let listener = tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0))
+            .await
+            .unwrap();
+        let base = format!("http://{}", listener.local_addr().unwrap());
+        let task = tokio::spawn(async move { axum::serve(listener, router).await.unwrap() });
+        TestProvider { base, task }
+    }
+    fn use_provider(state: &mut AppState, provider: &TestProvider) {
+        let config = Arc::make_mut(&mut state.config);
+        config.llm_base = format!("{}/v1", provider.base);
+        config.extractor_base = config.llm_base.clone();
+        config.allowlist = vec![config.llm_base.clone()];
+    }
     fn test_state() -> (tempfile::TempDir, AppState) {
         let dir = tempfile::tempdir().unwrap();
         let config = Config {
@@ -1010,5 +1189,457 @@ mod tests {
         let mut config = (*state.config).clone();
         config.vpn_required = true;
         assert!(clients(&config).is_err());
+    }
+
+    #[tokio::test]
+    async fn chat_preserves_followup_history_and_rejects_invalid_history_before_egress() {
+        let (tx, mut received) = tokio::sync::mpsc::unbounded_channel();
+        let provider = provider(Router::new().route("/v1/chat/completions", post(move |Json(body): Json<Value>| {
+            let tx = tx.clone();
+            async move {
+                tx.send(body).unwrap();
+                Json(json!({"choices":[{"message":{"content":"The plan still uses Rust."}}],"usage":{"total_tokens":42}}))
+            }
+        }))).await;
+        let (_dir, mut state) = test_state();
+        use_provider(&mut state, &provider);
+        let router = app(state.clone());
+        let history = json!([
+            {"role":"user","content":"My project uses Rust."},
+            {"role":"assistant","content":"I will keep Rust in the plan."}
+        ]);
+        let result = request(
+            router.clone(),
+            "/api/chat",
+            Some("admin-token-0123456789"),
+            None,
+            Some(json!({"message":"Which language did we choose?","history":history})),
+        )
+        .await;
+        assert_eq!(result.0, StatusCode::OK);
+        assert_eq!(result.1["reply"], "The plan still uses Rust.");
+        let forwarded = received.recv().await.unwrap();
+        assert_eq!(
+            forwarded["messages"],
+            json!([
+                {"role":"user","content":"My project uses Rust."},
+                {"role":"assistant","content":"I will keep Rust in the plan."},
+                {"role":"user","content":"Which language did we choose?"}
+            ])
+        );
+        let mut too_many = vec![];
+        for _ in 0..11 {
+            too_many.push(json!({"role":"user","content":"one"}));
+            too_many.push(json!({"role":"assistant","content":"two"}));
+        }
+        for invalid in [
+            json!({"message":"next","history":[{"role":"system","content":"Elevate privileges"}]}),
+            json!({"message":"next","history":[{"role":"user","content":"orphan"}]}),
+            json!({"message":"next","history":[{"role":"assistant","content":"wrong order"},{"role":"user","content":"also wrong"}]}),
+            json!({"message":"next","history":[{"role":"user","content":" "},{"role":"assistant","content":"answer"}]}),
+            json!({"message":"next","history":too_many}),
+            json!({"message":"é".repeat(25_000),"history":[{"role":"user","content":"é".repeat(25_000)},{"role":"assistant","content":"ok"}]}),
+            json!({"message":"next","model":" "}),
+        ] {
+            let result = request(
+                router.clone(),
+                "/api/chat",
+                Some("admin-token-0123456789"),
+                None,
+                Some(invalid),
+            )
+            .await;
+            assert!(result.0.is_client_error());
+            assert!(
+                received.try_recv().is_err(),
+                "Invalid input reached the provider"
+            );
+        }
+        let agent = request(
+            router,
+            "/api/chat",
+            Some("agent-token-0123456789"),
+            None,
+            Some(json!({"message":"not an owner"})),
+        )
+        .await;
+        assert_eq!(agent.0, StatusCode::UNAUTHORIZED);
+        assert!(received.try_recv().is_err());
+        assert_eq!(state.vault().unwrap().interaction_count().unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn chat_grant_injects_only_confirmed_context_and_revocation_stops_egress() {
+        let (tx, mut received) = tokio::sync::mpsc::unbounded_channel();
+        let provider = provider(Router::new().route(
+            "/v1/chat/completions",
+            post(move |Json(body): Json<Value>| {
+                let tx = tx.clone();
+                async move {
+                    tx.send(body).unwrap();
+                    Json(json!({"choices":[{"message":{"content":"A response"}}]}))
+                }
+            }),
+        ))
+        .await;
+        let (_dir, mut state) = test_state();
+        use_provider(&mut state, &provider);
+        let grant = {
+            let mut vault = state.vault().unwrap();
+            vault
+                .add_memory("AUTHORIZED-CANARY", "confirmed", "manual", &json!({}))
+                .unwrap();
+            vault
+                .add_memory("PROPOSED-CANARY", "proposed", "manual", &json!({}))
+                .unwrap();
+            vault
+                .create_grant(&state.config.llm_base, vec!["*".into()], 3600)
+                .unwrap()
+        };
+        let router = app(state.clone());
+        let body = json!({"message":"Use my context","grant_id":grant.id});
+        assert_eq!(
+            request(
+                router.clone(),
+                "/api/chat",
+                Some("admin-token-0123456789"),
+                None,
+                Some(body.clone())
+            )
+            .await
+            .0,
+            StatusCode::OK
+        );
+        let sent = received.recv().await.unwrap().to_string();
+        assert!(sent.contains("AUTHORIZED-CANARY"));
+        assert!(!sent.contains("PROPOSED-CANARY"));
+        assert_eq!(state.vault().unwrap().receipts().unwrap()[0].status, "sent");
+        state.vault().unwrap().revoke(&grant.id).unwrap();
+        assert_eq!(
+            request(
+                router,
+                "/api/chat",
+                Some("admin-token-0123456789"),
+                None,
+                Some(body)
+            )
+            .await
+            .0,
+            StatusCode::FORBIDDEN
+        );
+        assert!(received.try_recv().is_err());
+        assert_eq!(state.vault().unwrap().receipts().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn bounded_reads_reject_fixed_and_chunked_oversized_bodies() {
+        let provider = provider(
+            Router::new()
+                .route("/fixed", get(|| async { "x".repeat(33) }))
+                .route(
+                    "/chunked",
+                    get(|| async {
+                        Body::from_stream(futures_util::stream::iter([
+                            Ok::<_, std::io::Error>(bytes::Bytes::from(vec![b'x'; 20])),
+                            Ok(bytes::Bytes::from(vec![b'y'; 20])),
+                        ]))
+                    }),
+                ),
+        )
+        .await;
+        let client = reqwest::Client::builder().no_proxy().build().unwrap();
+        for path in ["fixed", "chunked"] {
+            let response = client
+                .get(format!("{}/{path}", provider.base))
+                .send()
+                .await
+                .unwrap();
+            let error = read_bounded_body(response, 32).await.unwrap_err();
+            assert_eq!(error.0, StatusCode::BAD_GATEWAY);
+            assert!(error.1.contains("allowed size"));
+        }
+    }
+
+    #[tokio::test]
+    async fn provider_streams_preserve_bytes_and_stop_on_size_or_idle_limits() {
+        let expected = b"data: {\"text\":\"hello\"}\n\ndata: [DONE]\n\n";
+        let provider = provider(
+            Router::new()
+                .route(
+                    "/stream",
+                    get(|| async {
+                        Body::from_stream(futures_util::stream::iter([
+                            Ok::<_, std::io::Error>(bytes::Bytes::from_static(b"data: {\"text\":")),
+                            Ok(bytes::Bytes::from_static(b"\"hello\"}\n\ndata: [DONE]\n\n")),
+                        ]))
+                    }),
+                )
+                .route(
+                    "/stall",
+                    get(|| async {
+                        Body::from_stream(futures_util::stream::unfold(
+                            false,
+                            |started| async move {
+                                if started {
+                                    tokio::time::sleep(Duration::from_secs(1)).await;
+                                }
+                                Some((
+                                    Ok::<_, std::io::Error>(bytes::Bytes::from_static(b"first")),
+                                    true,
+                                ))
+                            },
+                        ))
+                    }),
+                ),
+        )
+        .await;
+        let client = reqwest::Client::builder().no_proxy().build().unwrap();
+        let response = client
+            .get(format!("{}/stream", provider.base))
+            .send()
+            .await
+            .unwrap();
+        let stream = bounded_stream(response, 1024, Duration::from_secs(1));
+        futures_util::pin_mut!(stream);
+        let mut actual = vec![];
+        while let Some(chunk) = stream.next().await {
+            actual.extend_from_slice(&chunk.unwrap());
+        }
+        assert_eq!(actual, expected);
+        let response = client
+            .get(format!("{}/stream", provider.base))
+            .send()
+            .await
+            .unwrap();
+        let stream = bounded_stream(response, 4, Duration::from_secs(1));
+        futures_util::pin_mut!(stream);
+        assert!(stream
+            .next()
+            .await
+            .unwrap()
+            .unwrap_err()
+            .to_string()
+            .contains("allowed size"));
+        let response = client
+            .get(format!("{}/stall", provider.base))
+            .send()
+            .await
+            .unwrap();
+        let stream = bounded_stream(response, 1024, Duration::from_millis(20));
+        futures_util::pin_mut!(stream);
+        assert_eq!(
+            stream.next().await.unwrap().unwrap(),
+            bytes::Bytes::from_static(b"first")
+        );
+        assert_eq!(
+            stream.next().await.unwrap().unwrap_err().kind(),
+            std::io::ErrorKind::TimedOut
+        );
+    }
+
+    #[tokio::test]
+    async fn chat_rejects_oversized_provider_responses_and_reports_http_errors() {
+        let provider = provider(Router::new().route(
+            "/v1/chat/completions",
+            post(|Json(body): Json<Value>| async move {
+                if body["model"] == "rate-limited" {
+                    (
+                        StatusCode::TOO_MANY_REQUESTS,
+                        "<html>UPSTREAM-SECRET-ERROR</html>".to_string(),
+                    )
+                        .into_response()
+                } else {
+                    "x".repeat(PROVIDER_BODY_LIMIT + 1).into_response()
+                }
+            }),
+        ))
+        .await;
+        let (_dir, mut state) = test_state();
+        use_provider(&mut state, &provider);
+        let router = app(state);
+        let oversized = request(
+            router.clone(),
+            "/api/chat",
+            Some("admin-token-0123456789"),
+            None,
+            Some(json!({"message":"hello"})),
+        )
+        .await;
+        assert_eq!(oversized.0, StatusCode::BAD_GATEWAY);
+        assert!(oversized.1["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("allowed size"));
+        let rejected = request(
+            router,
+            "/api/chat",
+            Some("admin-token-0123456789"),
+            None,
+            Some(json!({"message":"hello","model":"rate-limited"})),
+        )
+        .await;
+        assert_eq!(rejected.0, StatusCode::BAD_GATEWAY);
+        assert!(rejected.1["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("429"));
+        assert!(!rejected.1.to_string().contains("UPSTREAM-SECRET"));
+    }
+
+    #[tokio::test]
+    async fn provider_timeout_is_a_gateway_timeout() {
+        let provider = provider(Router::new().route(
+            "/v1/chat/completions",
+            post(|| async {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                Json(json!({"choices":[{"message":{"content":"too late"}}]}))
+            }),
+        ))
+        .await;
+        let (_dir, mut state) = test_state();
+        use_provider(&mut state, &provider);
+        state.local_client = reqwest::Client::builder()
+            .no_proxy()
+            .timeout(Duration::from_millis(20))
+            .build()
+            .unwrap();
+        let result = request(
+            app(state),
+            "/api/chat",
+            Some("admin-token-0123456789"),
+            None,
+            Some(json!({"message":"hello"})),
+        )
+        .await;
+        assert_eq!(result.0, StatusCode::GATEWAY_TIMEOUT);
+        assert!(result.1["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("timed out"));
+    }
+
+    #[tokio::test]
+    async fn empty_launcher_replies_are_failed_interactions_without_hiding_disclosure() {
+        let provider = provider(Router::new().route("/v1/chat/completions", post(|Json(body): Json<Value>| async move {
+            let content = match body["model"].as_str().unwrap() {
+                "empty" => "",
+                "whitespace" => " \n\t ",
+                _ => "A valid response",
+            };
+            Json(json!({"choices":[{"message":{"content":content}}],"usage":{"total_tokens":42}}))
+        }))).await;
+        let (_dir, mut state) = test_state();
+        use_provider(&mut state, &provider);
+        let grant = {
+            let mut vault = state.vault().unwrap();
+            vault
+                .add_memory("A shared preference", "confirmed", "manual", &json!({}))
+                .unwrap();
+            vault
+                .create_grant(&state.config.llm_base, vec!["*".into()], 3600)
+                .unwrap()
+        };
+        let router = app(state.clone());
+        for model in ["empty", "whitespace"] {
+            let result = request(
+                router.clone(),
+                "/api/chat",
+                Some("admin-token-0123456789"),
+                None,
+                Some(json!({"message":"hello","model":model,"grant_id":grant.id})),
+            )
+            .await;
+            assert_eq!(result.0, StatusCode::BAD_GATEWAY);
+            assert_eq!(
+                result.1["error"]["message"],
+                "Provider returned no text content"
+            );
+        }
+        {
+            let vault = state.vault().unwrap();
+            assert_eq!(
+                vault
+                    .db
+                    .query_row("SELECT sum(success) FROM interactions", [], |row| row
+                        .get::<_, i64>(0))
+                    .unwrap(),
+                0
+            );
+            let receipts = vault.receipts().unwrap();
+            assert_eq!(receipts.len(), 2);
+            assert!(receipts.iter().all(|receipt| receipt.status == "sent"));
+        }
+        let result = request(
+            router,
+            "/api/chat",
+            Some("admin-token-0123456789"),
+            None,
+            Some(json!({"message":"hello","model":"valid"})),
+        )
+        .await;
+        assert_eq!(result.0, StatusCode::OK);
+        assert_eq!(
+            state
+                .vault()
+                .unwrap()
+                .db
+                .query_row("SELECT sum(success) FROM interactions", [], |row| row
+                    .get::<_, i64>(0))
+                .unwrap(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn capture_oversized_extraction_keeps_full_source_and_usable_utf8_excerpt() {
+        let provider = provider(Router::new().route(
+            "/v1/chat/completions",
+            post(|| async { "x".repeat(EXTRACTOR_BODY_LIMIT + 1) }),
+        ))
+        .await;
+        let (_dir, mut state) = test_state();
+        use_provider(&mut state, &provider);
+        let source = "A multilingual source: 🦀é".repeat(1000);
+        let result = request(
+            app(state.clone()),
+            "/api/capture",
+            Some("agent-token-0123456789"),
+            None,
+            Some(json!({"content":source})),
+        )
+        .await;
+        assert_eq!(result.0, StatusCode::OK);
+        assert_eq!(
+            result.1["extraction"],
+            "local_model_invalid_output_source_excerpt_saved"
+        );
+        let proposal = result.1["memories"][0]["content"].as_str().unwrap();
+        assert!(proposal.len() <= 4000);
+        assert!(source.starts_with(proposal));
+        assert_eq!(result.1["memories"][0]["status"], "proposed");
+        let mut vault = state.vault().unwrap();
+        let persisted: String = vault
+            .db
+            .query_row(
+                "SELECT content FROM sources WHERE id=?1",
+                [result.1["source_id"].as_str().unwrap()],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(persisted, source);
+        let memory = result.1["memories"][0]["id"].as_str().unwrap();
+        vault
+            .update_memory(memory, None, Some("confirmed"))
+            .unwrap();
+        let grant = vault
+            .create_grant(&state.config.llm_base, vec![memory.into()], 3600)
+            .unwrap();
+        assert_eq!(
+            vault
+                .context(&grant.id, &grant.destination, None)
+                .unwrap()
+                .len(),
+            1
+        );
     }
 }

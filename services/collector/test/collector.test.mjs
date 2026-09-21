@@ -140,3 +140,32 @@ test("production cannot expose the local simulation evidence endpoint", async (t
     simulation: false,
   });
 });
+
+test(
+  "collector shutdown closes an unresponsive WebSocket before closing storage",
+  { timeout: 3000 },
+  async () => {
+    const store = new SqliteStore();
+    let storeClosed = false;
+    const close = store.close.bind(store);
+    const app = await createServer({ store, simulation: true, minimum: 2 });
+    store.close = async () => {
+      assert.equal(app.websocketServer.clients.size, 0);
+      storeClosed = true;
+      await close();
+    };
+    await app.ready();
+    const socket = await app.injectWS("/api/v1/events");
+    socket.on("error", () => {});
+    socket.pause();
+    try {
+      assert.equal(app.websocketServer.clients.size, 1);
+      await app.close();
+      assert.equal(storeClosed, true);
+      assert.equal(app.websocketServer.clients.size, 0);
+    } finally {
+      socket.terminate();
+      if (!storeClosed) await app.close();
+    }
+  },
+);

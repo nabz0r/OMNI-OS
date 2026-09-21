@@ -25,6 +25,7 @@ const page = await browser.newPage({
   viewport: { width: 1440, height: 1060 },
   deviceScaleFactor: 1,
 });
+page.setDefaultTimeout(10000);
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 const api = async (path, options = {}) => {
@@ -38,6 +39,7 @@ const api = async (path, options = {}) => {
 };
 let memoryId = null,
   grantId = null;
+const capturedIds = [];
 try {
   await page.goto("http://127.0.0.1:3006");
   await page.getByLabel("Unlock your local session").fill(token);
@@ -117,7 +119,7 @@ try {
     .click();
   await page.getByRole("button", { name: "Create permission" }).click();
   await page.getByRole("checkbox", { name: /\[QA synthetic\]/ }).check();
-  await page.getByRole("button", { name: "Authorize 1 memories" }).click();
+  await page.getByRole("button", { name: "Authorize 1 memory" }).click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   grantId = (await api("/api/state")).grants.find(
     (g) => g.scope.includes(memoryId) && !g.revoked_at,
@@ -140,6 +142,90 @@ try {
     path: resolve(out, "context-request.png"),
     fullPage: true,
   });
+  // Follow-up requests carry complete prior exchanges to the actual local provider.
+  const firstAssistant = await page
+    .locator(".chat-entry.assistant .markdown-body")
+    .innerText();
+  const firstPrompt = "[QA synthetic] Summarize my design review preferences.";
+  const followup = "[QA synthetic] Give me one practical example.";
+  let transmittedHistory;
+  await page.route("**/api/chat", async (route) => {
+    transmittedHistory = route.request().postDataJSON().history;
+    await route.continue();
+  });
+  await page.getByLabel("Your message").fill(followup);
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await page
+    .locator(".chat-entry.assistant")
+    .nth(1)
+    .waitFor({ timeout: 90000 });
+  assert.equal(transmittedHistory.length, 2);
+  assert.equal(transmittedHistory[0].content, firstPrompt);
+  assert.ok(transmittedHistory[1].content.includes(firstAssistant.trim()));
+  await page.unroute("**/api/chat");
+
+  // A failed request keeps the draft and does not poison conversation history.
+  await page.route("**/api/chat", (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: "text/plain",
+      body: "QA provider temporarily unavailable",
+    }),
+  );
+  await page
+    .getByLabel("Your message")
+    .fill("[QA synthetic] Preserve this draft.");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("alert")
+    .filter({ hasText: "QA provider temporarily unavailable" })
+    .waitFor();
+  assert.equal(
+    await page.getByLabel("Your message").inputValue(),
+    "[QA synthetic] Preserve this draft.",
+  );
+  assert.equal(await page.locator(".chat-entry.assistant").count(), 2);
+  await page.unroute("**/api/chat");
+
+  // Rendering model output must not execute HTML or load remote image beacons.
+  const markdown =
+    "## QA formatted reply\n\n**Clear** instructions.\n\n```rust\nfn main() {}\n```\n\n| Step | Result |\n| --- | --- |\n| One | Ready |\n\n![tracking](https://qa-image.invalid/pixel)\n<script>window.qaUnsafe = true</script>";
+  await page.route("**/api/chat", (route) =>
+    route.fulfill({
+      json: { reply: markdown, model: "QA fixture", receipt_id: null },
+    }),
+  );
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await page.getByRole("heading", { name: "QA formatted reply" }).waitFor();
+  assert.equal(await page.locator(".markdown-body table").count(), 1);
+  assert.equal(await page.locator(".markdown-body pre code").count(), 1);
+  assert.equal(await page.locator(".markdown-body img").count(), 0);
+  assert.equal(await page.evaluate(() => window.qaUnsafe), undefined);
+  await page.unroute("**/api/chat");
+  await page.waitForTimeout(200);
+  await page.screenshot({
+    path: resolve(out, "conversation.png"),
+    fullPage: true,
+  });
+
+  // Withdrawn context must not be replayed from an old assistant reply.
+  await page.getByRole("button", { name: "Close launcher" }).click();
+  await api(`/api/memories/${memoryId}`, {
+    method: "PATCH",
+    data: { content: memory + " Updated authority.", status: "disputed" },
+  });
+  await page.waitForTimeout(5500);
+  await page.getByRole("button", { name: /Ask with context/ }).click();
+  assert.equal(
+    await page.locator(".chat-entry").count(),
+    0,
+    "Changing an authorized memory clears prior conversation context",
+  );
+  assert.equal(
+    await page.getByRole("button", { name: "New conversation" }).isDisabled(),
+    true,
+  );
   await page.getByRole("button", { name: "Close launcher" }).click();
   await page
     .locator(`[data-grant-id="${grantId}"]`)
@@ -149,6 +235,49 @@ try {
     .locator(`[data-grant-id="${grantId}"]`)
     .getByText("revoked", { exact: true })
     .waitFor();
+  console.log(
+    "UI session, conversation, rendering and permission checks passed.",
+  );
+  // Importing text creates reviewable proposals, never automatic authority.
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Memory", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Import text" }).click();
+  await page.getByLabel("Source title").fill("QA synthetic source");
+  await page
+    .getByLabel("Text to remember")
+    .fill(
+      "[QA synthetic] I prefer detailed implementation notes and short meetings.",
+    );
+  await page.getByRole("button", { name: "Extract for review" }).click();
+  await page.getByRole("dialog").waitFor({ state: "hidden", timeout: 90000 });
+  const captured = (await api("/api/state")).memories.filter(
+    (entry) =>
+      entry.source === "manual_capture" &&
+      !state.memories.some((old) => old.id === entry.id),
+  );
+  assert.ok(captured.length > 0);
+  capturedIds.push(...captured.map((entry) => entry.id));
+  assert.ok(captured.every((entry) => entry.status === "proposed"));
+  await page.locator(`[data-memory-id="${capturedIds[0]}"]`).click();
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  assert.ok(
+    (await api("/api/state")).memories.some(
+      (entry) => entry.id === capturedIds[0],
+    ),
+    "First delete click must only ask for confirmation",
+  );
+  await page.getByRole("button", { name: "Keep memory" }).click();
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm deletion" }).click();
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  assert.equal(
+    (await api("/api/state")).memories.some(
+      (entry) => entry.id === capturedIds[0],
+    ),
+    false,
+  );
   await page
     .getByRole("navigation")
     .getByRole("button", { name: "Activity" })
@@ -191,12 +320,36 @@ try {
     false,
     "Mobile viewport must not horizontally overflow",
   );
+  // Locking removes the in-memory conversation and drafts from the next session.
+  await page.getByRole("button", { name: "Lock session" }).click();
+  await page.getByLabel("Unlock your local session").waitFor();
+  assert.equal(
+    await page.evaluate(() => sessionStorage.getItem("omni.token")),
+    null,
+  );
+  await page.getByLabel("Unlock your local session").fill(token);
+  await page.getByRole("button", { name: "Open my space" }).click();
+  await page.getByRole("button", { name: /Ask with context/ }).click();
+  assert.equal(await page.locator(".chat-entry").count(), 0);
+  assert.equal(await page.getByLabel("Your message").inputValue(), "");
+  await page.screenshot({
+    path: resolve(out, "mobile-launcher.png"),
+    fullPage: false,
+  });
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+    false,
+  );
   assert.deepEqual(errors, [], "No uncaught browser errors");
   console.log(
-    "UI QA passed: session, memory create/edit, scoped grant, contextual request, disclosure receipt, revoke, activity, collective, connections, mobile overflow.",
+    "UI QA passed: session and lock isolation, memory create/edit/import/delete confirmation, scoped grant and withdrawal, contextual follow-up history, Markdown safety, failed-request recovery, receipt, revoke, all views, mobile overflow.",
   );
   console.log(`Screenshots saved in ${out}`);
 } finally {
+  for (const id of capturedIds)
+    await api(`/api/memories/${id}`, { method: "DELETE" }).catch(() => {});
   if (grantId)
     await api(`/api/grants/${grantId}`, { method: "DELETE" }).catch(() => {});
   if (memoryId)

@@ -1,6 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Activity,
+  AlertCircle,
+  CheckCheck,
+  Copy,
+  FileText,
+  RotateCcw,
+  Square,
   ArrowRight,
   ArrowUpRight,
   Check,
@@ -27,8 +43,9 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import Nebula from "./Nebula";
+const Nebula = lazy(() => import("./Nebula"));
 import {
+  ApiError,
   COLLECTOR,
   dateLabel,
   initialToken,
@@ -56,6 +73,31 @@ const nav = [
   { id: "collective" as View, label: "Collective", icon: Globe2 },
 ];
 type GlobalData = Record<string, unknown>;
+type ChatEntry = {
+  role: "user" | "assistant";
+  text: string;
+  model?: string;
+  receiptId?: string | null;
+};
+function buildHistory(entries: ChatEntry[], message: string) {
+  const encoder = new TextEncoder();
+  let bytes = encoder.encode(message).length;
+  const history: { role: "user" | "assistant"; content: string }[] = [];
+  for (let i = entries.length - 2; i >= 0 && history.length < 20; i -= 2) {
+    const pair = entries.slice(i, i + 2);
+    if (pair[0]?.role !== "user" || pair[1]?.role !== "assistant") break;
+    const size = pair.reduce(
+      (sum, entry) => sum + encoder.encode(entry.text).length,
+      0,
+    );
+    if (bytes + size > 100000) break;
+    bytes += size;
+    history.unshift(
+      ...pair.map((entry) => ({ role: entry.role, content: entry.text })),
+    );
+  }
+  return history;
+}
 const formatCount = (n: number) => new Intl.NumberFormat("en").format(n);
 
 function Empty({ title, body }: { title: string; body: string }) {
@@ -79,7 +121,46 @@ function Brand() {
 }
 
 export default function App() {
+  const [session, setSession] = useState(0);
+  const lock = useCallback(() => setSession((value) => value + 1), []);
+  return <OmniSpace key={session} onLock={lock} autoUnlock={session === 0} />;
+}
+
+function OmniSpace({
+  onLock,
+  autoUnlock,
+}: {
+  onLock: () => void;
+  autoUnlock: boolean;
+}) {
   const [token, setToken] = useState(initialToken);
+  const tokenIdentity = useRef(token);
+  tokenIdentity.current = token;
+  const sessionController = useRef(new AbortController());
+  const chatController = useRef<AbortController | null>(null);
+  const refreshInFlight = useRef<Promise<void> | null>(null);
+  const historyElement = useRef<HTMLDivElement>(null);
+  const providerIdentity = useRef("");
+  const contextIdentity = useRef("");
+  useEffect(() => {
+    if (sessionController.current.signal.aborted)
+      sessionController.current = new AbortController();
+    return () => {
+      sessionController.current.abort();
+      chatController.current?.abort();
+    };
+  }, []);
+  const localRequest = useCallback(
+    <T,>(path: string, options: RequestInit = {}) =>
+      request<T>(token, path, {
+        ...options,
+        signal: AbortSignal.any([
+          sessionController.current.signal,
+          options.signal ?? AbortSignal.timeout(90000),
+        ]),
+      }),
+    [token],
+  );
   const [draftToken, setDraftToken] = useState("");
   const [core, setCore] = useState<CoreState | null>(null);
   const [view, setView] = useState<View>("overview");
@@ -92,6 +173,11 @@ export default function App() {
     () => localStorage.getItem("omni.green") === "true",
   );
   const [query, setQuery] = useState("");
+  const [memoryFilter, setMemoryFilter] = useState<MemoryStatus | "all">("all");
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const [captureContent, setCaptureContent] = useState("");
+  const [captureTitle, setCaptureTitle] = useState("");
+  const [deletePending, setDeletePending] = useState(false);
   const [selected, setSelected] = useState<Memory | null>(null);
   const [editContent, setEditContent] = useState("");
   const [newMemory, setNewMemory] = useState(false);
@@ -103,9 +189,7 @@ export default function App() {
   const [launcher, setLauncher] = useState(false);
   const [message, setMessage] = useState("");
   const [grantId, setGrantId] = useState("");
-  const [chat, setChat] = useState<
-    { role: "user" | "assistant"; text: string; model?: string }[]
-  >([]);
+  const [chat, setChat] = useState<ChatEntry[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
   const [global, setGlobal] = useState<GlobalData | null>(null);
   const [globalError, setGlobalError] = useState("");
@@ -113,28 +197,57 @@ export default function App() {
   const [report, setReport] = useState<GlobalData | null>(null);
   const refresh = useCallback(async () => {
     if (!token) return;
-    try {
-      const next = await request<CoreState>(token, "/api/state");
-      setCore((previous) =>
-        previous
-          ? {
-              ...next,
-              memories:
-                JSON.stringify(previous.memories) ===
-                JSON.stringify(next.memories)
-                  ? previous.memories
-                  : next.memories,
-            }
-          : next,
-      );
-      setConnection("online");
-    } catch (e) {
-      setConnection("offline");
-      if (!core) setError((e as Error).message);
-    }
-  }, [token, !!core]);
+    // A mutation must fetch again after an older poll, never reuse its stale snapshot.
+    if (refreshInFlight.current) await refreshInFlight.current;
+    if (
+      sessionController.current.signal.aborted ||
+      tokenIdentity.current !== token
+    )
+      return;
+    const pending = (async () => {
+      try {
+        const next = await localRequest<CoreState>("/api/state", {
+          signal: AbortSignal.timeout(8000),
+        });
+        if (
+          sessionController.current.signal.aborted ||
+          tokenIdentity.current !== token
+        )
+          return;
+        setCore((previous) =>
+          previous
+            ? {
+                ...next,
+                memories:
+                  JSON.stringify(previous.memories) ===
+                  JSON.stringify(next.memories)
+                    ? previous.memories
+                    : next.memories,
+              }
+            : next,
+        );
+        setConnection("online");
+      } catch (e) {
+        if (
+          sessionController.current.signal.aborted ||
+          tokenIdentity.current !== token
+        )
+          return;
+        if (e instanceof ApiError && e.status === 401) {
+          sessionStorage.removeItem("omni.token");
+          onLock();
+          return;
+        }
+        setConnection("offline");
+        if (!core) setError((e as Error).message);
+      }
+    })();
+    refreshInFlight.current = pending;
+    await pending;
+    if (refreshInFlight.current === pending) refreshInFlight.current = null;
+  }, [token, !!core, localRequest, onLock]);
   useEffect(() => {
-    if (!("__TAURI_INTERNALS__" in window) || token) return;
+    if (!("__TAURI_INTERNALS__" in window) || token || !autoUnlock) return;
     let cancelled = false;
     void import("@tauri-apps/api/core")
       .then(({ invoke }) => invoke<string | null>("local_session_token"))
@@ -170,35 +283,64 @@ export default function App() {
   }, [toast]);
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key === "k" &&
+        !selected &&
+        !newMemory &&
+        !grantForm &&
+        !report &&
+        !captureOpen
+      ) {
         event.preventDefault();
         setLauncher((v) => !v);
       }
       if (event.key === "Escape") {
-        setLauncher(false);
-        setSelected(null);
-        setNewMemory(false);
-        setGrantForm(false);
-        setReport(null);
+        if (!busy) {
+          setLauncher(false);
+          setSelected(null);
+          setNewMemory(false);
+          setGrantForm(false);
+          setCaptureOpen(false);
+          setReport(null);
+          setError("");
+        }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [busy, !!selected, newMemory, grantForm, !!report, captureOpen]);
   useEffect(() => {
-    const show = () => setLauncher(true);
+    const show = () => {
+      if (!selected && !newMemory && !grantForm && !report && !captureOpen)
+        setLauncher(true);
+    };
     window.addEventListener("omni:launcher", show);
     return () => window.removeEventListener("omni:launcher", show);
-  }, []);
+  }, [!!selected, newMemory, grantForm, !!report, captureOpen]);
   useEffect(() => {
-    if (!selected && !newMemory && !grantForm && !launcher && !report) return;
+    if (
+      !selected &&
+      !newMemory &&
+      !grantForm &&
+      !launcher &&
+      !report &&
+      !captureOpen
+    )
+      return;
     const previous = document.activeElement as HTMLElement | null;
+    const shell = document.querySelector<HTMLElement>(".main-shell");
+    const sidebar = document.querySelector<HTMLElement>(".sidebar");
+    if (shell) shell.inert = true;
+    if (sidebar) sidebar.inert = true;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const dialog = document.querySelector<HTMLElement>('[role="dialog"]');
     if (!dialog) return;
     const focusable = () =>
       Array.from(
         dialog.querySelectorAll<HTMLElement>(
-          'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]',
+          'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]',
         ),
       ).filter((el) => el.offsetParent !== null);
     focusable()[0]?.focus();
@@ -218,10 +360,14 @@ export default function App() {
     document.addEventListener("keydown", trap);
     return () => {
       document.removeEventListener("keydown", trap);
+      if (shell) shell.inert = false;
+      if (sidebar) sidebar.inert = false;
+      document.body.style.overflow = previousOverflow;
       previous?.focus();
     };
-  }, [!!selected, newMemory, grantForm, launcher, !!report]);
+  }, [!!selected, newMemory, grantForm, launcher, !!report, captureOpen]);
   useEffect(() => {
+    setDeletePending(false);
     if (selected) setEditContent(selected.content);
   }, [selected?.id]);
   const loadCollective = useCallback(async () => {
@@ -251,11 +397,28 @@ export default function App() {
   useEffect(() => {
     if (view !== "collective") return;
     let socket: WebSocket | null = null;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    let disposed = false;
+    const disconnect = () => {
+      clearTimeout(retry);
+      if (socket) {
+        socket.onclose = null;
+        socket.onerror = null;
+        socket.onmessage = null;
+        socket.close();
+        socket = null;
+      }
+    };
     const connect = () => {
-      socket?.close();
-      socket = null;
-      if (document.hidden) return;
-      socket = new WebSocket("ws://127.0.0.1:3008/api/v1/events");
+      disconnect();
+      if (disposed || document.hidden) return;
+      const url = new URL("/api/v1/events", COLLECTOR);
+      url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+      socket = new WebSocket(url);
+      socket.onopen = () => {
+        attempts = 0;
+      };
       socket.onmessage = (event) => {
         try {
           const update = JSON.parse(event.data);
@@ -272,34 +435,118 @@ export default function App() {
         }
       };
       socket.onerror = () =>
-        setGlobalError("Live updates unavailable. Use Refresh to reconnect.");
+        setGlobalError("Live updates interrupted. Reconnecting automatically.");
+      socket.onclose = () => {
+        if (disposed || document.hidden) return;
+        setGlobalError("Live updates interrupted. Reconnecting automatically.");
+        retry = setTimeout(connect, Math.min(1000 * 2 ** attempts++, 30000));
+      };
     };
     connect();
     document.addEventListener("visibilitychange", connect);
     return () => {
+      disposed = true;
       document.removeEventListener("visibilitychange", connect);
-      socket?.close();
+      disconnect();
     };
   }, [view]);
+  useEffect(() => {
+    if (!core) return;
+    const next = `${core.provider.base_url}|${core.provider.model}`;
+    if (providerIdentity.current && providerIdentity.current !== next) {
+      chatController.current?.abort();
+      chatController.current = null;
+      setChatBusy(false);
+      setChat([]);
+      setGrantId("");
+      setToast("Model destination changed. A new conversation is ready.");
+    }
+    providerIdentity.current = next;
+    if (
+      grantId &&
+      !core.grants.some(
+        (grant) =>
+          grant.id === grantId &&
+          isActive(grant) &&
+          grant.destination === core.provider.base_url,
+      )
+    ) {
+      chatController.current?.abort();
+      chatController.current = null;
+      setChatBusy(false);
+      setGrantId("");
+      setChat([]);
+      setError(
+        "This permission expired or was revoked. Choose a permission to start a new conversation.",
+      );
+    }
+  }, [core, grantId]);
+  useEffect(() => {
+    const grant = core?.grants.find(
+      (item) => item.id === grantId && isActive(item),
+    );
+    const next = grant
+      ? JSON.stringify({
+          grant,
+          memories: grant.scope.includes("*")
+            ? [...(core?.memories ?? [])].sort((a, b) =>
+                a.id.localeCompare(b.id),
+              )
+            : grant.scope.map(
+                (id) =>
+                  core?.memories.find((memory) => memory.id === id) ?? {
+                    id,
+                    deleted: true,
+                  },
+              ),
+        })
+      : "";
+    if (contextIdentity.current && next && contextIdentity.current !== next) {
+      chatController.current?.abort();
+      chatController.current = null;
+      setChatBusy(false);
+      setChat([]);
+      setError("");
+      setToast("Authorized memories changed. A new conversation is ready.");
+    }
+    contextIdentity.current = next;
+  }, [core?.memories, core?.grants, grantId]);
+  useEffect(() => {
+    if (launcher && historyElement.current)
+      historyElement.current.scrollTop = historyElement.current.scrollHeight;
+  }, [chat, chatBusy, launcher]);
   const activeGrants = useMemo(
     () => core?.grants.filter(isActive) || [],
     [core],
   );
   const filtered = useMemo(
     () =>
-      core?.memories.filter((m) =>
-        m.content.toLowerCase().includes(query.toLowerCase()),
-      ) || [],
-    [core?.memories, query],
+      (
+        core?.memories.filter(
+          (m) =>
+            m.content.toLowerCase().includes(query.trim().toLowerCase()) &&
+            (memoryFilter === "all" || m.status === memoryFilter),
+        ) || []
+      ).sort((a, b) => b.updated_at.localeCompare(a.updated_at)),
+    [core?.memories, query, memoryFilter],
   );
   const mutate = async (path: string, method: string, body?: unknown) => {
     setBusy(true);
     setError("");
     try {
-      await request(token, path, {
+      await localRequest(path, {
         method,
         body: body === undefined ? undefined : JSON.stringify(body),
       });
+      if (
+        path.startsWith("/api/memories/") ||
+        path.startsWith("/api/grants/")
+      ) {
+        chatController.current?.abort();
+        chatController.current = null;
+        setChatBusy(false);
+        setChat([]);
+      }
       await refresh();
       return true;
     } catch (e) {
@@ -315,8 +562,14 @@ export default function App() {
     setBusy(true);
     try {
       const value = draftToken.trim();
-      const state = await request<CoreState>(value, "/api/state");
+      const state = await request<CoreState>(value, "/api/state", {
+        signal: AbortSignal.any([
+          sessionController.current.signal,
+          AbortSignal.timeout(8000),
+        ]),
+      });
       sessionStorage.setItem("omni.token", value);
+      tokenIdentity.current = value;
       setToken(value);
       setCore(state);
       setConnection("online");
@@ -329,37 +582,116 @@ export default function App() {
   };
   const logout = () => {
     sessionStorage.removeItem("omni.token");
-    setToken("");
-    setCore(null);
-    setChat([]);
-    setError("");
+    sessionController.current.abort();
+    chatController.current?.abort();
+    onLock();
   };
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!message.trim() || chatBusy) return;
+    if (!message.trim() || chatBusy || connection !== "online") return;
     const text = message.trim();
+    if (new TextEncoder().encode(text).length > 100000) {
+      setError("Your message is too long. Keep it under 100,000 UTF-8 bytes.");
+      return;
+    }
+    const previous = chat;
+    const history = buildHistory(previous, text);
+    const controller = new AbortController();
+    chatController.current = controller;
     setMessage("");
     setChat((list) => [...list, { role: "user", text }]);
     setChatBusy(true);
     setError("");
     try {
-      const reply = await request<ChatReply>(token, "/api/chat", {
+      const reply = await localRequest<ChatReply>("/api/chat", {
         method: "POST",
+        signal: AbortSignal.any([
+          controller.signal,
+          AbortSignal.timeout(90000),
+        ]),
         body: JSON.stringify({
           message: text,
+          history,
           ...(grantId ? { grant_id: grantId } : {}),
         }),
       });
+      if (controller.signal.aborted) return;
+      if (!reply.reply?.trim())
+        throw new Error(
+          "The provider returned an empty response. Your message is ready to retry.",
+        );
       setChat((list) => [
         ...list,
-        { role: "assistant", text: reply.reply, model: reply.model },
+        {
+          role: "assistant",
+          text: reply.reply,
+          model: reply.model,
+          receiptId: reply.receipt_id,
+        },
       ]);
       await refresh();
     } catch (e) {
-      setError((e as Error).message);
-      setMessage(text);
+      if (
+        sessionController.current.signal.aborted ||
+        chatController.current !== controller
+      )
+        return;
+      setChat(previous);
+      setMessage((draft) => draft || text);
+      setError(
+        controller.signal.aborted
+          ? "Stopped waiting. The provider may already have received this request."
+          : (e as Error).message,
+      );
     } finally {
-      setChatBusy(false);
+      if (chatController.current === controller) {
+        chatController.current = null;
+        setChatBusy(false);
+      }
+    }
+  };
+  const resetConversation = () => {
+    setChat([]);
+    setMessage("");
+    setError("");
+  };
+  const capture = async () => {
+    const content = captureContent.trim();
+    if (!content || busy) return;
+    if (new TextEncoder().encode(content).length > 100000) {
+      setError("Keep the text under 100,000 UTF-8 bytes.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const result = await localRequest<{
+        memories: Memory[];
+        extraction: string;
+      }>("/api/capture", {
+        method: "POST",
+        body: JSON.stringify({
+          content,
+          title: captureTitle.trim() || "Reviewed text",
+          source: "manual_capture",
+        }),
+      });
+      await refresh();
+      setCaptureOpen(false);
+      setCaptureContent("");
+      setCaptureTitle("");
+      setMemoryFilter("proposed");
+      setQuery("");
+      setView("memories");
+      setToast(
+        result.extraction !== "local_model_proposals"
+          ? "Source saved. Review the excerpt; local extraction was unavailable."
+          : `${result.memories.length} ${result.memories.length === 1 ? "memory" : "memories"} ready for your review.`,
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
     }
   };
   const selectMemory = (memory: Memory) => {
@@ -371,7 +703,7 @@ export default function App() {
     setError("");
     try {
       setReport(
-        await request<GlobalData>(token, "/api/analytics/prepare", {
+        await localRequest<GlobalData>("/api/analytics/prepare", {
           method: "POST",
           body: "{}",
         }),
@@ -481,13 +813,16 @@ export default function App() {
               key={item.id}
               aria-label={item.label}
               title={item.label}
+              aria-current={view === item.id ? "page" : undefined}
               className={`nav-item ${view === item.id ? "active" : ""}`}
               onClick={() => setView(item.id)}
             >
               <item.icon size={18} />
               <span>{item.label}</span>
               {item.id === "memories" && <em>{core.memories.length}</em>}
-              {view === item.id && <span className="nav-marker" />}
+              {view === item.id && item.id !== "memories" && (
+                <span className="nav-marker" />
+              )}
             </button>
           ))}
         </nav>
@@ -511,6 +846,7 @@ export default function App() {
           <button
             aria-label="Toggle low energy mode"
             title="Toggle low energy mode"
+            aria-pressed={green}
             className={`green-button ${green ? "enabled" : ""}`}
             onClick={() => {
               setGreen((v) => !v);
@@ -521,7 +857,12 @@ export default function App() {
             <span>Low energy mode</span>
             <span className={`switch ${green ? "on" : ""}`} />
           </button>
-          <button className="logout" onClick={logout}>
+          <button
+            className="logout"
+            onClick={logout}
+            aria-label="Lock session"
+            title="Lock session"
+          >
             <LogOut size={15} /> Lock session
           </button>
         </div>
@@ -556,6 +897,21 @@ export default function App() {
           </div>
         </header>
         <main className="content">
+          {connection === "offline" && (
+            <div className="offline-banner" role="status">
+              <AlertCircle size={18} />
+              <div>
+                <strong>Your local service is offline.</strong>
+                <span>
+                  Showing the last loaded state. Reconnect before making
+                  changes.
+                </span>
+              </div>
+              <button onClick={() => void refresh()}>
+                Try again <RefreshCw size={14} />
+              </button>
+            </div>
+          )}
           {synthetic && (
             <div className="simulation-banner">
               <Sparkles size={15} />
@@ -565,20 +921,20 @@ export default function App() {
               </span>
             </div>
           )}
-          {error && (
-            <div className="error-banner" role="alert">
-              <span>{error}</span>
-              <button onClick={() => setError("")} aria-label="Dismiss error">
-                <X size={15} />
-              </button>
-            </div>
-          )}
-          {connection === "offline" && (
-            <div className="error-banner">
-              Your local core is unavailable. Showing the last received state;
-              actions may fail.
-            </div>
-          )}
+          {error &&
+            !launcher &&
+            !selected &&
+            !newMemory &&
+            !grantForm &&
+            !report &&
+            !captureOpen && (
+              <div className="error-banner" role="alert">
+                <span>{error}</span>
+                <button onClick={() => setError("")} aria-label="Dismiss error">
+                  <X size={15} />
+                </button>
+              </div>
+            )}
           {view === "overview" && (
             <>
               <section className="page-heading">
@@ -598,6 +954,25 @@ export default function App() {
                   <Plus size={16} /> Add a memory
                 </button>
               </section>
+              {core.memories.length === 0 && (
+                <div className="welcome-steps">
+                  <div>
+                    <span>01</span>
+                    <strong>Add something worth remembering</strong>
+                    <p>A preference, a constraint, a project you care about.</p>
+                  </div>
+                  <div>
+                    <span>02</span>
+                    <strong>Choose what can be shared</strong>
+                    <p>One destination. A few memories. A clear expiry.</p>
+                  </div>
+                  <div>
+                    <span>03</span>
+                    <strong>Continue with your AI</strong>
+                    <p>Useful context, with a receipt for every disclosure.</p>
+                  </div>
+                </div>
+              )}
               <div className="overview-grid">
                 <section className="graph-card">
                   <div className="graph-top">
@@ -609,11 +984,19 @@ export default function App() {
                       <LockKeyhole size={12} /> Private
                     </span>
                   </div>
-                  <Nebula
-                    memories={core.memories}
-                    green={green}
-                    onSelect={selectMemory}
-                  />
+                  <Suspense
+                    fallback={
+                      <div className="nebula-loading" role="status">
+                        Preparing your constellation…
+                      </div>
+                    }
+                  >
+                    <Nebula
+                      memories={core.memories}
+                      green={green}
+                      onSelect={selectMemory}
+                    />
+                  </Suspense>
                   <div className="graph-center-label">
                     <span>YOUR LOCAL VAULT</span>
                     <strong>
@@ -641,7 +1024,7 @@ export default function App() {
                         Disputed
                       </span>
                     </div>
-                    <span>Drag to explore · scroll to zoom</span>
+                    <span>Drag to explore · +/− to zoom</span>
                   </div>
                 </section>
                 <aside className="overview-side">
@@ -705,19 +1088,21 @@ export default function App() {
                         {core.provider.model || "No model configured"}
                       </strong>
                       <span>
-                        {core.provider.base_url.includes("127.0.0.1") ||
-                        core.provider.base_url.includes("localhost")
+                        {core.provider.local
                           ? "Local model endpoint"
                           : "External model endpoint"}
                       </span>
                     </div>
-                    <i className="status-dot online" />
+                    <span
+                      className="configured-dot"
+                      title="Configured endpoint; availability is checked when you send a request"
+                    />
                   </section>
                 </aside>
               </div>
               <div className="graph-disclaimer">
-                Each luminous node is a stored memory. Lines show vault
-                membership; surrounding particles are decorative.
+                Points are stored memories. Lines indicate vault membership, not
+                semantic relationships.
               </div>
               <section className="recent-section">
                 <div className="section-heading">
@@ -735,9 +1120,9 @@ export default function App() {
                 </div>
                 {core.memories.length ? (
                   <div className="memory-preview-grid">
-                    {core.memories
-                      .slice(-3)
-                      .reverse()
+                    {[...core.memories]
+                      .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+                      .slice(0, 3)
                       .map((m, i) => (
                         <button
                           className="memory-preview"
@@ -787,13 +1172,28 @@ export default function App() {
                 title="Your memory, in your words."
                 text="Confirm what is true, revise what changed, remove what should be forgotten."
                 action={
-                  <button
-                    className="primary small"
-                    onClick={() => setNewMemory(true)}
-                  >
-                    <Plus size={16} />
-                    Add memory
-                  </button>
+                  <div className="heading-actions">
+                    <button
+                      className="secondary"
+                      onClick={() => {
+                        setCaptureOpen(true);
+                        setError("");
+                      }}
+                    >
+                      <FileText size={16} />
+                      Import text
+                    </button>
+                    <button
+                      className="primary small"
+                      onClick={() => {
+                        setNewMemory(true);
+                        setError("");
+                      }}
+                    >
+                      <Plus size={16} />
+                      Add memory
+                    </button>
+                  </div>
                 }
               />
               <div className="list-toolbar">
@@ -806,7 +1206,43 @@ export default function App() {
                     placeholder="Search your local memory…"
                   />
                 </div>
-                <span>{filtered.length} memories</span>
+                <span>
+                  {filtered.length}{" "}
+                  {filtered.length === 1 ? "memory" : "memories"}
+                </span>
+              </div>
+              <div
+                className="memory-filters"
+                aria-label="Filter memories by status"
+              >
+                {(
+                  [
+                    "all",
+                    "proposed",
+                    "confirmed",
+                    "disputed",
+                    "superseded",
+                  ] as const
+                ).map((status) => (
+                  <button
+                    key={status}
+                    aria-pressed={memoryFilter === status}
+                    onClick={() => setMemoryFilter(status)}
+                  >
+                    {status === "all"
+                      ? "All memories"
+                      : status === "proposed"
+                        ? "To review"
+                        : status.charAt(0).toUpperCase() + status.slice(1)}
+                    <span>
+                      {
+                        core.memories.filter(
+                          (m) => status === "all" || m.status === status,
+                        ).length
+                      }
+                    </span>
+                  </button>
+                ))}
               </div>
               {filtered.length ? (
                 <div className="memory-list">
@@ -824,7 +1260,7 @@ export default function App() {
                         <p>{m.content}</p>
                         <span>
                           {dateLabel(m.updated_at)} · Source{" "}
-                          {m.source_id.slice(0, 8)}
+                          {m.source.replaceAll("_", " ")}
                         </span>
                       </div>
                       <span className={`status-chip ${m.status}`}>
@@ -836,10 +1272,14 @@ export default function App() {
                 </div>
               ) : (
                 <Empty
-                  title={query ? "No matching memories" : "A clean slate"}
+                  title={
+                    query || memoryFilter !== "all"
+                      ? "No matching memories"
+                      : "A clean slate"
+                  }
                   body={
-                    query
-                      ? "Try a different phrase. Search runs entirely on this device."
+                    query || memoryFilter !== "all"
+                      ? "Try a different phrase or status. Search runs entirely on this device."
                       : "Store a small fact to begin. Captured content is proposed for your review."
                   }
                 />
@@ -936,7 +1376,7 @@ export default function App() {
               <SectionTitle
                 eyebrow="A RECORD YOU CAN INSPECT"
                 title="Every disclosure, visible."
-                text="These receipts record the memories sent through OMNI, their destination and the time of disclosure."
+                text="Inspect what was authorized, where it was sent, and whether the request reached its destination."
               />
               <div className="stat-row">
                 <MiniStat
@@ -960,7 +1400,11 @@ export default function App() {
                         <h3>
                           {r.memory_ids.length}{" "}
                           {r.memory_ids.length === 1 ? "memory" : "memories"}{" "}
-                          disclosed
+                          {r.status === "sent"
+                            ? "shared"
+                            : r.status === "send_failed_or_partial"
+                              ? "— delivery uncertain"
+                              : "authorized"}
                         </h3>
                         <p>{r.destination}</p>
                         <span>
@@ -1040,8 +1484,12 @@ export default function App() {
                     packets. It does not route your device traffic or decrypt
                     arbitrary HTTPS applications.
                   </p>
-                  <span className="pill amber-pill">SIMULATION ONLY</span>
-                  {simulation && <SimulationResult data={simulation} />}
+                  <span className="pill amber-pill">
+                    {synthetic ? "SIMULATION ONLY" : "LAB NOT RUNNING"}
+                  </span>
+                  {synthetic && simulation && (
+                    <SimulationResult data={simulation} />
+                  )}
                 </article>
               </div>
               <div className="info-note">
@@ -1142,6 +1590,11 @@ export default function App() {
                     COLLECTOR
                   </div>
                   <h3>Published aggregate</h3>
+                  {globalError && global && (
+                    <p className="error" role="status">
+                      {globalError} Showing the last received snapshot.
+                    </p>
+                  )}
                   {global ? (
                     <AggregatePanel data={global} />
                   ) : (
@@ -1179,6 +1632,8 @@ export default function App() {
         <div
           className="modal-backdrop"
           onClick={() => {
+            if (busy) return;
+            setError("");
             setNewMemory(false);
             setSelected(null);
             setGrantForm(false);
@@ -1200,6 +1655,7 @@ export default function App() {
             <button
               className="modal-close icon-button"
               aria-label="Close dialog"
+              disabled={busy}
               onClick={() => {
                 setNewMemory(false);
                 setSelected(null);
@@ -1266,7 +1722,8 @@ export default function App() {
                     }
                   }}
                 >
-                  Authorize {grantScope.length} memories
+                  Authorize {grantScope.length}{" "}
+                  {grantScope.length === 1 ? "memory" : "memories"}
                   <ShieldCheck size={17} />
                 </button>
               </>
@@ -1294,9 +1751,15 @@ export default function App() {
                 />
                 {selected && (
                   <div className="memory-meta">
-                    <span>Source: {selected.source_id}</span>
+                    <span>Source: {selected.source.replaceAll("_", " ")}</span>
                     <span>Updated {dateLabel(selected.updated_at)}</span>
                   </div>
+                )}
+                {deletePending && (
+                  <p className="deletion-note" role="status">
+                    This removes the memory and its history from this vault.
+                    Copies previously shared cannot be recalled.
+                  </p>
                 )}
                 <div className="modal-actions">
                   {selected ? (
@@ -1305,6 +1768,10 @@ export default function App() {
                         className="danger-button"
                         disabled={busy}
                         onClick={async () => {
+                          if (!deletePending) {
+                            setDeletePending(true);
+                            return;
+                          }
                           if (
                             await mutate(
                               `/api/memories/${selected.id}`,
@@ -1317,8 +1784,16 @@ export default function App() {
                         }}
                       >
                         <Trash2 size={16} />
-                        Delete
+                        {deletePending ? "Confirm deletion" : "Delete"}
                       </button>
+                      {deletePending && (
+                        <button
+                          className="text-button"
+                          onClick={() => setDeletePending(false)}
+                        >
+                          Keep memory
+                        </button>
+                      )}
                       <select
                         aria-label="Memory status"
                         value={selected.status}
@@ -1390,6 +1865,74 @@ export default function App() {
           </section>
         </div>
       )}
+      {captureOpen && (
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            if (!busy) setCaptureOpen(false);
+          }}
+        >
+          <section
+            className="modal capture-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Import text"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="modal-close icon-button"
+              aria-label="Close import"
+              disabled={busy}
+              onClick={() => setCaptureOpen(false)}
+            >
+              <X size={20} />
+            </button>
+            <div className="eyebrow">FROM YOUR WORDS TO YOUR MEMORY</div>
+            <h2>Keep what matters.</h2>
+            <p>
+              Paste a note or a conversation. Local extraction suggests memories
+              for you to review. Nothing is approved for sharing automatically.
+            </p>
+            <label htmlFor="capture-title">Source title</label>
+            <input
+              id="capture-title"
+              value={captureTitle}
+              onChange={(event) => setCaptureTitle(event.target.value)}
+              placeholder="For example: project notes"
+              maxLength={200}
+            />
+            <label htmlFor="capture-content">Text to remember</label>
+            <textarea
+              id="capture-content"
+              value={captureContent}
+              onChange={(event) => setCaptureContent(event.target.value)}
+              rows={8}
+              placeholder="Paste the text you want to keep in your local vault…"
+            />
+            <div className="capture-footnote">
+              <LockKeyhole size={14} />
+              <span>
+                Saved to this device. Processed by your local extraction model.
+              </span>
+            </div>
+            <button
+              className="primary full"
+              disabled={
+                busy || !captureContent.trim() || connection !== "online"
+              }
+              onClick={() => void capture()}
+            >
+              {busy ? "Preparing memories…" : "Extract for review"}
+              <ArrowRight size={16} />
+            </button>
+            {error && (
+              <p className="error" role="alert">
+                {error}
+              </p>
+            )}
+          </section>
+        </div>
+      )}
       {report && (
         <div className="modal-backdrop" onClick={() => setReport(null)}>
           <section
@@ -1420,7 +1963,11 @@ export default function App() {
               className="primary full"
               disabled={busy || !core.analytics.opt_in}
               onClick={async () => {
-                if (await mutate("/api/analytics/send", "POST", {})) {
+                if (
+                  await mutate("/api/analytics/send", "POST", {
+                    week: report.week,
+                  })
+                ) {
                   setReport(null);
                   setToast("Report submitted by the local privacy engine.");
                   await loadCollective();
@@ -1464,11 +2011,17 @@ export default function App() {
                 <X size={19} />
               </button>
             </header>
-            <div className="chat-history">
+            <div
+              className="chat-history"
+              ref={historyElement}
+              role="log"
+              aria-live="polite"
+              aria-relevant="additions"
+            >
               {chat.length ? (
                 chat.map((entry, i) => (
                   <article key={i} className={`chat-entry ${entry.role}`}>
-                    <div>
+                    <div className="chat-entry-heading">
                       {entry.role === "user" ? (
                         <Fingerprint size={16} />
                       ) : (
@@ -1478,7 +2031,44 @@ export default function App() {
                         {entry.role === "user" ? "You" : entry.model || "Model"}
                       </strong>
                     </div>
-                    <p>{entry.text}</p>
+                    {entry.role === "assistant" ? (
+                      <>
+                        <div className="markdown-body">
+                          <Markdown
+                            remarkPlugins={[remarkGfm]}
+                            skipHtml
+                            components={{
+                              img: ({ alt }) => (
+                                <span className="image-omitted">
+                                  [Image: {alt || "not loaded automatically"}]
+                                </span>
+                              ),
+                              a: ({ href, children }) => (
+                                <a
+                                  href={href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {children}
+                                </a>
+                              ),
+                            }}
+                          >
+                            {entry.text}
+                          </Markdown>
+                        </div>
+                        <div className="response-actions">
+                          <CopyReply text={entry.text} />
+                          {entry.receiptId && (
+                            <span>
+                              <ShieldCheck size={12} /> Context receipt recorded
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <p>{entry.text}</p>
+                    )}
                   </article>
                 ))
               ) : (
@@ -1503,13 +2093,22 @@ export default function App() {
                 </div>
               )}
             </div>
+            <div className="conversation-note">
+              {chat.length
+                ? "Up to 10 previous exchanges accompany your next message. Changing permission starts a new conversation."
+                : "Conversation stays in this session. Only the selected context is shared."}
+            </div>
             <form onSubmit={send}>
               <div className="context-selector">
                 <Shield size={14} />
                 <select
                   aria-label="Permission for context"
                   value={grantId}
-                  onChange={(e) => setGrantId(e.target.value)}
+                  disabled={chatBusy}
+                  onChange={(e) => {
+                    setGrantId(e.target.value);
+                    resetConversation();
+                  }}
                 >
                   <option value="">No memory context</option>
                   {activeGrants
@@ -1519,14 +2118,17 @@ export default function App() {
                         {g.scope.includes("*")
                           ? "All"
                           : `Up to ${g.scope.length}`}{" "}
-                        confirmed memories · expires {dateLabel(g.expires_at)}
+                        confirmed{" "}
+                        {g.scope.length === 1 && !g.scope.includes("*")
+                          ? "memory"
+                          : "memories"}{" "}
+                        · expires {dateLabel(g.expires_at)}
                       </option>
                     ))}
                 </select>
                 <LockKeyhole size={13} />
                 <span>
-                  {core.provider.base_url.includes("127.0.0.1") ||
-                  core.provider.base_url.includes("localhost")
+                  {core.provider.local
                     ? "Local destination"
                     : "External destination"}
                 </span>
@@ -1540,20 +2142,35 @@ export default function App() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
+                    if (
+                      e.key === "Enter" &&
+                      !e.shiftKey &&
+                      !e.nativeEvent.isComposing
+                    ) {
                       e.preventDefault();
                       if (message.trim() && !chatBusy)
                         e.currentTarget.form?.requestSubmit();
                     }
                   }}
                 />
-                <button
-                  className="send-button"
-                  disabled={!message.trim() || chatBusy}
-                  aria-label="Send message"
-                >
-                  <Send size={17} />
-                </button>
+                {chatBusy ? (
+                  <button
+                    type="button"
+                    className="send-button stop-button"
+                    aria-label="Stop waiting"
+                    onClick={() => chatController.current?.abort()}
+                  >
+                    <Square size={15} />
+                  </button>
+                ) : (
+                  <button
+                    className="send-button"
+                    disabled={!message.trim() || connection !== "online"}
+                    aria-label="Send message"
+                  >
+                    <Send size={17} />
+                  </button>
+                )}
               </div>
             </form>
             {error && (
@@ -1563,9 +2180,15 @@ export default function App() {
             )}
             <footer>
               <span>Enter to send · Shift + Enter for a new line</span>
-              <span>
-                Request + permitted context go to the configured endpoint
-              </span>
+              <button
+                className="text-button"
+                type="button"
+                disabled={chatBusy || !chat.length}
+                onClick={resetConversation}
+              >
+                <RotateCcw size={12} />
+                New conversation
+              </button>
             </footer>
           </section>
         </div>
@@ -1740,5 +2363,33 @@ function SimulationResult({ data }: { data: GlobalData }) {
         </ul>
       )}
     </div>
+  );
+}
+
+function CopyReply({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setFailed(false);
+        } catch {
+          setFailed(true);
+        }
+      }}
+      aria-label="Copy response"
+    >
+      {copied ? <CheckCheck size={13} /> : <Copy size={13} />}{" "}
+      {copied ? "Copied" : failed ? "Select text to copy" : "Copy response"}
+    </button>
   );
 }

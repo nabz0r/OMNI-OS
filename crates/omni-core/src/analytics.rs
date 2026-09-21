@@ -59,7 +59,12 @@ pub fn current_week() -> String {
     format!("{}-W{:02}", week.year(), week.week())
 }
 pub fn validate_week(week: &str) -> Result<()> {
-    if week.len() != 8 || !week.is_ascii() || &week[4..6] != "-W" {
+    if week.len() != 8
+        || !week.is_ascii()
+        || &week[4..6] != "-W"
+        || !week[..4].bytes().all(|byte| byte.is_ascii_digit())
+        || !week[6..].bytes().all(|byte| byte.is_ascii_digit())
+    {
         bail!("Week must be YYYY-Www");
     }
     let year: i32 = week[..4].parse()?;
@@ -76,9 +81,6 @@ impl Vault {
         simulation: bool,
     ) -> Result<Report> {
         validate_week(week)?;
-        if !simulation && week != current_week() {
-            bail!("Production reports can only be prepared for the current ISO week");
-        }
         if !self.consent(consent_default)? {
             bail!("Analytics consent is disabled");
         }
@@ -92,6 +94,11 @@ impl Vault {
             .optional()?;
         if let Some(payload) = existing {
             return Ok(serde_json::from_str(&payload)?);
+        }
+        // Replaying an already released report spends no new privacy budget.
+        // A week rollover must not prevent retrying that immutable report.
+        if !simulation && week != current_week() {
+            bail!("New production reports can only be prepared for the current ISO week");
         }
         let count: i64 =
             tx.query_row("SELECT count(*) FROM analytics_reports", [], |r| r.get(0))?;
@@ -292,5 +299,29 @@ mod tests {
         assert!(validate_week("2026-W01").is_ok());
         assert!(validate_week("2026-W99").is_err());
         assert!(validate_week("today").is_err());
+        assert!(validate_week("+026-W01").is_err());
+        assert!(validate_week("2026-W+1").is_err());
+    }
+
+    #[test]
+    fn persisted_reports_remain_retryable_after_week_rollover() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("vault.db");
+        let mut vault = Vault::open(&path, &[9; 32]).unwrap();
+        vault.set_consent(true).unwrap();
+        let previous = (Utc::now() - chrono::Duration::weeks(1)).iso_week();
+        let week = format!("{}-W{:02}", previous.year(), previous.week());
+        // A simulation fixture supplies the report that a preceding week's
+        // production run would have prepared, without changing the OS clock.
+        let report = vault.prepare_report(&week, false, true).unwrap();
+        drop(vault);
+        let mut vault = Vault::open(&path, &[9; 32]).unwrap();
+        assert_eq!(report, vault.prepare_report(&week, false, false).unwrap());
+        assert_eq!(vault.analytics_stats(false).unwrap()["budget_used"], 1.);
+        let older = (Utc::now() - chrono::Duration::weeks(2)).iso_week();
+        let missing = format!("{}-W{:02}", older.year(), older.week());
+        assert!(vault.prepare_report(&missing, false, false).is_err());
+        vault.set_consent(false).unwrap();
+        assert!(vault.prepare_report(&week, false, false).is_err());
     }
 }

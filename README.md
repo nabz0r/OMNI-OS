@@ -20,7 +20,9 @@ Services may already have their own memory. OMNI aims to give you continuity tha
 
 1. **Remember.** Add a fact or explicitly capture a conversation. Local extraction proposes memories for you to review.
 2. **Authorize.** Choose the memories, the provider, and how long access lasts. Unconfirmed proposals stay out of shared context.
-3. **Continue.** Ask your model through the launcher or a compatible integration. Review disclosure receipts and revoke access when it is no longer needed.
+3. **Continue.** Ask your model through the launcher or a compatible integration. The launcher carries recent exchanges forward, formats code and tables, and lets you copy replies. Review disclosure receipts and revoke access when it is no longer needed.
+
+Use **Import text** to turn notes into reviewable proposals. Filter memories by status, correct them, and confirm what represents you. Changing authorized memories resets the launcher conversation; locking your space clears its history and drafts.
 
 Revocation blocks future sharing through OMNI. It cannot retrieve copies a provider has already received.
 
@@ -36,7 +38,7 @@ cd OMNI-OS
 
 Open [localhost:3006](http://localhost:3006), then unlock the session using the token in `.omni/runtime/admin-token`. This credential stays private on your device.
 
-The demo creates **six clients, two simulated providers, and a test VPN hub**. LLM responses are fictional; WireGuard encryption, SQLCipher vaults, permissions, and OpenDP calculations run as actual code. No AI account or provider key is required. Results appear in **Connections** and **Collective**.
+The demo uses a separate synthetic vault with a development file key, leaving existing personal and Keychain-backed vaults untouched. It creates **six clients, two simulated providers, and a test VPN hub**. LLM responses are fictional; WireGuard encryption, SQLCipher vaults, permissions, and OpenDP calculations run as actual code. No AI account or provider key is required. Results appear in **Connections** and **Collective**.
 
 On macOS, `./run.sh --simulate` also opens the native Tauri window. To use your own model, omit `--simulate`: OMNI expects Ollama running locally with `qwen3:0.6b` already installed. Configure other providers explicitly. [Integration guide →](docs/INTEGRATIONS.md)
 
