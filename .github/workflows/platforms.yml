@@ -150,7 +150,8 @@ jobs:
             wait "$omni_emulator_pid" 2>/dev/null || true
           }
           trap cleanup EXIT
-          mapfile -t omni_apks < <(rg --files artifacts/platforms/android -g '*.apk')
+          shopt -s nullglob
+          omni_apks=(artifacts/platforms/android/*.apk)
           test "${#omni_apks[@]}" -eq 1
           node scripts/smoke-android.mjs --serial "$ANDROID_SERIAL" --apk "${omni_apks[0]}" --output artifacts/platforms/android/android-smoke.json
           cd apps/desktop/src-tauri/gen/android
