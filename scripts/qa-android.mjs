@@ -221,6 +221,8 @@ try {
       .click();
   await nav("Policies");
   await page.getByRole("heading", { name: "Build your rule chain." }).waitFor();
+  // Set file types before opening the keyboard for regex editing.
+  await page.getByLabel("Allow .csv files", { exact: true }).uncheck();
   await page.getByRole("button", { name: "Add rule", exact: true }).click();
   await page
     .getByLabel("Rule 1 name", { exact: true })
@@ -235,7 +237,6 @@ try {
   await page
     .getByLabel("Rule 1 pattern", { exact: true })
     .fill("(?i)RESTRICTED_ANDROID");
-  await page.getByLabel("Allow .csv files", { exact: true }).uncheck();
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
   await page.getByRole("status").filter({ hasText: "Revision 1" }).waitFor();
   check(
