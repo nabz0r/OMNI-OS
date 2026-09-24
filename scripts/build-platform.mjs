@@ -107,7 +107,9 @@ const buildInfo = {
   signing:
     platform === "android"
       ? "Android development debug key; not a release signature"
-      : "No distribution signing or notarization",
+      : platform === "macos"
+        ? "Ad-hoc application signature; no Developer ID signing or notarization"
+        : "No distribution signing or notarization",
   distribution:
     platform === "ios"
       ? device
@@ -706,7 +708,7 @@ async function build() {
     tauri([
       "build",
       "--ci",
-      "--no-sign",
+      ...(platform === "macos" ? [] : ["--no-sign"]),
       "--target",
       target,
       ...(debug ? ["--debug"] : []),
@@ -741,6 +743,16 @@ async function build() {
       );
       if (apps.length !== 1)
         throw new Error("Expected exactly one macOS application bundle.");
+      run("codesign", ["--verify", "--deep", "--strict", apps[0]]);
+      for (const diskImage of files.filter((path) => path.endsWith(".dmg")))
+        run("hdiutil", ["verify", diskImage]);
+      buildInfo.integrity = {
+        application_signature:
+          "Ad-hoc resource seal verified with codesign --deep --strict",
+        disk_image: "Verified with hdiutil verify",
+        publisher_identity:
+          "Not verified; no Developer ID certificate or notarization",
+      };
       await archiveApp(apps[0], `OMNI-macos-${process.arch}.app.zip`);
       const executables = await readdir(join(apps[0], "Contents/MacOS"));
       if (executables.length !== 1)

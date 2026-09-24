@@ -5,6 +5,6 @@
     "targets": ["app", "dmg"],
     "category": "Productivity",
     "publisher": "OMNI",
-    "macOS": { "minimumSystemVersion": "14.4" }
+    "macOS": { "minimumSystemVersion": "14.4", "signingIdentity": "-" }
   }
 }
