@@ -104,7 +104,7 @@ jobs:
     timeout-minutes: 90
     env:
       CARGO_TARGET_DIR: ${{ github.workspace }}/apps/desktop/src-tauri/target
-      ANDROID_AVD_HOME: ${{ runner.temp }}/omni-avd
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.omni/ci-avd
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
