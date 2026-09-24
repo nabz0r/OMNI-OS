@@ -23,8 +23,11 @@ def run(*args):
 
 
 def digest(path):
+    value = hashlib.sha256()
     with path.open("rb") as handle:
-        return hashlib.file_digest(handle, "sha256").hexdigest()
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            value.update(chunk)
+    return value.hexdigest()
 
 
 def main():
@@ -104,7 +107,8 @@ def main():
             "--title", manifest["title"], "--notes-file", str(source / "release-notes.md"),
             *[str(assets / name) for name in sorted(names)],
         ], check=True)
-        release = json.loads(run("gh", "api", f"repos/{os.environ['GH_REPO']}/releases/tags/{tag}"))
+        releases = json.loads(run("gh", "api", f"repos/{os.environ['GH_REPO']}/releases?per_page=100"))
+        release = next(item for item in releases if item["tag_name"] == tag)
         assert release["draft"] and release["prerelease"] and release["tag_name"] == tag
         uploaded = {item["name"]: item for item in release["assets"]}
         assert set(uploaded) == names
