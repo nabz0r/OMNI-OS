@@ -12,6 +12,7 @@ on:
       - "package*.json"
       - "scripts/build-platform.mjs"
       - "scripts/smoke-android.mjs"
+      - "scripts/qa-android.mjs"
       - ".github/workflows/platforms.yml"
   pull_request:
     paths:
@@ -22,6 +23,7 @@ on:
       - "package*.json"
       - "scripts/build-platform.mjs"
       - "scripts/smoke-android.mjs"
+      - "scripts/qa-android.mjs"
       - ".github/workflows/platforms.yml"
 
 permissions:
@@ -102,6 +104,7 @@ jobs:
     timeout-minutes: 90
     env:
       CARGO_TARGET_DIR: ${{ github.workspace }}/apps/desktop/src-tauri/target
+      ANDROID_AVD_HOME: ${{ runner.temp }}/omni-avd
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -132,7 +135,9 @@ jobs:
         shell: bash
         run: |
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "emulator" "system-images;android-35;default;x86_64" < /dev/null
+          mkdir -p "$ANDROID_AVD_HOME"
           printf 'no\n' | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --name omni-ci --package "system-images;android-35;default;x86_64" --device pixel_5
+          test -f "$ANDROID_AVD_HOME/omni-ci.ini"
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
       - name: Exercise fresh native startup, reopening and Android Keystore
@@ -153,7 +158,7 @@ jobs:
           shopt -s nullglob
           omni_apks=(artifacts/platforms/android/*.apk)
           test "${#omni_apks[@]}" -eq 1
-          node scripts/smoke-android.mjs --serial "$ANDROID_SERIAL" --apk "${omni_apks[0]}" --output artifacts/platforms/android/android-smoke.json
+          node scripts/qa-android.mjs --serial "$ANDROID_SERIAL" --apk "${omni_apks[0]}" --output artifacts/platforms/android/android-native-acceptance.json
           cd apps/desktop/src-tauri/gen/android
           ./gradlew --no-daemon :tauri-plugin-omni-device:connectedDebugAndroidTest
           cd "$GITHUB_WORKSPACE"
