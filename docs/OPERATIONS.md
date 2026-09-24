@@ -47,25 +47,26 @@ No production endpoint is deployed automatically by publishing source code. VPN 
 
 These routes describe the shared core router. The native UI calls them through its authenticated IPC bridge; the HTTP addresses apply only to an explicitly running external core or opt-in embedded listener. Browser pairing is disabled in the standalone embedded runtime.
 
-| Endpoint                                                                  | Authentication                                               | Role                                                            |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------- |
-| Core `/api/session/claim`                                                 | Single-use launch secret; local Origin required when present | Return the owner session once, within 120 seconds; no-store     |
-| Core `/health`                                                            | None; loopback                                               | Liveness                                                        |
-| Core `/api/state`                                                         | Console token                                                | Vault, grants, disclosure and usage view                        |
-| Core `/api/memories`                                                      | Console token                                                | Review and manage memory                                        |
-| Core `/api/grants`                                                        | Console token                                                | Destination/scope/lifetime management                           |
-| Core `/api/admin`, `/api/admin/settings`                                  | Console token                                                | Persistent local settings and read-only deployment policy       |
-| Core `/api/providers`, `/api/providers/{id}`, `/api/providers/{id}/probe` | Console token                                                | Provider profiles, write-only keys and explicit discovery       |
-| Core `/api/interactions`, `/api/usage`, `/api/logs`                       | Console token                                                | Metadata history, measured/estimated usage and structured audit |
-| Core `/api/chat`                                                          | Console token                                                | Context-aware interaction                                       |
-| Core `/v1/chat/completions`, `/v1/messages`                               | Agent or console token + applicable grant                    | Provider-compatible requests                                    |
-| Core `/mcp`                                                               | Agent or console token                                       | Explicitly authorized memory tools                              |
-| Core `/api/analytics/prepare`                                             | Console token, opt-in                                        | Immutable local noised report                                   |
-| Core `/api/analytics/send`                                                | Console token, opt-in                                        | Send the locally prepared report through Rust                   |
-| Core `/api/capture`, `/api/capture/status`                                | Agent or console token                                       | Explicit local extraction into reviewable proposals             |
-| Collector `/api/v1/analytics`                                             | Strict numeric schema and rate limit                         | Opt-in report intake                                            |
-| Collector `/api/v1/global`                                                | Public                                                       | Thresholded aggregate                                           |
-| Collector `/api/v1/events`                                                | Public WebSocket                                             | Published aggregate notifications                               |
+| Endpoint                                                                  | Authentication                                               | Role                                                                        |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Core `/api/session/claim`                                                 | Single-use launch secret; local Origin required when present | Return the owner session once, within 120 seconds; no-store                 |
+| Core `/health`                                                            | None; loopback                                               | Liveness                                                                    |
+| Core `/api/state`                                                         | Console token                                                | Vault, grants, disclosure and usage view                                    |
+| Core `/api/memories`                                                      | Console token                                                | Review and manage memory                                                    |
+| Core `/api/grants`                                                        | Console token                                                | Destination/scope/lifetime management                                       |
+| Core `/api/policies`, `/api/policies/test`, `/api/policies/decisions`     | Console token                                                | Revisioned local rules, baseline inspection, preview and metadata decisions |
+| Core `/api/admin`, `/api/admin/settings`                                  | Console token                                                | Persistent local settings and read-only deployment policy                   |
+| Core `/api/providers`, `/api/providers/{id}`, `/api/providers/{id}/probe` | Console token                                                | Provider profiles, write-only keys and explicit discovery                   |
+| Core `/api/interactions`, `/api/usage`, `/api/logs`                       | Console token                                                | Metadata history, measured/estimated usage and structured audit             |
+| Core `/api/chat`                                                          | Console token                                                | Context-aware interaction                                                   |
+| Core `/v1/chat/completions`, `/v1/messages`                               | Agent or console token + applicable grant                    | Provider-compatible requests                                                |
+| Core `/mcp`                                                               | Agent or console token                                       | Explicitly authorized memory tools                                          |
+| Core `/api/analytics/prepare`                                             | Console token, opt-in                                        | Immutable local noised report                                               |
+| Core `/api/analytics/send`                                                | Console token, opt-in                                        | Send the locally prepared report through Rust                               |
+| Core `/api/capture`, `/api/capture/status`                                | Agent or console token                                       | Explicit local extraction into reviewable proposals                         |
+| Collector `/api/v1/analytics`                                             | Strict numeric schema and rate limit                         | Opt-in report intake                                                        |
+| Collector `/api/v1/global`                                                | Public                                                       | Thresholded aggregate                                                       |
+| Collector `/api/v1/events`                                                | Public WebSocket                                             | Published aggregate notifications                                           |
 
 The collector has no personal account cookie or subscription token. Rate limiting is exposure control, not authentication of unique humans. If deploying behind multiple proxies, configure trusted source-IP handling intentionally; never blindly trust user-provided forwarding headers.
 

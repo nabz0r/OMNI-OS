@@ -164,19 +164,23 @@ Deletion removes records from the current database's logical history. It does no
 
 All router endpoints in this section require `Authorization: Bearer <owner-token>`. Native `core_request` validates its main-window owner session and supplies that bearer to the shared router; the application exposes no HTTP listener by default. The restricted agent token cannot administer providers or read the journal. On an explicitly exposed HTTP service, a browser's `Origin` must match an allowed origin. CORS is not a substitute for authentication. JSON mutations use `Content-Type: application/json`.
 
-| Method and path                  | Result                                                           |
-| -------------------------------- | ---------------------------------------------------------------- |
-| `GET /api/admin`                 | `{settings, providers, runtime}`; profiles are redacted.         |
-| `PATCH /api/admin/settings`      | Updated settings object.                                         |
-| `POST /api/providers`            | Create a profile; returns the redacted profile.                  |
-| `PATCH /api/providers/{id}`      | Update a profile; returns the redacted profile.                  |
-| `DELETE /api/providers/{id}`     | Remove a non-primary profile; `204` on success.                  |
-| `POST /api/providers/{id}/probe` | Perform discovery; returns the profile with its recorded result. |
-| `GET /api/interactions`          | Paginated interaction metadata.                                  |
-| `GET /api/interactions/{id}`     | Complete record, or `404` if absent or no longer retained.       |
-| `DELETE /api/interactions`       | Clear interaction history; `204` on success.                     |
-| `GET /api/usage`                 | Usage totals, model groups and context comparison for a period.  |
-| `GET /api/logs`                  | Paginated structured audit events.                               |
+| Method and path                  | Result                                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------ |
+| `GET /api/policies`              | Local revision, local policy and optional read-only managed baseline.                      |
+| `POST /api/policies`             | Validate and replace the local policy using `expected_revision`; stale edits return `409`. |
+| `POST /api/policies/test`        | Evaluate the saved layers locally; no provider egress or decision persistence.             |
+| `GET /api/policies/decisions`    | Latest 100 decisions from the last 1,000 retained metadata records.                        |
+| `GET /api/admin`                 | `{settings, providers, runtime}`; profiles are redacted.                                   |
+| `PATCH /api/admin/settings`      | Updated settings object.                                                                   |
+| `POST /api/providers`            | Create a profile; returns the redacted profile.                                            |
+| `PATCH /api/providers/{id}`      | Update a profile; returns the redacted profile.                                            |
+| `DELETE /api/providers/{id}`     | Remove a non-primary profile; `204` on success.                                            |
+| `POST /api/providers/{id}/probe` | Perform discovery; returns the profile with its recorded result.                           |
+| `GET /api/interactions`          | Paginated interaction metadata.                                                            |
+| `GET /api/interactions/{id}`     | Complete record, or `404` if absent or no longer retained.                                 |
+| `DELETE /api/interactions`       | Clear interaction history; `204` on success.                                               |
+| `GET /api/usage`                 | Usage totals, model groups and context comparison for a period.                            |
+| `GET /api/logs`                  | Paginated structured audit events.                                                         |
 
 There is no separate `GET /api/providers`: read profiles from `GET /api/admin`. A probe request can return HTTP success while its profile says `unavailable` or `auth_error`; inspect `status` and `error` rather than treating the probe route's HTTP result as provider availability.
 
