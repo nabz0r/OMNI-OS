@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { _android } from "playwright";
 import { execFile } from "node:child_process";
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
@@ -56,9 +57,7 @@ export function encryptedHeader(header, size) {
 export function restartedVault(previous, current) {
   return (
     encryptedHeader(current.header, current.size) &&
-    previous.header.equals(current.header) &&
-    (previous.databaseDigest !== current.databaseDigest ||
-      previous.walDigest !== current.walDigest)
+    previous.header.equals(current.header)
   );
 }
 
@@ -76,13 +75,14 @@ export async function smokeAndroid(options) {
     : "adb";
   let stage = "boot";
   let installed = false;
+  let device;
   const report = {
     status: "running",
     started_at: new Date().toISOString(),
     package: PACKAGE,
     serial: options.serial,
     scope:
-      "Disposable Android emulator startup and encrypted-vault reopening; no provider request, UI interaction, physical-device or share-sheet claim",
+      "Disposable Android emulator startup and encrypted-vault reopening; production native IPC with a persisted synthetic setting; no provider request, physical-device or share-sheet claim",
     assertions: {},
   };
   const adb = async (args, { optional = false, timeout = 15000 } = {}) => {
@@ -189,8 +189,8 @@ export async function smokeAndroid(options) {
     await launch();
     const first = await until(
       snapshot,
-      60000,
-      "Native startup did not create an encrypted vault within one minute.",
+      120000,
+      "Native startup did not create an encrypted vault within two minutes.",
     );
     report.assertions.encrypted_vault_created = true;
     report.vault = {
@@ -198,6 +198,48 @@ export async function smokeAndroid(options) {
       header_bytes_examined: 16,
       plain_sqlite_header: false,
     };
+    // A successful read-only startup need not change ciphertext. Verify actual
+    // SQLCipher decryption through production IPC and a reversible test setting.
+    const attach = async () => {
+      device = (await _android.devices({ omitDriverInstall: true })).find(
+        (entry) => entry.serial() === options.serial,
+      );
+      if (!device) throw new Error("The selected emulator disconnected.");
+      device.setDefaultTimeout(120000);
+      const page = await (await device.webView({ pkg: PACKAGE })).page();
+      page.setDefaultTimeout(120000);
+      await page
+        .getByRole("button", { name: "Lock session", exact: true })
+        .waitFor();
+      return page;
+    };
+    const request = (page, method, path, body = null) =>
+      page.evaluate(
+        async ({ method, path, body }) => {
+          const result = await window.__TAURI_INTERNALS__.invoke(
+            "core_request",
+            {
+              token: sessionStorage.getItem("omni.token"),
+              method,
+              path,
+              body: body === null ? null : JSON.stringify(body),
+            },
+          );
+          if (result.status !== 200)
+            throw new Error("Native vault verification request failed.");
+          return JSON.parse(result.body);
+        },
+        { method, path, body },
+      );
+    let page = await attach();
+    const original = (await request(page, "GET", "/api/admin")).settings
+      .history_retention_days;
+    const marker = original === 31 ? 32 : 31;
+    await request(page, "PATCH", "/api/admin/settings", {
+      history_retention_days: marker,
+    });
+    await device.close();
+    device = null;
     stage = "native restart";
     await adb(["shell", "am", "force-stop", PACKAGE]);
     const stopped = await snapshot();
@@ -206,24 +248,24 @@ export async function smokeAndroid(options) {
         "The encrypted vault disappeared when the application stopped.",
       );
     await launch();
-    await until(
-      async () => {
-        const current = await snapshot();
-        const running = await adb(["shell", "pidof", PACKAGE], {
-          optional: true,
-        });
-        return (
-          current &&
-          running?.toString("utf8").trim() &&
-          restartedVault(stopped, current)
-        );
-      },
-      60000,
-      "Reopening did not produce a new database write with the original encrypted vault.",
-    );
+    page = await attach();
+    const reopened = await request(page, "GET", "/api/admin");
+    if (reopened.settings.history_retention_days !== marker)
+      throw new Error(
+        "The original vault setting was not restored after restart.",
+      );
+    const current = await snapshot();
+    if (!current || !restartedVault(stopped, current))
+      throw new Error(
+        "The original encrypted vault identity changed after restart.",
+      );
+    await request(page, "PATCH", "/api/admin/settings", {
+      history_retention_days: original,
+    });
     report.assertions.same_vault_salt_after_restart = true;
-    report.assertions.database_write_after_restart = true;
-    report.assertions.process_running_after_restart = true;
+    report.assertions.persisted_setting_read_after_restart = true;
+    report.assertions.test_setting_restored = true;
+    report.assertions.native_ipc_ready_after_restart = true;
     report.status = "passed";
   } catch (error) {
     report.status = "failed";
@@ -232,6 +274,7 @@ export async function smokeAndroid(options) {
       error instanceof Error ? error.message : "Android smoke testing failed.";
     throw error;
   } finally {
+    await device?.close();
     if (installed)
       await adb(["shell", "am", "force-stop", PACKAGE], { optional: true });
     report.finished_at = new Date().toISOString();

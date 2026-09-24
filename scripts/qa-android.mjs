@@ -56,6 +56,7 @@ async function attach() {
     (entry) => entry.serial() === options.serial,
   );
   assert.ok(device, "The explicitly selected emulator must be connected");
+  device.setDefaultTimeout(120000);
   page = await (await device.webView({ pkg: packageId })).page();
   page.setDefaultTimeout(20000);
   page.on("pageerror", (error) => errors.push(error.message));
@@ -191,6 +192,103 @@ try {
     "export_contains_history",
     JSON.parse(metadata).items.some((item) => item.status === "succeeded"),
   );
+  const nav = (name) =>
+    page
+      .getByRole("navigation")
+      .getByRole("button", { name, exact: true })
+      .click();
+  await nav("Policies");
+  await page.getByRole("heading", { name: "Build your rule chain." }).waitFor();
+  await page.getByRole("button", { name: "Add rule", exact: true }).click();
+  await page
+    .getByLabel("Rule 1 name", { exact: true })
+    .fill("Block synthetic restricted content");
+  await page.getByLabel("Rule 1 pattern", { exact: true }).fill("(");
+  await page.getByRole("button", { name: "Save policy", exact: true }).click();
+  await page.getByRole("alert").filter({ hasText: "unsupported" }).waitFor();
+  check(
+    "invalid_regex_rejected",
+    (await localApi("/api/policies")).revision === 0,
+  );
+  await page
+    .getByLabel("Rule 1 pattern", { exact: true })
+    .fill("(?i)RESTRICTED_ANDROID");
+  await page.getByLabel("Allow .csv files", { exact: true }).uncheck();
+  await page.getByRole("button", { name: "Save policy", exact: true }).click();
+  await page.getByRole("status").filter({ hasText: "Revision 1" }).waitFor();
+  check(
+    "native_policy_saved",
+    (await localApi("/api/policies")).revision === 1,
+  );
+  await page
+    .getByLabel("Policy sample", { exact: true })
+    .fill("RESTRICTED_ANDROID");
+  await page
+    .getByRole("button", { name: "Test saved policy", exact: true })
+    .click();
+  await page.getByText("This sample is blocked.", { exact: true }).waitFor();
+  check("policy_preview_stays_local", provider.observations.length === 1);
+  await page.getByLabel("Policy sample", { exact: true }).fill("Public update");
+  await page.getByLabel("Policy test files", { exact: true }).setInputFiles({
+    name: "public.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("public,123"),
+  });
+  await page
+    .getByRole("button", { name: "Test saved policy", exact: true })
+    .click();
+  await page.getByText("File type not allowed", { exact: true }).waitFor();
+  check("native_file_type_policy", provider.observations.length === 1);
+  check(
+    "policy_no_horizontal_overflow",
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  await page.screenshot({ path: join(directory, "android-policies.png") });
+  await nav("Overview");
+  await page.getByRole("button", { name: /Ask with context/ }).click();
+  await page
+    .getByLabel("Your message", { exact: true })
+    .fill("RESTRICTED_ANDROID");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await page
+    .getByRole("alert")
+    .filter({ hasText: "Request blocked" })
+    .waitFor();
+  check(
+    "blocked_request_never_reaches_provider",
+    provider.observations.length === 1,
+  );
+  await page
+    .getByLabel("Your message", { exact: true })
+    .fill("Summarize the attached public note.");
+  const previousReplies = await page.locator(".chat-entry.assistant").count();
+  await page.getByLabel("Attach text files", { exact: true }).setInputFiles({
+    name: "public.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("A public project update."),
+  });
+  await page
+    .getByRole("button", { name: "Remove attached file 1", exact: true })
+    .waitFor();
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await page.waitForFunction(
+    (count) =>
+      document.querySelectorAll(".chat-entry.assistant").length > count,
+    previousReplies,
+  );
+  check("native_text_attachment_inference", provider.observations.length === 2);
+  await page
+    .getByRole("button", { name: "Close launcher", exact: true })
+    .click();
+  const decisions = await localApi("/api/policies/decisions");
+  check(
+    "policy_decision_metadata_only",
+    decisions.blocked >= 1 &&
+      !JSON.stringify(decisions).includes("RESTRICTED_ANDROID") &&
+      !JSON.stringify(decisions).includes("public.txt"),
+  );
   await page.getByRole("button", { name: "Lock session", exact: true }).click();
   await page
     .getByRole("button", { name: "Unlock on this device", exact: true })
@@ -238,6 +336,14 @@ try {
         item.label === "Android acceptance fixture" &&
         item.model === "omni-synthetic",
     ),
+  );
+  check(
+    "policy_survives_process_restart",
+    (await localApi("/api/policies")).revision === 1,
+  );
+  check(
+    "policy_decisions_survive_process_restart",
+    (await localApi("/api/policies/decisions")).blocked >= 1,
   );
   check("no_webview_errors", errors.length === 0);
   await page.screenshot({ path: join(directory, "android-reopened.png") });

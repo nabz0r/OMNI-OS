@@ -54,7 +54,11 @@ assert.equal(
 const mac = resolve(values["--macos"]),
   android = resolve(values["--android"]),
   evidence = resolve(values["--evidence"]);
-const destination = join(root, "deliverables/OMNI-0.1.0-mvp");
+const version = JSON.parse(
+  await readFile(join(root, "apps/desktop/src-tauri/tauri.conf.json"), "utf8"),
+).version;
+assert.match(version, /^\d+\.\d+\.\d+$/);
+const destination = join(root, `deliverables/OMNI-${version}-mvp`);
 const stage = `${destination}.assembling-${process.pid}`;
 try {
   await stat(destination);
@@ -103,13 +107,50 @@ assert.ok(
   macBuild.integrity?.application_signature,
   "The macOS bundle needs an evaluated resource seal",
 );
+for (const [build, revision] of [
+  [macBuild, values["--macos-revision"]],
+  [androidBuild, values["--android-revision"]],
+]) {
+  assert.equal(
+    build.version,
+    version,
+    "The build version must match the delivery",
+  );
+  assert.equal(
+    build.source_revision,
+    revision,
+    "The declared source must match build provenance",
+  );
+  assert.equal(
+    build.source_dirty,
+    false,
+    "Release builds must come from clean source",
+  );
+}
+assert.equal(
+  values["--macos-revision"],
+  values["--android-revision"],
+  "Both platforms must use the same release source",
+);
 assert.equal(androidBuild.platform, "android");
 assert.equal(androidBuild.status, "built");
 assert.equal(acceptance.status, "passed");
 assert.ok(
-  Object.keys(acceptance.assertions).length >= 18 &&
+  Object.keys(acceptance.assertions).length >= 28 &&
     Object.values(acceptance.assertions).every((x) => x === true),
 );
+for (const name of [
+  "native_policy_saved",
+  "native_file_type_policy",
+  "blocked_request_never_reaches_provider",
+  "native_text_attachment_inference",
+  "policy_survives_process_restart",
+])
+  assert.equal(
+    acceptance.assertions[name],
+    true,
+    `Missing release check: ${name}`,
+  );
 assert.equal(smoke.status, "passed");
 assert.equal(keystore.status, "passed");
 assert.equal(keystore.tests, 5);
@@ -119,7 +160,7 @@ assert.equal(
   apk.sha256,
   "Android acceptance must cover the exact APK being delivered",
 );
-await verifyInput(mac, macBuild, "OMNI_0.1.0_aarch64.dmg");
+await verifyInput(mac, macBuild, `OMNI_${version}_aarch64.dmg`);
 await verifyInput(mac, macBuild, "OMNI-macos-arm64.app.zip");
 const run = (command, args) => execFileSync(command, args, { stdio: "pipe" });
 const sdk = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
@@ -132,12 +173,15 @@ try {
   for (const folder of ["macOS", "Android", "Evidence"])
     await mkdir(join(stage, folder), { recursive: true });
   const files = [
-    [join(mac, "OMNI_0.1.0_aarch64.dmg"), "macOS/OMNI-0.1.0-macOS-arm64.dmg"],
+    [
+      join(mac, `OMNI_${version}_aarch64.dmg`),
+      `macOS/OMNI-${version}-macOS-arm64.dmg`,
+    ],
     [
       join(mac, "OMNI-macos-arm64.app.zip"),
-      "macOS/OMNI-0.1.0-macOS-arm64.app.zip",
+      `macOS/OMNI-${version}-macOS-arm64.app.zip`,
     ],
-    [join(android, apk.file), "Android/OMNI-0.1.0-android.apk"],
+    [join(android, apk.file), `Android/OMNI-${version}-android.apk`],
     [join(mac, "build-info.json"), "Evidence/macos-build.json"],
     [join(android, "build-info.json"), "Evidence/android-build.json"],
     [join(root, "LICENSE"), "LICENSE"],
@@ -153,6 +197,8 @@ try {
     "android-conversation.png",
     "android-history.png",
     "android-reopened.png",
+    "android-policies.png",
+    "android-upgrade.json",
   ])
     files.push([join(evidence, name), `Evidence/${name}`]);
   for (const [source, target] of files)
@@ -160,7 +206,7 @@ try {
   run("ditto", [
     "-x",
     "-k",
-    join(stage, "macOS/OMNI-0.1.0-macOS-arm64.app.zip"),
+    join(stage, `macOS/OMNI-${version}-macOS-arm64.app.zip`),
     join(stage, "macOS"),
   ]);
   run("codesign", [
@@ -169,7 +215,10 @@ try {
     "--strict",
     join(stage, "macOS/OMNI.app"),
   ]);
-  run("hdiutil", ["verify", join(stage, "macOS/OMNI-0.1.0-macOS-arm64.dmg")]);
+  run("hdiutil", [
+    "verify",
+    join(stage, `macOS/OMNI-${version}-macOS-arm64.dmg`),
+  ]);
   const mount = await mkdtemp(join(tmpdir(), "omni-delivery-image-"));
   let mounted = false;
   try {
@@ -179,7 +228,7 @@ try {
       "-nobrowse",
       "-mountpoint",
       mount,
-      join(stage, "macOS/OMNI-0.1.0-macOS-arm64.dmg"),
+      join(stage, `macOS/OMNI-${version}-macOS-arm64.dmg`),
     ]);
     mounted = true;
     run("codesign", [
@@ -204,7 +253,7 @@ try {
   }
   const manifest = {
     product: "OMNI",
-    version: "0.1.0",
+    version,
     channel: "MVP evaluation",
     assembled_at: new Date().toISOString(),
     source_repository: "https://github.com/nabz0r/OMNI-OS",
@@ -225,7 +274,7 @@ try {
         minimum_api: 24,
         tested_os: "Android 15 AOSP ARM64 emulator",
         signature: androidBuild.signing,
-        acceptance: "18 native acceptance checks passed",
+        acceptance: `${Object.keys(acceptance.assertions).length} native acceptance checks passed`,
         keystore: "5 instrumentation tests passed",
         tested_apk_sha256: acceptance.apk_sha256,
       },

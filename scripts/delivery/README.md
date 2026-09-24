@@ -8,7 +8,7 @@ The application embeds its Rust engine and encrypted database. You do not need N
 
 Requires an **Apple Silicon Mac (M1 or later), macOS 14.4 or later**. This build does not support Intel Macs.
 
-1. Open `macOS/OMNI-0.1.0-macOS-arm64.dmg`.
+1. Open `macOS/OMNI-0.2.0-macOS-arm64.dmg`.
 2. Drag **OMNI** into **Applications**, then open it there. The extracted `macOS/OMNI.app` and ZIP contain the same application.
 3. Follow **Guided setup**. Use an existing local Ollama model, or add your own provider key in **Models**.
 
@@ -18,7 +18,7 @@ This evaluation build has a verified ad-hoc signature, without an Apple Develope
 
 Requires **Android 7 or later** on **ARM64** or **x86_64**. The native acceptance run used Android 15; older supported API levels have not been device-tested. A current Android System WebView is required. ARM32-only phones are not supported by this APK.
 
-1. Copy `Android/OMNI-0.1.0-android.apk` to your phone and open it.
+1. Copy `Android/OMNI-0.2.0-android.apk` to your phone and open it.
 2. If Android asks, allow installation from the specific browser or file manager you are using, then install **OMNI**. You can revoke that install permission afterward.
 3. Open OMNI and follow **Guided setup**. Supply your provider API key and choose a model. In **Models**, a compatible remote endpoint is also supported; use HTTPS outside loopback.
 
@@ -32,12 +32,12 @@ On a phone, `localhost` refers to the phone. It does not point to your Mac's Oll
 2. **Remember.** Optionally save a preference. It remains local until you grant sharing permission.
 3. **Continue.** Send a message. **History** records the destination and outcome; **Usage** shows the token counters the provider reports.
 
-Use **Memory** to correct your context, **Permissions** to control disclosure, **Models** for connections, and **Settings** for local preferences. Metadata exports contain request records, not conversation bodies. An interface lock hides your space; it is not biometric authentication.
+Use **Memory** to correct your context, **Permissions** to control disclosure, **Policies** to restrict text patterns and attachment types, **Models** for connections, and **Settings** for local preferences. Metadata exports contain request records, not conversation bodies. An interface lock hides your space; it is not biometric authentication.
 
 ## What was verified
 
 - The delivered macOS package passed native startup and fresh encrypted-vault initialization on a macOS runner. Its application resource seal, disk image and delivery checksums are verified. An earlier native build also completed real local Ollama inference, history, export and reopening on the project Mac.
-- The exact delivered Android APK passed fresh installation and encrypted-vault reopening, followed by **18 native acceptance checks**: actual WebView/IPC, model setup and discovery, synthetic-provider inference, private memory boundaries, token history, the native export share sheet, metadata-only export, lock/reload and persistence after process restart. All **five Android Keystore instrumentation tests** also passed.
+- The exact delivered Android APK passed fresh installation and encrypted-vault reopening, followed by **28 native acceptance checks**: actual WebView/IPC, model setup and discovery, synthetic-provider inference, private memory boundaries, token history, the native export share sheet, metadata-only export, lock/reload and persistence after process restart. All **five Android Keystore instrumentation tests** also passed.
 - Android screenshots in `Evidence/` come from that installed APK on an emulator. The response model is explicitly synthetic. These checks do not establish physical-phone compatibility with every vendor, minimum-OS compatibility, app-store approval or absence of every possible defect.
 
 `delivery.json` identifies the source revisions and package hashes. `Evidence/` preserves the machine-readable build and acceptance reports. Run `shasum -a 256 -c SHA256SUMS` from this folder on a Mac to verify every delivered file.

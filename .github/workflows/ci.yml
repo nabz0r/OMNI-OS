@@ -44,7 +44,7 @@ jobs:
       - run: npm run build
       - run: cargo build --workspace --locked
       - run: python3 infra/vpn/test_scripts.py
-      - run: node --test scripts/lifecycle.test.mjs scripts/startup.test.mjs
+      - run: node --test scripts/lifecycle.test.mjs scripts/startup.test.mjs scripts/smoke-android.test.mjs
       - run: npx playwright install --with-deps chromium
       - name: Exercise the complete local application in Chromium
         shell: bash

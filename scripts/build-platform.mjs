@@ -101,6 +101,16 @@ const overlay = JSON.parse(
 );
 const buildInfo = {
   platform,
+  version: config.version,
+  source_revision: spawnSync("git", ["rev-parse", "HEAD"], {
+    cwd: root,
+    encoding: "utf8",
+  }).stdout.trim(),
+  source_dirty:
+    spawnSync("git", ["status", "--porcelain", "--untracked-files=no"], {
+      cwd: root,
+      encoding: "utf8",
+    }).stdout.trim().length > 0,
   profile: debug ? "debug" : "release",
   created_at: new Date().toISOString(),
   status: "building",

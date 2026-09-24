@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-omni-device"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["OMNI contributors"]
 description = "Private native key custody and fixed-link bridge for OMNI"
 license = "AGPL-3.0-only"

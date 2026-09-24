@@ -1,3 +1,4 @@
+import { version as appVersion } from "../package.json";
 import {
   lazy,
   Suspense,
@@ -1955,7 +1956,7 @@ function OmniSpace({
           <span>
             <i className="status-dot online" />{" "}
             {green ? "LOW ENERGY · RENDER ON DEMAND" : "NEBULA · UP TO 30 FPS"}
-            <span className="footer-separator">/</span>LOCAL PREVIEW 0.1
+            <span className="footer-separator">/</span>MVP {appVersion}
           </span>
         </footer>
       </div>
