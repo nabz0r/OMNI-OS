@@ -4,6 +4,8 @@ OMNI gives your AI tools a local memory and a visible boundary. Start with one c
 
 ## Open the native application
 
+For the macOS and Android MVP package set, open `deliverables/OMNI-0.1.0-mvp/START-HERE.html` on the delivery machine. The folder contains installers, an extracted Mac application, checksums and acceptance evidence. The [delivery guide](DELIVERY.md) explains installation, supported devices and OS permissions.
+
 A standalone native build opens its own local Rust core inside the application. It does not need a separately running terminal, Node.js server or port 3007. Its encrypted vault lives in the operating system's application-data directory and uses the platform key store. The current source targets and build instructions are in [PLATFORMS.md](PLATFORMS.md); actual package and device checks are recorded in [VALIDATION.md](VALIDATION.md), not implied by the presence of source code.
 
 For iOS source builds, the default target is the ARM64 simulator. `node scripts/build-platform.mjs ios --device` targets an unsigned iPhone ARM64 archive under `artifacts/platforms/ios-device/`; it still needs Apple signing and provisioning before installation. A simulator app, an unsigned device archive and a tested installation on an iPhone are different deliverables. Consult the platform guide before attempting to install an artifact.

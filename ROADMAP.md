@@ -30,6 +30,8 @@ The fifth browser QA suite, `test:native`, exercises native frontend behavior th
 
 ## Phase I — Genesis: Earn a Place in the Day
 
+The macOS/Android MVP now has a concrete local delivery format: standalone packages, a visual installer guide, source revision records, checksums and acceptance evidence. Android acceptance exercises the actual APK, WebView, production IPC, encrypted vault, provider request, history, native export chooser and restart persistence with synthetic data. macOS packaging now seals the entire application bundle with an ad-hoc signature and verifies its resources and disk image. These are evaluation packages; Developer ID/notarization, a persistent Android release identity, physical-device coverage and recoverable upgrades remain release gates. See [delivery](docs/DELIVERY.md) and [validation](docs/VALIDATION.md).
+
 **The promise to test:** continue a task across several AIs with less repetition while knowing what was shared.
 
 The proposed first audience is independent professionals, developers and small teams using several assistants on ongoing projects. Distribution begins with supported pilots in professional communities the team can reach. Each participant brings real work and chooses their sources. One complete use case is worth more than a long list of connectors.

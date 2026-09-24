@@ -1,0 +1,49 @@
+# OMNI · Your personal context, on your device
+
+This folder contains the macOS and Android MVP applications, installation instructions, checksums and the evidence used to accept this delivery. Open **START-HERE.html** for the visual installation guide.
+
+The application embeds its Rust engine and encrypted database. You do not need Node.js, Rust, Docker or a local OMNI server to run it. Connect your own AI provider or an existing model endpoint during guided setup. No model weights, API account, subscription or provider credit are included.
+
+## Install on a Mac
+
+Requires an **Apple Silicon Mac (M1 or later), macOS 14.4 or later**. This build does not support Intel Macs.
+
+1. Open `macOS/OMNI-0.1.0-macOS-arm64.dmg`.
+2. Drag **OMNI** into **Applications**, then open it there. The extracted `macOS/OMNI.app` and ZIP contain the same application.
+3. Follow **Guided setup**. Use an existing local Ollama model, or add your own provider key in **Models**.
+
+This evaluation build has a verified ad-hoc signature, without an Apple Developer ID or notarization. macOS may request permission to open it. Use macOS **Privacy & Security → Open Anyway** only for a package you recognize and whose checksum matches. Do not disable Gatekeeper or remove quarantine globally. If an existing OMNI vault triggers a Keychain prompt, authorize legitimate access directly through macOS. Never delete the vault or its key to dismiss that prompt.
+
+## Install on Android
+
+Requires **Android 7 or later** on **ARM64** or **x86_64**. The native acceptance run used Android 15; older supported API levels have not been device-tested. A current Android System WebView is required. ARM32-only phones are not supported by this APK.
+
+1. Copy `Android/OMNI-0.1.0-android.apk` to your phone and open it.
+2. If Android asks, allow installation from the specific browser or file manager you are using, then install **OMNI**. You can revoke that install permission afterward.
+3. Open OMNI and follow **Guided setup**. Supply your provider API key and choose a model. In **Models**, a compatible remote endpoint is also supported; use HTTPS outside loopback.
+
+This APK uses a development signing key and is not a Google Play release. Keep the same signing identity for updates. If Android reports an incompatible installed package, do not uninstall a personal vault just to proceed: uninstalling removes app data, and copying the encrypted database alone is not a recoverable backup. A separately signed APK needs a deliberate migration plan.
+
+On a phone, `localhost` refers to the phone. It does not point to your Mac's Ollama installation. A ChatGPT or Claude web subscription is not an API credential.
+
+## Your first conversation
+
+1. **Connect.** Check your provider connection and select the exact model.
+2. **Remember.** Optionally save a preference. It remains local until you grant sharing permission.
+3. **Continue.** Send a message. **History** records the destination and outcome; **Usage** shows the token counters the provider reports.
+
+Use **Memory** to correct your context, **Permissions** to control disclosure, **Models** for connections, and **Settings** for local preferences. Metadata exports contain request records, not conversation bodies. An interface lock hides your space; it is not biometric authentication.
+
+## What was verified
+
+- The delivered macOS package passed native startup and fresh encrypted-vault initialization on a macOS runner. Its application resource seal, disk image and delivery checksums are verified. An earlier native build also completed real local Ollama inference, history, export and reopening on the project Mac.
+- The exact delivered Android APK passed fresh installation and encrypted-vault reopening, followed by **18 native acceptance checks**: actual WebView/IPC, model setup and discovery, synthetic-provider inference, private memory boundaries, token history, the native export share sheet, metadata-only export, lock/reload and persistence after process restart. All **five Android Keystore instrumentation tests** also passed.
+- Android screenshots in `Evidence/` come from that installed APK on an emulator. The response model is explicitly synthetic. These checks do not establish physical-phone compatibility with every vendor, minimum-OS compatibility, app-store approval or absence of every possible defect.
+
+`delivery.json` identifies the source revisions and package hashes. `Evidence/` preserves the machine-readable build and acceptance reports. Run `shasum -a 256 -c SHA256SUMS` from this folder on a Mac to verify every delivered file.
+
+## Current boundaries
+
+Each installation has its own encrypted vault. There is no implemented cross-device synchronization or complete recovery wizard. The standalone app does not enable an analytics collector. The mobile app does not install a system-wide VPN or automatically capture other applications. Inference requires the selected provider or model to be available; remote providers receive the prompt and any context you explicitly authorize.
+
+For reproducible builds and detailed limitations, see the repository's [platform guide](https://github.com/nabz0r/OMNI-OS/blob/main/docs/PLATFORMS.md) and [validation report](https://github.com/nabz0r/OMNI-OS/blob/main/docs/VALIDATION.md).

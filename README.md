@@ -1,4 +1,4 @@
-# !(apps/desktop/public/omni.svg) OMNI-OS · Compression of Comprehension.
+# <img src="apps/desktop/public/omni.svg" width="36" alt="OMNI"> OMNI-OS · Compression of Comprehension.
 
 ### Your AI changes. Your memory stays.
 
@@ -27,6 +27,8 @@ Use **Import text** to turn notes into reviewable proposals. Filter memories by 
 Revocation blocks future sharing through OMNI. It cannot retrieve copies a provider has already received.
 
 ## Native applications and the development demo
+
+**macOS and Android MVP delivery:** the local `deliverables/OMNI-0.1.0-mvp/` folder contains a Mac application and DMG, an Android APK, a visual installation guide and verification evidence. Start with `START-HERE.html`. These standalone packages need no development tools or OMNI server. macOS targets Apple Silicon on 14.4+; Android targets ARM64 and x86_64 on API 24+, with native acceptance performed on Android 15. The Mac package has an ad-hoc signature and the APK a development signature; public store distribution remains separate. [Installation and delivery details →](docs/DELIVERY.md)
 
 The native application embeds the Rust core and SQLCipher vault in the application process. Its interface uses authenticated native messages; it starts no local HTTP listener or Node.js service. Native adapters cover macOS, Windows, Linux, Android and iOS, with a separate vault in each platform's application-data directory and keys protected by the platform credential store. [Platform architecture and build instructions →](docs/PLATFORMS.md)
 

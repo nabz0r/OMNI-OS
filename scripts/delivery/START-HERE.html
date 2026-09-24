@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <title>OMNI · Ready for your space</title>
+    <style>
+      :root {
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: #edf4f2;
+        background: #0a1013;
+        font-synthesis: none;
+        line-height: 1.6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(
+          ellipse at 84% 15%,
+          #16383270,
+          transparent 48%
+        );
+      }
+      main {
+        max-width: 1160px;
+        padding: 38px 44px 64px;
+        margin: auto;
+      }
+      header,
+      footer,
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      header {
+        border-bottom: 1px solid #ffffff14;
+        padding-bottom: 24px;
+      }
+      .wordmark {
+        font-size: 23px;
+        letter-spacing: 0.19em;
+        font-weight: 650;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+        color: #a2c6bd;
+      }
+      .badge {
+        font-size: 12px;
+        border: 1px solid #c3e5db30;
+        padding: 7px 12px;
+        border-radius: 100px;
+        color: #b3d8cd;
+      }
+      h1 {
+        font-size: clamp(42px, 6.2vw, 76px);
+        font-weight: 520;
+        letter-spacing: -0.06em;
+        line-height: 1.07;
+        margin: 22px 0;
+      }
+      h1 span {
+        color: #9bd0bf;
+      }
+      p {
+        color: #a6b7bc;
+      }
+      a {
+        color: #b1ddcf;
+        text-underline-offset: 4px;
+      }
+      a:focus-visible {
+        outline: 2px solid #b1ddcf;
+        outline-offset: 5px;
+      }
+      .intro {
+        padding: 70px 0 48px;
+        max-width: 760px;
+      }
+      .intro > p {
+        font-size: 18px;
+        max-width: 640px;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .card {
+        position: relative;
+        border: 1px solid #b5d9d61e;
+        border-radius: 24px;
+        padding: 30px;
+        background: linear-gradient(140deg, #172427, #10181c);
+        overflow: hidden;
+      }
+      .platform {
+        font-size: 13px;
+        color: #8fb1a9;
+        margin: 0;
+      }
+      h2 {
+        font-size: 30px;
+        letter-spacing: -0.04em;
+        font-weight: 540;
+        margin: 5px 0 12px;
+      }
+      .card > p {
+        font-size: 14px;
+      }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 12px 20px;
+        background: #b0d9cb;
+        color: #11251e;
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 650;
+        margin: 15px 0 12px;
+      }
+      .button:hover {
+        background: #d0eee2;
+      }
+      .secondary {
+        display: block;
+        font-size: 12px;
+      }
+      .fine {
+        font-size: 12px !important;
+        line-height: 1.65;
+        color: #849b9f;
+      }
+      .card ol {
+        font-size: 14px;
+        color: #b3c2c5;
+        padding-left: 20px;
+        margin: 22px 0 0;
+      }
+      .card li {
+        padding: 4px 0;
+      }
+      .section {
+        margin-top: 62px;
+      }
+      .section-title {
+        font-size: 25px;
+        font-weight: 520;
+        letter-spacing: -0.035em;
+        margin: 12px 0 25px;
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+      }
+      .step {
+        border-top: 1px solid #c3e5db28;
+        padding-top: 20px;
+      }
+      .number {
+        color: #91bcac;
+        font-size: 12px;
+      }
+      .step h3 {
+        font-size: 19px;
+        margin: 8px 0;
+      }
+      .step p {
+        font-size: 14px;
+        margin: 0;
+      }
+      .evidence {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 40px;
+        align-items: center;
+        background: #121d2080;
+        border: 1px solid #b5d9d617;
+        padding: 32px;
+        border-radius: 24px;
+      }
+      .evidence h2 {
+        font-size: 28px;
+      }
+      .evidence ul {
+        list-style: none;
+        padding: 0;
+        font-size: 14px;
+        color: #b6c6c8;
+      }
+      .evidence li {
+        padding: 9px 0;
+        border-bottom: 1px solid #ffffff0b;
+      }
+      .evidence li:before {
+        content: "✓";
+        margin-right: 12px;
+        color: #a2d4c1;
+      }
+      .phone {
+        max-height: 480px;
+        max-width: 100%;
+        display: block;
+        margin: auto;
+        border: 1px solid #b5d9d62b;
+        border-radius: 20px;
+      }
+      .caption {
+        text-align: center;
+        font-size: 11px;
+        color: #819798;
+        margin: 10px 0 0;
+      }
+      .notice {
+        padding: 20px 24px;
+        border-left: 2px solid #81b6a4;
+        background: #a5c5b608;
+        font-size: 13px;
+        color: #aab9ba;
+        margin-top: 30px;
+      }
+      .notice strong {
+        color: #d1e3dd;
+      }
+      footer {
+        border-top: 1px solid #ffffff14;
+        margin-top: 52px;
+        padding-top: 22px;
+        font-size: 12px;
+        color: #76908e;
+      }
+      footer a {
+        margin-left: 18px;
+      }
+      code {
+        font-size: 0.9em;
+        overflow-wrap: anywhere;
+      }
+      details {
+        margin-top: 22px;
+        font-size: 13px;
+        color: #a6b7bc;
+      }
+      summary {
+        cursor: pointer;
+        color: #c2d9d1;
+        padding: 10px 0;
+      }
+      details p {
+        margin: 8px 0;
+      }
+      @media (max-width: 680px) {
+        main {
+          padding: 24px 22px 40px;
+        }
+        .intro {
+          padding-top: 44px;
+        }
+        .cards,
+        .steps,
+        .evidence {
+          grid-template-columns: 1fr;
+        }
+        .card {
+          padding: 24px;
+        }
+        .evidence {
+          padding: 24px;
+        }
+        .steps {
+          gap: 22px;
+        }
+        .phone {
+          max-height: 440px;
+        }
+        header {
+          gap: 12px;
+        }
+        .badge {
+          font-size: 10px;
+        }
+        footer {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 12px;
+        }
+        footer a {
+          margin-left: 0;
+          margin-right: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="wordmark">OMNI<span style="color: #8bc6b2">.</span></div>
+        <span class="badge">MVP 0.1.0 · Evaluation builds</span>
+      </header>
+      <section class="intro">
+        <div class="eyebrow">Your personal context layer</div>
+        <h1>Your AI changes.<br /><span>Your memory stays.</span></h1>
+        <p>
+          A private space for your knowledge, your models and your boundaries.
+          The engine lives in the app. Your context stays under your control.
+        </p>
+      </section>
+      <div class="cards">
+        <section class="card">
+          <p class="platform">01 / DESKTOP</p>
+          <h2>Made for your Mac.</h2>
+          <p>
+            Apple Silicon · macOS 14.4 or later<br />Native app. Encrypted local
+            memory.
+          </p>
+          <a class="button" href="macOS/OMNI-0.1.0-macOS-arm64.dmg" download
+            >Get the macOS app ↗</a
+          ><a
+            class="secondary"
+            href="macOS/OMNI-0.1.0-macOS-arm64.app.zip"
+            download
+            >Prefer a ZIP? Download the application archive.</a
+          >
+          <ol>
+            <li>Open the disk image.</li>
+            <li>Drag OMNI into Applications.</li>
+            <li>Open OMNI and connect your model.</li>
+          </ol>
+          <details>
+            <summary>First-open permissions</summary>
+            <p>
+              This build has an ad-hoc integrity signature, without Developer ID
+              signing or notarization. macOS may require
+              <strong>Privacy &amp; Security → Open Anyway</strong>. Existing
+              vaults may request Keychain authorization through the OS. Read the
+              <a href="README.md">installation guide</a> before proceeding.
+            </p>
+          </details>
+        </section>
+        <section class="card">
+          <p class="platform">02 / MOBILE</p>
+          <h2>Your space, in your hand.</h2>
+          <p>
+            Android 7+ · ARM64 and x86_64<br />Native app. Android Keystore
+            protection.
+          </p>
+          <a class="button" href="Android/OMNI-0.1.0-android.apk" download
+            >Get the Android APK ↗</a
+          ><span class="secondary"
+            >Install directly on your Android device.</span
+          >
+          <ol>
+            <li>Transfer the APK to your phone.</li>
+            <li>Open it and allow this installation source.</li>
+            <li>Connect your provider in guided setup.</li>
+          </ol>
+          <details>
+            <summary>Compatibility and updates</summary>
+            <p>
+              Development-signed APK, tested on Android 15 AOSP. A current
+              Android System WebView is required. ARM32-only devices are
+              unsupported. Keep the same signing identity for updates; do not
+              uninstall a personal vault to resolve a signature conflict.
+            </p>
+          </details>
+        </section>
+      </div>
+      <section class="section">
+        <div class="eyebrow">A few moments from your first conversation</div>
+        <h2 class="section-title">Connect. Remember. Continue.</h2>
+        <div class="steps">
+          <div class="step">
+            <span class="number">01</span>
+            <h3>Choose your model.</h3>
+            <p>
+              Use your provider API key or an existing model endpoint. No
+              development tools or OMNI server required.
+            </p>
+          </div>
+          <div class="step">
+            <span class="number">02</span>
+            <h3>Keep what matters.</h3>
+            <p>
+              Save a preference or project detail. It stays local until you
+              authorize sharing with a destination.
+            </p>
+          </div>
+          <div class="step">
+            <span class="number">03</span>
+            <h3>See what happens.</h3>
+            <p>
+              Talk through the launcher. Review models, token counts, request
+              history, permissions and local logs.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="section evidence">
+        <div>
+          <div class="eyebrow">Verified, with the evidence attached</div>
+          <h2>A working MVP.<br />An honest delivery.</h2>
+          <ul>
+            <li>macOS native startup and encrypted vault</li>
+            <li>18 Android native acceptance checks</li>
+            <li>5 Android Keystore tests</li>
+            <li>Conversation, history and restart persistence</li>
+            <li>Native metadata export and permission boundaries</li>
+            <li>Package integrity and SHA-256 checksums</li>
+          </ul>
+          <p class="fine">
+            Android was exercised through the installed APK on an emulator,
+            using a synthetic response model. Physical phones and public store
+            distribution remain separate release checks.
+          </p>
+          <a href="delivery.json">Read the delivery record ↗</a>
+        </div>
+        <figure style="margin: 0">
+          <img
+            class="phone"
+            src="Evidence/android-conversation.png"
+            alt="The installed Android app completing a conversation with an explicitly synthetic test provider"
+          />
+          <figcaption class="caption">
+            Actual Android application · synthetic test conversation
+          </figcaption>
+        </figure>
+      </section>
+      <div class="notice">
+        <strong>Your model, your device.</strong> No model or API credits are
+        bundled. Each installation owns a separate vault; synchronization and
+        complete backup recovery are not included. Analytics stays off in this
+        standalone build. These packages do not install a system-wide mobile
+        VPN.
+      </div>
+      <footer>
+        <span>OMNI / Your context. Your authority.</span>
+        <div>
+          <a href="README.md">Installation guide</a
+          ><a href="SHA256SUMS">Checksums</a
+          ><a href="https://github.com/nabz0r/OMNI-OS">Source</a>
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -18,6 +18,7 @@ __pycache__/
 .DS_Store
 /artifacts/
 !/artifacts/.gitkeep
+/deliverables/
 
 # Recreated from versioned platform configurations and native plugins.
 /apps/desktop/src-tauri/gen/android/

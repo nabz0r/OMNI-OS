@@ -1,5 +1,19 @@
 # Validation evidence
 
+## macOS and Android delivery acceptance — 2026-09-24
+
+The exact local Android APK with SHA-256 `90bdadb2da84564e0c6be607398bed1688e2374157d82e5301d4b4d0e36d2c27` passed a fresh native installation and vault-reopening smoke test, then **18 native UI acceptance checks** on Android 15 AOSP ARM64. Playwright attached to the actual installed APK's WebView. Production Tauri IPC, Kotlin, Android Keystore, Rust and SQLCipher handled the requests; only the response model was synthetic, hosted on loopback through ADB forwarding.
+
+The measured flow covers guided provider creation, catalog discovery without inference, local memory creation without a sharing grant, a successful model request excluding ungranted memory, reported tokens and history, a real Android export chooser, metadata-only export content, interface lock persistence through reload, no horizontal overflow, and memory/profile/history persistence after terminating and reopening the app. No WebView errors were observed. The OS chooser was dismissed without selecting an app or recipient. All five Keystore instrumentation tests were rerun successfully, and the APK signature verified. Screenshots and digest-bound reports are included in the local delivery. This adds actual Android runtime evidence beyond the earlier browser bridge suite; it does not establish physical-phone or commercial-provider behavior.
+
+Inspection of the original macOS evaluation archive found only a linker-generated signature, without a completed application resource seal. Packaging now explicitly applies an ad-hoc bundle signature and verifies it with `codesign --verify --deep --strict`; the DMG also passes `hdiutil verify`. Developer ID signing and notarization are still absent. The [delivery guide](DELIVERY.md) describes the package format and its acceptance gates.
+
+The delivered macOS release package comes from revision `178bed8d2e40aebf61756509b0e49959807e350e`. Its [native macOS job](https://github.com/nabz0r/OMNI-OS/actions/runs/35972227381/job/107546911418) passed bundle creation, fresh native vault startup and both native test suites. The same revision's [main verification workflow](https://github.com/nabz0r/OMNI-OS/actions/runs/35972227341) also passed. During delivery assembly, the downloaded archive matched GitHub's SHA-256 digest, and the application inside the read-only mounted DMG matched the separately extracted application. The final DMG SHA-256 is `5e87ccd13d01a700b369862a2c4b9824972f0fc36d51ecdfff95731b1a28d4fc`.
+
+The Android package retains revision `8603bf265a06a881b026f421dc08955a15128310` and its locally tested development signing identity; the subsequent delivery changes affect packaging and tests. The final local folder contains the extracted Mac app, DMG, Mac ZIP, APK, offline installation guide, reports and a 21-file checksum inventory. No key, personal vault, bearer token or development toolchain is included.
+
+## Earlier core and integration verification
+
 Local verification on 2026-09-21, macOS arm64. All test inputs were synthetic.
 
 | Check                                    | Observed result                                                                                                                                                                                                                                                                                                                   |
@@ -54,3 +68,5 @@ A universal development APK containing ARM64 and x86_64 native libraries was com
 The local universal Android evaluation APK is 102,007,285 bytes and includes both ARM64 and x86_64. Native development builds omit Rust DWARF symbols to keep the installable package smaller; debug signing and runtime checks remain enabled.
 
 The reusable Android smoke script also passed against a fresh installation of the final APK: native boot created the encrypted database, force-stop preserved it, and reopening produced a new encrypted audit write with the original database salt. It does not inspect plaintext or report any encryption key. The platform workflow repeats this check on a disposable x86_64 AOSP emulator before running the five Keystore tests.
+
+A later macOS app/DMG evaluation package was built successfully without distribution signing. Opening that new binary against the existing test vault requested macOS Keychain authorization; the computer-control tool refused access to the protected SecurityAgent UI. That attempt was cancelled without changing the vault or its key. The earlier native application flow remains the measured end-to-end macOS evidence; a build alone does not imply authorization to reopen an existing user's keychain item.
