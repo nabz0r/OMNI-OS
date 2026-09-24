@@ -1,13 +1,31 @@
 # Validation evidence
 
+## 0.2.0 release acceptance — 2026-09-24
+
+Both released installers were built from clean revision `a5458a484cab949d22bbe6b44faf9f954dc8d688`, including Policies. The [six-job verification workflow](https://github.com/nabz0r/OMNI-OS/actions/runs/35982048575) passed. The [native macOS job](https://github.com/nabz0r/OMNI-OS/actions/runs/35982048565/job/107576010803) passed package creation, fresh embedded-vault startup through the OS key store and native tests.
+
+| Delivered package                | SHA-256                                                            |
+| -------------------------------- | ------------------------------------------------------------------ |
+| `OMNI-0.2.0-macOS-arm64.dmg`     | `ba45d9b516c078a9e02f7bc45d8ab9302b660c43f9f42a85c83ad2af53dd7fbb` |
+| `OMNI-0.2.0-macOS-arm64.app.zip` | `64007f975df933bb12f9a21fb5dd311f9c40f779e1d461b0e97693417a0fff52` |
+| `OMNI-0.2.0-android.apk`         | `1cf8fd9eaf00ea3d7f32fdd400b77720a55a978e6f0a567ab352057ef9cfbcd3` |
+
+The exact Android APK passed **28 native acceptance checks** on Android 15 AOSP ARM64: the previous 18 scenarios plus invalid-regex rejection, native policy saving, local-only preview, file-type filtering, mobile policy layout, blocked-provider non-delivery, allowed text-attachment inference, metadata-only policy decisions and policy/decision persistence after process restart. Five Android Keystore instrumentation tests passed. **Seven upgrade checks** verified the same signing certificate, installation over the original 0.1.0 APK without uninstalling, preservation of synthetic memory and settings, policy schema initialization and the new console.
+
+The restart smoke test now reads a deliberately changed setting through production native IPC after restarting and restores its original value. Unchanged database ciphertext alone is not a failed restart. Android export acceptance waits for the OS chooser to become the resumed activity before dismissing it; sending Back during its transition can close the application instead of the chooser.
+
+The macOS Actions archive matched GitHub's digest `e7e06e0b9d48e46cbcdd67a739cb9e651886a8b8485867df6403b616b178b7a9`. Local assembly verified the completed application resource seal, mounted the DMG read-only, compared it with the extracted application, verified APK signing and bound Android acceptance and upgrade reports to the exact shipped APK. The complete delivery contains a 23-file SHA-256 inventory, offline guide and synthetic screenshots.
+
+macOS acceptance for this exact package establishes native startup, encrypted-vault creation and packaging integrity; it is not a full real-provider conversation or existing-Keychain upgrade test. Android evidence is from an emulator, not a physical phone. Neither package is store-signed or independently security-certified. The [release](https://github.com/nabz0r/OMNI-OS/releases/tag/v0.2.0) and [delivery instructions](DELIVERY.md) preserve these boundaries.
+
 ## Request policies — 2026-09-24
 
-The source policy implementation was verified locally on macOS ARM64 with synthetic data. It was not evaluated against a real corporate fleet or every provider API. The previously delivered revision-pinned Mac and Android installers below predate this change.
+The source policy implementation was verified locally on macOS ARM64 with synthetic data. It was not evaluated against a real corporate fleet or every provider API. The historical 0.1.0 installers described below predate this change; the 0.2.0 packages above include it.
 
 | Check                | Observed result                                                                                                                                                                                                                         |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Rust workspace       | 79 tests passed: 72 core and 7 VPN                                                                                                                                                                                                      |
-| Native macOS target  | Locked Tauri check and both application tests passed; embedded-runtime policy persistence and managed-denial tests passed in the core suite                                                                                       |
+| Native macOS target  | Locked Tauri check and both application tests passed; embedded-runtime policy persistence and managed-denial tests passed in the core suite                                                                                             |
 | Policy enforcement   | Verified local/managed precedence, owner-only administration, atomic validation, stale revisions, bounded encrypted decisions and persistence through native IPC restart                                                                |
 | Blocked egress       | Launcher, both gateway protocols including streaming requests, history, tool arguments, authorized memory and capture rejected before contacting a fixture provider; MCP returned no blocked memory                                     |
 | Files                | Allowed UTF-8 text reached the synthetic model as text; disallowed types, mismatched media, oversized or disguised binary content and recognized opaque attachments were refused; historical files were rechecked after a policy change |
@@ -21,7 +39,7 @@ The policy UI suite uses the checked-in organization example and an isolated SQL
 
 Screenshots are produced under `apps/desktop/artifacts/policies/`; the README includes the reviewed desktop view. Run `npm run test:policies` with a built core and the interface on port 3006 to reproduce this feature suite. It is also part of the application CI job. The [policy guide](POLICIES.md) defines the actual matching, file and deployment boundaries.
 
-## macOS and Android delivery acceptance — 2026-09-24
+## Historical 0.1.0 delivery acceptance — 2026-09-24
 
 The exact local Android APK with SHA-256 `90bdadb2da84564e0c6be607398bed1688e2374157d82e5301d4b4d0e36d2c27` passed a fresh native installation and vault-reopening smoke test, then **18 native UI acceptance checks** on Android 15 AOSP ARM64. Playwright attached to the actual installed APK's WebView. Production Tauri IPC, Kotlin, Android Keystore, Rust and SQLCipher handled the requests; only the response model was synthetic, hosted on loopback through ADB forwarding.
 

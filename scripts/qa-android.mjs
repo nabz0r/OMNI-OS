@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { setTimeout as delay } from "node:timers/promises";
 import { createHash } from "node:crypto";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -163,12 +164,33 @@ try {
       exact: true,
     })
     .waitFor();
-  check(
-    "native_share_sheet",
-    /ChooserActivity/.test(adb(["shell", "dumpsys", "activity", "activities"])),
-  );
+  // A chooser can exist in the activity history before it receives focus.
+  // Wait for the resumed activity before Back, or Android can close OMNI itself.
+  async function resumedActivity(pattern) {
+    const deadline = performance.now() + 15000;
+    while (performance.now() < deadline) {
+      const activities = adb(["shell", "dumpsys", "activity", "activities"]);
+      if (
+        activities
+          .split("\n")
+          .some(
+            (line) =>
+              /(?:topResumedActivity|mResumedActivity)/.test(line) &&
+              pattern.test(line),
+          )
+      )
+        return true;
+      await delay(150);
+    }
+    return false;
+  }
+  check("native_share_sheet", await resumedActivity(/ChooserActivity/));
   // Close the chooser without selecting an external app or recipient.
   adb(["shell", "input", "keyevent", "KEYCODE_BACK"]);
+  assert.ok(
+    await resumedActivity(/local\.omni\.desktop\/.MainActivity/),
+    "OMNI must resume after dismissing export",
+  );
   const exported = adb([
     "exec-out",
     "run-as",

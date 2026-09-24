@@ -95,6 +95,7 @@ const androidBuild = await json(join(android, "build-info.json"));
 const acceptance = await json(join(evidence, "android-native-acceptance.json"));
 const keystore = await json(join(evidence, "android-keystore-tests.json"));
 const smoke = await json(join(evidence, "android-smoke.json"));
+const upgrade = await json(join(evidence, "android-upgrade.json"));
 assert.equal(macBuild.platform, "macos");
 assert.equal(macBuild.target, "aarch64-apple-darwin");
 assert.equal(macBuild.status, "built");
@@ -160,6 +161,25 @@ assert.equal(
   apk.sha256,
   "Android acceptance must cover the exact APK being delivered",
 );
+assert.equal(upgrade.status, "passed");
+assert.equal(
+  upgrade.to_apk_sha256,
+  apk.sha256,
+  "Upgrade evidence must cover the delivered APK",
+);
+for (const name of [
+  "same_signing_identity",
+  "update_without_uninstall",
+  "original_memory_preserved",
+  "original_settings_preserved",
+  "policy_schema_migrated",
+  "new_policy_console_available",
+])
+  assert.equal(
+    upgrade.assertions[name],
+    true,
+    `Missing upgrade check: ${name}`,
+  );
 await verifyInput(mac, macBuild, `OMNI_${version}_aarch64.dmg`);
 await verifyInput(mac, macBuild, "OMNI-macos-arm64.app.zip");
 const run = (command, args) => execFileSync(command, args, { stdio: "pipe" });
@@ -277,6 +297,9 @@ try {
         acceptance: `${Object.keys(acceptance.assertions).length} native acceptance checks passed`,
         keystore: "5 instrumentation tests passed",
         tested_apk_sha256: acceptance.apk_sha256,
+        upgrade:
+          "7 in-place upgrade checks passed from the 0.1.0 evaluation APK",
+        certificate_sha256: upgrade.certificate_sha256,
       },
     },
     boundaries: [
