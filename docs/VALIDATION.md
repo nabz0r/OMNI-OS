@@ -2,6 +2,8 @@
 
 ## 0.2.0 release acceptance — 2026-09-24
 
+The [publication workflow](https://github.com/nabz0r/OMNI-OS/actions/runs/35983500546) published the 0.2.0 pre-release on 2026-09-24. All six public asset sizes and GitHub SHA-256 digests matched the local release manifest. A separate download check retrieved the published checksum file and macOS DMG and confirmed their exact hashes. The temporary publication branch was removed after verification; the release assets remain available.
+
 Both released installers were built from clean revision `a5458a484cab949d22bbe6b44faf9f954dc8d688`, including Policies. The [six-job verification workflow](https://github.com/nabz0r/OMNI-OS/actions/runs/35982048575) passed. The [native macOS job](https://github.com/nabz0r/OMNI-OS/actions/runs/35982048565/job/107576010803) passed package creation, fresh embedded-vault startup through the OS key store and native tests.
 
 | Delivered package                | SHA-256                                                            |
