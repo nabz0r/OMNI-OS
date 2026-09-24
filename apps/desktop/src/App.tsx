@@ -49,6 +49,8 @@ import {
 } from "lucide-react";
 import Administration, { type AdminState } from "./Administration";
 import Operations from "./Operations";
+import Policies from "./Policies";
+import { readTextFiles, type TextAttachment } from "./files";
 import Setup from "./Setup";
 import { isNative, provisionNativeSession, vaultStorageLabel } from "./native";
 import {
@@ -73,6 +75,7 @@ import {
 type View =
   | "overview"
   | "memories"
+  | "policies"
   | "permissions"
   | "activity"
   | "network"
@@ -85,6 +88,7 @@ const nav = [
   { id: "overview" as View, label: "Overview", icon: CircleDot },
   { id: "memories" as View, label: "Memory", icon: Database },
   { id: "permissions" as View, label: "Permissions", icon: ShieldCheck },
+  { id: "policies" as View, label: "Policies", icon: Shield },
   { id: "models" as View, label: "Models", icon: Cpu },
   { id: "activity" as View, label: "History", icon: Activity },
   { id: "usage" as View, label: "Usage", icon: BarChart3 },
@@ -99,22 +103,38 @@ type ChatEntry = {
   text: string;
   model?: string;
   receiptId?: string | null;
+  attachments?: TextAttachment[];
 };
 function buildHistory(entries: ChatEntry[], message: string) {
   const encoder = new TextEncoder();
   let bytes = encoder.encode(message).length;
-  const history: { role: "user" | "assistant"; content: string }[] = [];
+  const history: {
+    role: "user" | "assistant";
+    content: string;
+    attachments?: TextAttachment[];
+  }[] = [];
   for (let i = entries.length - 2; i >= 0 && history.length < 20; i -= 2) {
     const pair = entries.slice(i, i + 2);
     if (pair[0]?.role !== "user" || pair[1]?.role !== "assistant") break;
     const size = pair.reduce(
-      (sum, entry) => sum + encoder.encode(entry.text).length,
+      (sum, entry) =>
+        sum +
+        encoder.encode(entry.text).length +
+        (entry.attachments?.length
+          ? encoder.encode(JSON.stringify(entry.attachments)).length
+          : 0),
       0,
     );
     if (bytes + size > 100000) break;
     bytes += size;
     history.unshift(
-      ...pair.map((entry) => ({ role: entry.role, content: entry.text })),
+      ...pair.map((entry) => ({
+        role: entry.role,
+        content: entry.text,
+        ...(entry.attachments?.length
+          ? { attachments: entry.attachments }
+          : {}),
+      })),
     );
   }
   return history;
@@ -241,6 +261,9 @@ function OmniSpace({
   const [toast, setToast] = useState("");
   const [launcher, setLauncher] = useState(false);
   const [message, setMessage] = useState("");
+  const [attachments, setAttachments] = useState<TextAttachment[]>([]);
+  const [readingFiles, setReadingFiles] = useState(false);
+  const attachmentEpoch = useRef(0);
   const [grantId, setGrantId] = useState("");
   const [chat, setChat] = useState<ChatEntry[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
@@ -604,6 +627,9 @@ function OmniSpace({
       chatController.current = null;
       setChatBusy(false);
       setChat([]);
+      attachmentEpoch.current += 1;
+      setAttachments([]);
+      setReadingFiles(false);
       setGrantId("");
       setToast("Model destination changed. A new conversation is ready.");
     }
@@ -622,6 +648,9 @@ function OmniSpace({
       setChatBusy(false);
       setGrantId("");
       setChat([]);
+      attachmentEpoch.current += 1;
+      setAttachments([]);
+      setReadingFiles(false);
       setError(
         "This permission expired or was revoked. Choose a permission to start a new conversation.",
       );
@@ -658,6 +687,9 @@ function OmniSpace({
       chatController.current = null;
       setChatBusy(false);
       setChat([]);
+      attachmentEpoch.current += 1;
+      setAttachments([]);
+      setReadingFiles(false);
       setError("");
       setToast("Authorized memories changed. A new conversation is ready.");
     }
@@ -698,6 +730,9 @@ function OmniSpace({
         chatController.current = null;
         setChatBusy(false);
         setChat([]);
+        attachmentEpoch.current += 1;
+        setAttachments([]);
+        setReadingFiles(false);
       }
       await refresh();
       return true;
@@ -745,7 +780,8 @@ function OmniSpace({
   };
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!message.trim() || chatBusy || connection !== "online") return;
+    if (!message.trim() || chatBusy || readingFiles || connection !== "online")
+      return;
     if (!activeProvider?.model) {
       setError(
         "Choose a model for this provider before sending. Check its connection in Models to discover available models.",
@@ -758,11 +794,16 @@ function OmniSpace({
       return;
     }
     const previous = chat;
+    const outgoingFiles = attachments;
     const history = buildHistory(previous, text);
     const controller = new AbortController();
     chatController.current = controller;
     setMessage("");
-    setChat((list) => [...list, { role: "user", text }]);
+    setAttachments([]);
+    setChat((list) => [
+      ...list,
+      { role: "user", text, attachments: outgoingFiles },
+    ]);
     setChatBusy(true);
     setError("");
     try {
@@ -774,6 +815,7 @@ function OmniSpace({
         ]),
         body: JSON.stringify({
           message: text,
+          attachments: outgoingFiles,
           history,
           ...(activeProvider?.id ? { provider_id: activeProvider.id } : {}),
           ...(activeProvider?.model ? { model: activeProvider.model } : {}),
@@ -803,6 +845,7 @@ function OmniSpace({
         return;
       setChat(previous);
       setMessage((draft) => draft || text);
+      setAttachments(outgoingFiles);
       setError(
         controller.signal.aborted
           ? "Stopped waiting. The provider may already have received this request."
@@ -816,6 +859,9 @@ function OmniSpace({
     }
   };
   const resetConversation = () => {
+    attachmentEpoch.current += 1;
+    setReadingFiles(false);
+    setAttachments([]);
     setChat([]);
     setMessage("");
     setError("");
@@ -1606,6 +1652,7 @@ function OmniSpace({
               )}
             </>
           )}
+          {view === "policies" && <Policies request={localRequest} />}
           {(view === "models" || view === "settings") && (
             <Administration
               view={view}
@@ -2477,7 +2524,19 @@ function OmniSpace({
                         </div>
                       </>
                     ) : (
-                      <p>{entry.text}</p>
+                      <>
+                        <p>{entry.text}</p>
+                        {!!entry.attachments?.length && (
+                          <div className="file-attachments">
+                            {entry.attachments.map((file, index) => (
+                              <span key={index}>
+                                <FileText size={13} />
+                                {file.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </article>
                 ))
@@ -2569,6 +2628,63 @@ function OmniSpace({
                     : "External destination"}
                 </span>
               </div>
+              <div className="file-attachments">
+                {attachments.map((file, index) => (
+                  <span key={index}>
+                    <FileText size={13} />
+                    {file.name}
+                    <button
+                      type="button"
+                      aria-label={`Remove attached file ${index + 1}`}
+                      disabled={chatBusy || readingFiles}
+                      onClick={() =>
+                        setAttachments((value) =>
+                          value.filter((_, i) => i !== index),
+                        )
+                      }
+                    >
+                      <X size={13} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <label className="attach-control">
+                <FileText size={14} />
+                {readingFiles ? "Reading files…" : "Attach text files"}
+                <input
+                  type="file"
+                  aria-label="Attach text files"
+                  multiple
+                  accept=".txt,.md,.csv,.json,.log,.yaml,.yml"
+                  disabled={chatBusy || readingFiles}
+                  onChange={async (event) => {
+                    const selected = event.target.files
+                      ? Array.from(event.target.files)
+                      : [];
+                    event.target.value = "";
+                    if (!selected.length) return;
+                    const epoch = ++attachmentEpoch.current;
+                    setReadingFiles(true);
+                    try {
+                      if (attachments.length + selected.length > 8)
+                        throw new Error(
+                          "Attach at most eight files. Your policy may set a lower limit.",
+                        );
+                      const values = await readTextFiles(selected);
+                      if (
+                        !sessionController.current.signal.aborted &&
+                        epoch === attachmentEpoch.current
+                      )
+                        setAttachments((current) => [...current, ...values]);
+                    } catch (error) {
+                      setError((error as Error).message);
+                    } finally {
+                      if (epoch === attachmentEpoch.current)
+                        setReadingFiles(false);
+                    }
+                  }}
+                />
+              </label>
               <div className="composer">
                 <textarea
                   autoFocus
@@ -2603,6 +2719,7 @@ function OmniSpace({
                     className="send-button"
                     disabled={
                       !message.trim() ||
+                      readingFiles ||
                       connection !== "online" ||
                       !activeProvider?.model
                     }

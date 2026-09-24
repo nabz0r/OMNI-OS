@@ -1,0 +1,23 @@
+{
+  "name": "Organization baseline",
+  "max_request_bytes": 262144,
+  "max_file_bytes": 50000,
+  "max_files": 2,
+  "allowed_extensions": ["txt", "md", "csv", "json"],
+  "rules": [
+    {
+      "id": "private-key-header",
+      "name": "Block private key headers",
+      "pattern": "-----BEGIN [A-Z ]*PRIVATE KEY-----",
+      "action": "block_match",
+      "enabled": true
+    },
+    {
+      "id": "restricted-classification",
+      "name": "Block explicit restricted classification",
+      "pattern": "(?i)classification\\s*:\\s*restricted",
+      "action": "block_match",
+      "enabled": true
+    }
+  ]
+}

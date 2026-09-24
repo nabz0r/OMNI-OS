@@ -22,7 +22,8 @@
     "test:console": "node apps/desktop/qa-console.mjs",
     "test:onboarding": "node apps/desktop/qa-onboarding.mjs",
     "test:setup": "node apps/desktop/qa-setup-connections.mjs",
-    "test:native": "node apps/desktop/qa-native.mjs"
+    "test:native": "node apps/desktop/qa-native.mjs",
+    "test:policies": "node apps/desktop/qa-policies.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

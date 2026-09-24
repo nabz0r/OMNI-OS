@@ -93,6 +93,11 @@ pub async fn native_session(
                 .map_err(|error| error.to_string())
         }).await.map_err(|_| "The system key store could not be opened.".to_owned())??;
         let mut options = EmbeddedOptions::new(data_dir, key, storage);
+        #[cfg(desktop)]
+        if let Some(path) = std::env::var_os("OMNI_MANAGED_POLICY_FILE") {
+            options.managed_policy = Some(omni_core::policy::load_managed(std::path::Path::new(&path))
+                .map_err(|_| "The organization policy could not be validated. Ask your administrator to repair the managed policy file; startup was refused.".to_owned())?);
+        }
         options.listen = false;
         #[cfg(mobile)]
         {

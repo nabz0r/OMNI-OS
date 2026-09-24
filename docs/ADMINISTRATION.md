@@ -25,6 +25,12 @@ CSV and JSON exports from History and Logs contain only the current page of meta
 
 Browser mode uses a normal download. Native desktop saves in `Documents/OMNI`, creating a distinct filename if a file already exists. Mobile opens the system share sheet with temporary access to a private export file and no automatic recipient. The interface acknowledges opening the share sheet, not successful saving: cancelling it does not export to a destination. The native bridge accepts bounded JSON/CSV exports only, with an `omni-` filename and a two-MiB limit; it is not arbitrary filesystem access. A chosen receiving app controls its copy afterward.
 
+## Request policies
+
+**Policies** adds a content-rule editor, text-file allowlist, request/file limits, saved-policy tester, managed baseline inspector and decision trail. The owner may edit the local layer; an operator-provisioned layer is read-only and remains mandatory. The Rust core enforces both before sending requests, including history and authorized memory. A stopped request appears in the policy trail rather than creating a successful provider interaction.
+
+Decisions are encrypted and limited to the last 1,000, independent of optional interaction journaling. Clearing interaction history preserves policies and decisions. The tester is local and uses the saved revision; unsaved changes do not affect it. The managed baseline is provisioned through a startup file, not a fleet dashboard. [Full guide and API](POLICIES.md).
+
 ## Provider profiles and credentials
 
 A profile has a generated `id`, a human-readable `label`, `kind`, `base_url`, default `model`, `enabled` flag, optional credential, optional manual rates and its last discovery result. Supported kinds are `ollama`, `openai`, `anthropic` and `compatible` for an OpenAI-compatible API. Up to 32 profiles are supported.
@@ -140,7 +146,7 @@ Aggregate cost reports include `priced_interactions`. A partial sum is not the c
 
 ## Audit events and retention
 
-Logs are structured application events, not operating-system logs, browser history or freeform server output. Implemented events cover memory and source changes, grant creation and revocation, captures, analytics consent and report actions, provider changes and probes, settings changes, startup recovery and explicit history clearing.
+Logs are structured application events, not operating-system logs, browser history or freeform server output. Implemented events cover memory and source changes, grant creation and revocation, captures, analytics consent and report actions, provider changes and probes, settings changes, startup recovery, explicit history clearing, policy changes and policy blocks. `policy_updated` stores the rule count; `policy_blocked` references the metadata decision ID without retaining its matched text.
 
 An event has `id`, `created_at`, `action`, `level` and a closed `details` object. Allowed details include identifiers, a model name, a count, enabled state, retention days, HTTP status and a sanitized error code. Arbitrary message, prompt, response and credential fields are excluded. The API supports `info`, `warning` and `error` filters; severity is derived from the recorded action and structured outcome.
 

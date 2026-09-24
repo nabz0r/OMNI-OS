@@ -56,6 +56,8 @@ You can chat with **No memory context** immediately. When you want a model to us
 
 The visible conversation lasts for the interface session. Reloading or locking clears its turns and drafts. Follow-ups include up to ten previous exchanges within the content limit. Changing the model, destination, permission or authorized memory resets that conversation. Permanent memories, provider settings and retained operational records survive restarts.
 
+Use **Policies** to set content patterns, permitted text-file types and size limits. Save and test a sample locally before sending; the [policy guide](POLICIES.md) explains organization baselines and the private decision trail. A blocked request can be corrected without sending it to a model.
+
 Use **History** for request outcomes and disclosure receipts. Use **Usage** for tokens, payload sizes and carefully labeled estimates. Use **Logs** for structured local changes. The [administration guide](ADMINISTRATION.md) explains all settings and measurement boundaries.
 
 Standalone native applications have no analytics collector configured by default. Analytics remains unavailable there until a deployment supplies one; memory, permissions and model requests do not depend on participation. Metadata export uses browser downloads, `Documents/OMNI` on native desktop, or the system share sheet on mobile. Exporting a report is not a complete vault backup.

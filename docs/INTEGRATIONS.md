@@ -33,6 +33,8 @@ Supported routes:
 
 Send optional `x-omni-provider: <profile-id>` to select an enabled profile of the matching protocol. Otherwise the gateway uses the primary profile if compatible, or the first enabled profile for that protocol. A permission must match the selected base exactly; selecting a different provider never broadens its scope.
 
+Both routes apply the saved local and managed request policies before provider egress, including when `stream` is true. Supported text files use `omni_attachments` or historical `omni_text_file` content blocks; recognized opaque provider file IDs, remote file/image URLs and binary media blocks are refused. The [policy integration contract](POLICIES.md#integration-contract) defines payloads, limits and denial behavior.
+
 Both routes accept ordinary JSON requests and preserve upstream event-stream bytes. Reported usage is extracted from non-streaming responses and supported SSE usage events when supplied. Missing counters remain unknown. The separate local request journal records time to response headers and total elapsed time, request/response body bytes, terminal status and supported token counters. These are payload sizes, not TCP/TLS wire measurements. Streaming cancellation can leave partial usage; the record retains its terminal status. DP observations remain separate from this operational journal. Models and API keys remain provider-specific; these routes do not imply compatibility with every provider API. The desktop launcher's bounded session-history behavior is separate from these pass-through protocol routes.
 
 The native UI bridge returns bounded complete response bodies rather than incremental SSE events. This does not change the external gateway's streaming contract. Mobile has no bundled inference engine or system-wide network interception; other apps' conversations remain outside OMNI unless explicitly imported or routed through a separately configured gateway.
@@ -40,6 +42,8 @@ The native UI bridge returns bounded complete response bodies rather than increm
 ## Memory tools over MCP
 
 Send JSON-RPC requests to `http://127.0.0.1:3007/mcp` with the agent bearer token. The endpoint implements initialize, ping, tool discovery, memory search and memory proposals. It returns JSON responses over HTTP; it is not a stdio process.
+
+`memory_search` additionally applies content policy to its query and authorized result before returning memory; denial creates a metadata decision and no disclosure receipt. A valid grant cannot bypass that check.
 
 `memory_propose` accepts a content string and always creates an unconfirmed proposal. `memory_search` accepts `query` and `grant_id`; its permission destination must be exactly `https://omni.local/mcp`. This URI names the local agent capability; the server makes no request to it. The owner creates that grant through the authenticated `/api/grants` API. The tool cannot confirm memories, create grants, change destinations or increase authority.
 
@@ -57,7 +61,7 @@ For development integrations, read the owner token from its local file in the ow
 
 ## Import, review and deletion
 
-Use **Memory → Import text** to submit a note or conversation to `/api/capture`, or use the extension's explicit capture action. The desktop accepts up to 100,000 UTF-8 bytes and an optional source title. The raw source stays in the encrypted `sources` table. Extraction runs against the configured local extraction endpoint, examines at most the first 12,000 characters, and proposes at most five memories linked to the source. It does not fall back to a cloud model. If the extractor is unavailable or returns invalid output, the source remains saved and an excerpt becomes an unconfirmed proposal.
+Use **Memory → Import text** to submit a note or conversation to `/api/capture`, or use the extension's explicit capture action. The desktop accepts up to 100,000 UTF-8 bytes and an optional source title. A policy check covers the full source and actual extractor request before any inference or persistence; a denial saves neither the source nor a fallback proposal. For an allowed capture, the raw source stays in the encrypted `sources` table. Extraction runs against the configured local extraction endpoint, examines at most the first 12,000 characters, and proposes at most five memories linked to the source. It does not fall back to a cloud model. If the extractor is unavailable or returns invalid output, the source remains saved and an excerpt becomes an unconfirmed proposal.
 
 Review the proposals before confirming any of them. Confirmation alone does not create a permission, though an existing valid wildcard permission covers subsequently confirmed memories. Proposed, disputed and superseded memories are excluded from authorized context. The current retrieval is bounded lexical selection, not an identity embedding or a claim that a person's life can be reduced to a vector.
 

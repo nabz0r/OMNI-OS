@@ -35,6 +35,7 @@ const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(5);
 /// changed. The caller must retrieve `vault_key` from its platform secure store
 /// and keep the same key for subsequent launches of this data directory.
 pub struct EmbeddedOptions {
+    pub managed_policy: Option<Arc<crate::policy::CompiledPolicy>>,
     pub data_dir: PathBuf,
     vault_key: Zeroizing<[u8; 32]>,
     pub key_storage: String,
@@ -61,6 +62,7 @@ pub struct EmbeddedOptions {
 impl EmbeddedOptions {
     pub fn new(data_dir: PathBuf, vault_key: [u8; 32], key_storage: impl Into<String>) -> Self {
         Self {
+            managed_policy: None,
             data_dir,
             vault_key: Zeroizing::new(vault_key),
             key_storage: key_storage.into(),
@@ -146,6 +148,7 @@ impl EmbeddedOptions {
             }
         }
         Ok(Config {
+            managed_policy: self.managed_policy.clone(),
             data_dir: self.data_dir.clone(),
             port,
             local_token: random_token()?,
@@ -504,6 +507,55 @@ mod tests {
         core.shutdown().await.unwrap();
     }
 
+    #[tokio::test]
+    async fn ipc_policy_revision_persists_and_enforcement_uses_managed_baseline() {
+        use crate::policy::{CompiledPolicy, PolicySpec, Rule, RuleAction};
+        let directory = tempfile::tempdir().unwrap();
+        let mut config = options(directory.path());
+        config.managed_policy = Some(Arc::new(
+            CompiledPolicy::compile(PolicySpec {
+                rules: vec![Rule {
+                    id: "native-rule".into(),
+                    name: "Native rule".into(),
+                    pattern: "NATIVE-CANARY".into(),
+                    action: RuleAction::BlockMatch,
+                    enabled: true,
+                }],
+                ..Default::default()
+            })
+            .unwrap(),
+        ));
+        let managed = config.managed_policy.clone();
+        let first = start(config).await.unwrap();
+        let (status, saved) = json_request(
+            &first,
+            "POST",
+            "/api/policies",
+            Some(json!({"expected_revision":0,"policy":PolicySpec::default()})),
+        )
+        .await;
+        assert_eq!(status, 200);
+        assert_eq!(saved["revision"], 1);
+        let (status, denied) = json_request(
+            &first,
+            "POST",
+            "/api/chat",
+            Some(json!({"message":"NATIVE-CANARY"})),
+        )
+        .await;
+        assert_eq!(status, 403);
+        assert!(!denied.to_string().contains("NATIVE-CANARY"));
+        first.shutdown().await.unwrap();
+        let mut config = options(directory.path());
+        config.managed_policy = managed;
+        let second = start(config).await.unwrap();
+        let (_, policy) = json_request(&second, "GET", "/api/policies", None).await;
+        assert_eq!(policy["revision"], 1);
+        let (_, trail) = json_request(&second, "GET", "/api/policies/decisions", None).await;
+        assert_eq!(trail["retained"], 1);
+        assert_eq!(trail["items"][0]["layer"], "managed");
+        second.shutdown().await.unwrap();
+    }
     #[tokio::test]
     async fn ipc_restart_preserves_encrypted_data_and_rotates_session_capabilities() {
         let directory = tempfile::tempdir().unwrap();

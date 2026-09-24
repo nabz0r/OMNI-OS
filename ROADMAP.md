@@ -55,6 +55,14 @@ These thresholds are decision tools. They remain operating hypotheses, never pub
 
 **Stop rule:** after two focused iterations without a useful gain in the comparison, stop expanding the segment and reconsider the use case. If access to a source adds little utility while increasing errors or exposure, remove it from the default workflow. If participants return only for the visual demonstration, refocus on the everyday work OMNI should improve.
 
+## Policy delivery and the enterprise path
+
+**Delivered in the source MVP:** owner-administered regex block/require rules, allowed UTF-8 file formats, volume limits, pre-egress enforcement, local preview, revision conflicts and an encrypted decision trail. Deployment operators can require a validated, read-only baseline that local policy edits cannot weaken. The same Rust engine is used by native IPC and the explicit gateway. This is request filtering, not yet a centrally operated enterprise firewall. [Implemented contract](docs/POLICIES.md).
+
+**Next enterprise acceptance gates:** separate work and personal vaults; authenticated administrator/group identity; signed policy version distribution with rollback protection and deployment acknowledgements; tested OS/network rules preventing direct provider bypass; explicit retention controls and an accountable audit export; carefully evaluated document parsers and response controls. Each requires tests for stale/offline policy, failed rollout, false positives and malicious inputs. Binary formats remain unavailable until their parser and extraction boundary can be defended.
+
+**Business hypothesis:** organizations pay for maintained policies, managed deployment and support, with seats or managed installations counted explicitly. The payer gains policy administration over the agreed work environment, not ownership of personal memory. Validate willingness to pay in a narrowly scoped pilot before implementing billing or claiming enterprise readiness. There is no substantiated market-first claim.
+
 ## Phase II — Sovereign Agent: Delegate Without Surrendering Authority
 
 **The promise to test:** a person can entrust a task to an agent, inspect the limits of that delegation and cut off its future access.

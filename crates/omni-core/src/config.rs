@@ -84,6 +84,7 @@ fn pairing_bytes(secret: &str) -> Option<[u8; 32]> {
 
 #[derive(Clone)]
 pub struct Config {
+    pub managed_policy: Option<Arc<crate::policy::CompiledPolicy>>,
     pub data_dir: PathBuf,
     pub port: u16,
     pub local_token: String,
@@ -193,6 +194,9 @@ impl Config {
         let agent_token = load_token(&data_dir, "agent-token", "OMNI_AGENT_TOKEN")?;
         validate_tokens(&local_token, &agent_token)?;
         Ok(Self {
+            managed_policy: env::var_os("OMNI_MANAGED_POLICY_FILE")
+                .map(|path| crate::policy::load_managed(Path::new(&path)))
+                .transpose()?,
             local_token,
             agent_token,
             pairing,

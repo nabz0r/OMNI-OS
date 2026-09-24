@@ -18,6 +18,12 @@ Request journaling is enabled by default with 30-day retention, configurable fro
 
 Provider keys and configuration are encrypted in the same vault. Owner-authenticated administration exposes only whether a key is present, never its value. The interface handles a newly entered provider key transiently before submitting it through native IPC or, in browser development, authenticated loopback HTTP. The separate database encryption key is not exposed to the native webview. Local encryption and API field separation do not protect an already compromised webview or unlocked core.
 
+## Policy data stays local
+
+The local policy document and the last 1,000 policy decisions are encrypted in SQLCipher. A decision contains an identifier, time, operation, local revision, optional managed fingerprint, layer, reason/rule identifier and size/count metadata. It contains no prompt, reply, file name or matching excerpt. Decision recording is mandatory for evaluated requests, even when optional request history is disabled; history clearing preserves this separate count-bounded trail. It is not exported to the analytics collector.
+
+Text attachments remain transient conversation input, not automatically stored sources or memories. An allowed provider necessarily receives their text. A denied gateway request creates no provider call or disclosure receipt. Regex does not hide data from an allowed recipient, discover every encoding of a secret or stop applications that bypass OMNI. Managed policy provisioning requires operator control over both the file and startup environment. [Detailed boundaries](POLICIES.md).
+
 ## Local differential privacy
 
 Participation defaults to off. The standalone native bootstrap configures no collector, so enabling analytics and preparing or sending a report fail before budget consumption. A deployment may explicitly supply a collector, subject to consent and the same privacy ledger. The development simulation uses a separate fixture collector and an explicitly synthetic opt-in scenario; it is not a hidden production telemetry configuration.

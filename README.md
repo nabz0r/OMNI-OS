@@ -2,7 +2,7 @@
 
 ### Your AI changes. Your memory stays.
 
-**OMNI is a local personal memory and a controlled gateway to your AI tools.** It keeps the context you choose, lets you correct it, and shares only the memories you authorize for a specific provider.
+**OMNI is a local personal memory and a controlled gateway to your AI tools.** It keeps the context you choose, lets you correct it, and shares only the memories you authorize for a specific provider. Its policy engine also checks request content, files and injected context before a model receives them.
 
 > Models provide the computation. You keep the history and set the rules.
 
@@ -28,7 +28,7 @@ Revocation blocks future sharing through OMNI. It cannot retrieve copies a provi
 
 ## Native applications and the development demo
 
-**macOS and Android MVP delivery:** the local `deliverables/OMNI-0.1.0-mvp/` folder contains a Mac application and DMG, an Android APK, a visual installation guide and verification evidence. Start with `START-HERE.html`. These standalone packages need no development tools or OMNI server. macOS targets Apple Silicon on 14.4+; Android targets ARM64 and x86_64 on API 24+, with native acceptance performed on Android 15. The Mac package has an ad-hoc signature and the APK a development signature; public store distribution remains separate. [Installation and delivery details →](docs/DELIVERY.md)
+**macOS and Android MVP delivery:** the local `deliverables/OMNI-0.1.0-mvp/` folder contains a Mac application and DMG, an Android APK, a visual installation guide and verification evidence. Start with `START-HERE.html`. Those revision-pinned packages predate the policy feature; build the current source to use Policies. They have not been relabeled as newer binaries. These standalone packages need no development tools or OMNI server. macOS targets Apple Silicon on 14.4+; Android targets ARM64 and x86_64 on API 24+, with native acceptance performed on Android 15. The Mac package has an ad-hoc signature and the APK a development signature; public store distribution remains separate. [Installation and delivery details →](docs/DELIVERY.md)
 
 The native application embeds the Rust core and SQLCipher vault in the application process. Its interface uses authenticated native messages; it starts no local HTTP listener or Node.js service. Native adapters cover macOS, Windows, Linux, Android and iOS, with a separate vault in each platform's application-data directory and keys protected by the platform credential store. [Platform architecture and build instructions →](docs/PLATFORMS.md)
 
@@ -76,13 +76,25 @@ Open **Models** to connect Ollama, OpenAI, Anthropic, or a compatible endpoint. 
 
 ![OMNI model administration — actual application with explicitly synthetic local providers](docs/images/console.png)
 
+## Memory remembers. Policies decide.
+
+Open **Policies** to set permitted text-file types, file counts and size limits, then build a chain of regex rules that block matching content or require a marker. Try a sample locally before sending. The decision trail explains allowed and blocked checks without retaining prompts, file names or matched text.
+
+An organization can provision a mandatory baseline at startup. The local editor can add restrictions but cannot override it. The same Rust checks cover the launcher, both compatible gateways, capture and MCP memory disclosure. History, tool arguments and authorized context are included; a memory grant never bypasses a policy.
+
+![OMNI Policies — actual interface tested against an isolated synthetic provider](docs/images/policies.png)
+
+This release handles inspectable UTF-8 text files. It rejects recognized opaque and binary attachment forms, and does not filter responses or enforce device-wide routing. Enterprise fleet management and signed policy distribution remain roadmap work. [Policy editor, deployment, API and exact limits →](docs/POLICIES.md)
+
 ## Where does the information go?
 
 ```mermaid
 flowchart LR
   User["You"] --> Omni["Local OMNI<br/>Memory and permissions"]
   Omni <--> Vault[("Encrypted vault")]
-  Omni -->|"Request and authorized context"| Model["Chosen model<br/>local or remote"]
+  Omni --> Policy["Local and managed policies<br/>Content, files and size"]
+  Policy -->|"Allowed request and context"| Model["Chosen model<br/>local or remote"]
+  Policy -->|"Blocked: metadata decision"| Vault
   Model -->|"Response"| Omni
   Omni -->|"Response and sharing controls"| User
   Omni -->|"Noised report, with consent"| Stats["Analytics collector<br/>no conversations in its schema"]
@@ -95,6 +107,7 @@ The remote provider receives the request it needs to do its work, protected by H
 | Capability          | Current implementation                                                                                                |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Local memory        | SQLCipher, provenance, history, correction, and deletion                                                              |
+| Request policies    | Regex block/require rules, inspectable text files, size limits, managed baseline and private decision trail           |
 | Authority           | Permissions scoped to destinations and memories, expiration, revocation, and receipts                                 |
 | Integrations        | Launcher, Chat Completions and Messages APIs, MCP tools, and explicit browser capture                                 |
 | Interface           | Shared Three.js/React UI, native embedded core, platform key-store adapters, model administration and low-energy mode |
@@ -107,24 +120,25 @@ The remote provider receives the request it needs to do its work, protected by H
 
 ## Read, understand, build
 
-| Document                                                                                            | What it covers                                                  |
-| --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| [MANIFESTO.md](MANIFESTO.md)                                                                        | The origin, conviction, and commitments                         |
-| [ARCHITECTURE.md](ARCHITECTURE.md)                                                                  | Trust boundaries, memory, and technical contracts               |
-| [DIAGRAMS.md](DIAGRAMS.md)                                                                          | Request flows, knowledge graph, containers, and VPN             |
-| [ROADMAP.md](ROADMAP.md)                                                                            | From individual value to a million users, with measurable gates |
-| [Getting started](docs/GETTING_STARTED.md)                                                          | First launch, guided setup and recovery                         |
-| [Platforms](docs/PLATFORMS.md)                                                                      | Embedded runtime, native key stores, build targets and limits   |
-| [Administration](docs/ADMINISTRATION.md)                                                            | Models, settings, history, logs and measurement definitions     |
-| [Operations](docs/OPERATIONS.md) · [VPN](docs/VPN.md)                                               | Startup, enrollment, and deployment                             |
-| [Privacy](docs/PRIVACY.md) · [Security](docs/SECURITY.md)                                           | Precise guarantees and limitations                              |
-| [Validation](docs/VALIDATION.md) · [CI](https://github.com/nabz0r/OMNI-OS/actions/workflows/ci.yml) | Observed results and revision checks                            |
+| Document                                                                                            | What it covers                                                            |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [MANIFESTO.md](MANIFESTO.md)                                                                        | The origin, conviction, and commitments                                   |
+| [ARCHITECTURE.md](ARCHITECTURE.md)                                                                  | Trust boundaries, memory, and technical contracts                         |
+| [DIAGRAMS.md](DIAGRAMS.md)                                                                          | Request flows, knowledge graph, containers, and VPN                       |
+| [ROADMAP.md](ROADMAP.md)                                                                            | From individual value to a million users, with measurable gates           |
+| [Getting started](docs/GETTING_STARTED.md)                                                          | First launch, guided setup and recovery                                   |
+| [Platforms](docs/PLATFORMS.md)                                                                      | Embedded runtime, native key stores, build targets and limits             |
+| [Policies](docs/POLICIES.md)                                                                        | Content and file rules, managed baseline, integration contract and limits |
+| [Administration](docs/ADMINISTRATION.md)                                                            | Models, settings, history, logs and measurement definitions               |
+| [Operations](docs/OPERATIONS.md) · [VPN](docs/VPN.md)                                               | Startup, enrollment, and deployment                                       |
+| [Privacy](docs/PRIVACY.md) · [Security](docs/SECURITY.md)                                           | Precise guarantees and limitations                                        |
+| [Validation](docs/VALIDATION.md) · [CI](https://github.com/nabz0r/OMNI-OS/actions/workflows/ci.yml) | Observed results and revision checks                                      |
 
 Code lives in `crates/omni-core`, `crates/omni-vpn`, `crates/tauri-plugin-omni-device`, `apps/desktop`, `apps/extension`, and `services/collector`. `apps/desktop` contains the shared desktop/mobile interface and Tauri application despite its historical directory name. Startup scripts are at the repository root; infrastructure lives in `infra/`.
 
 To reproduce the checks, stop the demo first, then run `./scripts/verify.sh`. The Redis test requires a dedicated test database; prerequisites are detailed in the validation report.
 
-The five browser QA suites include `npm run test:native`: a mocked Tauri invocation bridge backed by a real isolated core and encrypted vault. It checks the native frontend contract, not OS key custody or phone execution. The [interface guide](apps/desktop/README.md#browser-verification) describes how to run these suites; platform and device evidence remains separate.
+The six browser QA suites include `npm run test:native`: a mocked Tauri invocation bridge backed by a real isolated core and encrypted vault. It checks the native frontend contract, not OS key custody or phone execution. The [interface guide](apps/desktop/README.md#browser-verification) describes how to run these suites; platform and device evidence remains separate. `npm run test:policies` adds real-core policy editing, preview, blocked egress, text-file sending and follow-up enforcement checks.
 
 **The proposed business model: users pay OMNI to represent their interests.** Continuity, maintained integrations, and private deployments are the services being considered. Selling profiles and behavioral advertising are outside this doctrine; billing is not implemented yet.
 

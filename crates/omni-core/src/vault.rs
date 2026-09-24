@@ -78,6 +78,7 @@ impl Vault {
             CREATE TABLE IF NOT EXISTS analytics_reports(week TEXT PRIMARY KEY, report_id TEXT NOT NULL UNIQUE, epsilon REAL NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);")?;
         crate::journal::initialize(&db)?;
+        crate::policy::initialize(&db)?;
         Ok(Self {
             db,
             runtime_lease: None,

@@ -36,18 +36,19 @@ Authority here is a technical capability: deciding which reads and outputs may p
 It confers no power over an application that bypasses OMNI or a copy already received by a third party.
 Nor does it turn an inference into truth, or possession of a document into a universal right to redistribute it.
 
-| Area           | Delivered in v1                                                                 | Target or limitation                                           |
-| -------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Memory         | SQLCipher, sources, memories, statuses, history                                 | Temporal graph and derived semantic indexes                    |
-| Understanding  | Extraction by a local model, proposals requiring confirmation                   | Evaluated contradiction resolution and relevance               |
-| Authorization  | Owner/agent tokens, grants by destination and scope                             | Cryptographic identity and capabilities specific to each agent |
-| Integrations   | OpenAI/Anthropic gateways, MCP, voluntary capture                               | Additional connectors, without implicit universal interception |
-| Administration | Persistent profiles/settings, model discovery, request journal, audit and usage | No hidden observation of third-party website sessions          |
-| Native runtime | Embedded Rust core, authenticated UI IPC, platform key-store adapters           | Separate build/device/signing evidence for each target         |
-| Transport      | WireGuard, authenticated admission, deployment tools                            | Signed native distribution and large-scale operation           |
-| Analytics      | Bounded OpenDP reports, Redis collector or local SQLite                         | SingleStore analytics storage and publication governance       |
-| Isolation      | Separate collector; memory and gateway in the same core                         | Separate OS helpers with distinct network permissions          |
-| ZK proofs      | None                                                                            | Targeted verifiable attributes, if justified by a use case     |
+| Area           | Delivered in v1                                                                               | Target or limitation                                           |
+| -------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Memory         | SQLCipher, sources, memories, statuses, history                                               | Temporal graph and derived semantic indexes                    |
+| Understanding  | Extraction by a local model, proposals requiring confirmation                                 | Evaluated contradiction resolution and relevance               |
+| Authorization  | Owner/agent tokens, grants by destination and scope                                           | Cryptographic identity and capabilities specific to each agent |
+| Integrations   | OpenAI/Anthropic gateways, MCP, voluntary capture                                             | Additional connectors, without implicit universal interception |
+| Request policy | Rust regex rules, text-file checks, size limits, revisioned local policy and managed baseline | No fleet control plane, binary parsing or response filter      |
+| Administration | Persistent profiles/settings, model discovery, request journal, audit and usage               | No hidden observation of third-party website sessions          |
+| Native runtime | Embedded Rust core, authenticated UI IPC, platform key-store adapters                         | Separate build/device/signing evidence for each target         |
+| Transport      | WireGuard, authenticated admission, deployment tools                                          | Signed native distribution and large-scale operation           |
+| Analytics      | Bounded OpenDP reports, Redis collector or local SQLite                                       | SingleStore analytics storage and publication governance       |
+| Isolation      | Separate collector; memory and gateway in the same core                                       | Separate OS helpers with distinct network permissions          |
+| ZK proofs      | None                                                                                          | Targeted verifiable attributes, if justified by a use case     |
 
 The guided first run uses these same boundaries: catalog discovery, an optional confirmed local preference and a primary-provider choice. It creates no sharing grant and no inference request. Browser development startup uses an expiring one-time pairing capability; standalone native startup provisions an embedded session through a restricted main-window command. The transient UI session remains separate from provider authority. See the [first-run guide](docs/GETTING_STARTED.md).
 
@@ -135,6 +136,16 @@ Logical deletion, even with SQLite page cleaning, does not guarantee physical er
 <a id="authority"></a>
 
 ## 4. Local jurisdiction: what an agent can actually obtain
+
+### Request policy is independent of memory permission
+
+**V1:** `policy.rs` validates an owner-managed local policy stored in SQLCipher and an optional operator-provisioned baseline compiled at startup. The provider gateway prepares inspectable file blocks, resolves authorized memory, builds the final request, then applies both layers before creating a disclosure receipt or calling the provider. A decision is required even when interaction history is disabled. A policy failure does not silently retry without context or against a different model.
+
+The launcher, Chat Completions and Messages gateways share this enforcement point. Capture checks the full source plus the extractor envelope before local inference or fallback persistence. MCP checks its query and granted result before returning memory. Local storage/editing and numeric analytics retain their separate contracts. Neither an owner credential nor a valid grant bypasses these request checks.
+
+The local schema adds `request_policy` and a bounded `policy_decisions` metadata table. Changes use an expected revision; malformed policies are rejected atomically and corrupt stored rules never silently become defaults. The managed file is read once and must be protected with its launch environment. Its SHA-256 fingerprint identifies a configuration; it is not a signature or device attestation.
+
+Only supported UTF-8 text attachments are inspectable. Regex matches decoded JSON string values and original file/memory text, not semantic intent. Response filtering, general binary parsing, trusted group identity and fleet provisioning are targets. [Policy contract and deployment requirements →](docs/POLICIES.md)
 
 ### Separating proposals, authorization, and execution
 

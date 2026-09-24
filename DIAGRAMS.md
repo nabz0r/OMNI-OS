@@ -29,16 +29,23 @@ sequenceDiagram
             Vault-->>Core: Confirmed memories and provenance
             Core->>Core: Builds authorized, bounded context
         end
-        opt Selected memories are not empty
-            Core->>Vault: Records a context disclosure receipt
+        Core->>Core: Checks content, files and size against both policy layers
+        Core->>Vault: Records metadata policy decision
+        alt Policy blocks the request
+            Core-->>UI: Reason and decision ID, without matched text
+            UI-->>User: Request blocked before model egress
+        else Both policy layers allow the request
+            opt Selected memories are not empty
+                Core->>Vault: Records a context disclosure receipt
+            end
+            Core->>LLM: Request and authorized context / HTTPS if remote
+            Note over Core,LLM: Optional WireGuard carries this HTTPS without decrypting it
+            LLM-->>Core: Response headers
+            Core->>Vault: Records latency and local observations
+            LLM-->>Core: Response body, optionally streamed
+            Core-->>UI: Provider response
+            UI-->>User: Displays the response
         end
-        Core->>LLM: Request and authorized context / HTTPS if remote
-        Note over Core,LLM: Optional WireGuard carries this HTTPS without decrypting it
-        LLM-->>Core: Response headers
-        Core->>Vault: Records latency and local observations
-        LLM-->>Core: Response body, optionally streamed
-        Core-->>UI: Provider response
-        UI-->>User: Displays the response
     end
 ```
 
@@ -217,6 +224,26 @@ sequenceDiagram
 **WireGuard uses Noise; IKE belongs to IPsec.** Identity key rotation every thirty minutes is additional to WireGuard's automatic session key renewal. It is not an IKE mode. Changing the internal address during the switch can interrupt a TCP connection; application-level recovery remains necessary.
 
 BoringTun ↔ Linux WireGuard interoperability, admission, rotation, and rejection of the old key have been tested in the scenarios recorded in [validation evidence](docs/VALIDATION.md). The local simulation installs no privileged routes. The macOS `utun` supervisor requires a separate privileged launch; its complete path needs its own target-machine validation. The native mobile app installs no system VPN extension. [Deployment, servers, and secrets →](docs/VPN.md)
+
+## 6. Two policy layers, one outbound decision
+
+**Implemented — deterministic request filtering.** Memory permissions and destination controls remain prerequisites. The policy engine inspects the complete provider request, including historical files and injected memory, before provider egress. The baseline is provisioned at startup, not downloaded by a fleet service.
+
+```mermaid
+flowchart TB
+    Input["Authenticated AI request"] --> Grant["Destination and memory permission checks"]
+    Grant --> Context["Prepare inspectable text files<br/>Inject authorized context"]
+    Managed["Operator-controlled policy file<br/>Validated at startup"] --> Engine
+    Local[("SQLCipher local policy<br/>Owner editor and revision")] --> Engine
+    Context --> Engine{"Managed AND local policy<br/>Content, files, volume"}
+    Engine -->|"Deny"| Block["Return reason and decision ID<br/>No model call"]
+    Engine -->|"Allow"| Send["Create any memory receipt<br/>Send to selected model"]
+    Engine --> Trail[("SQLCipher decision metadata<br/>Last 1,000 checks; no content")]
+    Send --> Model["Local or remote model"]
+    Model --> Reply["Existing response path<br/>No response-content filter"]
+```
+
+Capture and MCP use the same evaluator before local extraction and memory return respectively. A saved-policy preview has no egress and no decision persistence. The managed file and launch environment require operator protection; direct provider traffic outside OMNI requires separate OS/network controls. [Exact contract →](docs/POLICIES.md)
 
 ## Read the arrows without inventing guarantees
 

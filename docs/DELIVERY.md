@@ -10,6 +10,10 @@ The local delivery lives at `deliverables/OMNI-0.1.0-mvp/`. Open `START-HERE.htm
 
 The delivery includes `delivery.json`, a SHA-256 inventory, native acceptance reports and screenshots from the actual Android APK. Source revisions are recorded separately for each package. Binaries and generated runtime evidence remain outside Git; the assembly procedure, tests and guide templates are versioned. Evaluation artifacts from GitHub Actions expire after 14 days, while the local delivery remains available on disk.
 
+## Source feature versions
+
+These existing `0.1.0-mvp` binaries predate request policies and the text-attachment editor. The current source adds those features; the old package hashes and acceptance evidence have been preserved, not reused to claim a newer binary was tested. Build from the current source for Policies. See [the policy guide](POLICIES.md) and [current validation](VALIDATION.md) for feature-specific evidence.
+
 ## Acceptance boundary
 
 macOS requires successful package creation, a fresh encrypted vault initialized by the actual native application, a valid application resource seal and a valid DMG checksum. A linker-only Mach-O signature does not seal the completed `.app`: the build now explicitly applies an ad-hoc bundle signature and rejects a failed `codesign --verify --deep --strict` check. This verifies package integrity, not the publisher's Apple identity. Gatekeeper and existing-vault Keychain authorization remain normal OS decisions.

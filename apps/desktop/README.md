@@ -52,7 +52,7 @@ The interface displays core and configured collector data without inventing glob
 
 ## Administer the installation
 
-The console adds **Models**, **History**, **Usage**, **Logs** and **Settings** alongside memory and permission controls. Provider profiles and local settings survive restarts in SQLCipher. Keys are entered through a password field, written to the local core and never returned by the API. Changing a provider URL clears its stored key unless an explicit replacement accompanies the change.
+The console adds **Policies**, **Models**, **History**, **Usage**, **Logs** and **Settings** alongside memory and permission controls. Provider profiles and local settings survive restarts in SQLCipher. Keys are entered through a password field, written to the local core and never returned by the API. Changing a provider URL clears its stored key unless an explicit replacement accompanies the change.
 
 Use **Check connection** to read a provider catalog. For Ollama, the result also lists models reported loaded at the time of the check; cloud model catalogs do not expose running instances. Discovery does not download or load a model. The launcher shows enabled, policy-permitted profiles and their model choices.
 
@@ -63,6 +63,12 @@ Browser exports use downloads. Native desktop saves under `Documents/OMNI`; mobi
 **Settings** controls whether new requests are journaled, retention from 1 to 365 days, the local-only extractor, analytics consent and low-energy rendering. Clearing request history requires confirmation and preserves memories, permissions, receipts, audit events and the DP budget. Network policy and key custody are installation details that require a service restart to change. Exporting configuration excludes secrets and discovery state.
 
 The [administration guide](../../docs/ADMINISTRATION.md) documents every field, endpoint, metric and boundary. Native dialogs support keyboard dismissal and prevent the launcher shortcut from opening another modal behind them.
+
+## Request policies and attachments
+
+**Policies** provides the local rule chain, allowed text types, volume limits, a tester for the saved revision and a private decision trail. A deployment-provisioned baseline is shown read-only. All enforcement runs in Rust, including native IPC; the interface does not decide whether a request can bypass a rule. [Policy behavior and enterprise boundary](../../docs/POLICIES.md).
+
+The launcher accepts TXT, MD, CSV, JSON, LOG, YAML and YML as UTF-8 text, within both policy layers. Files remain transient, travel as quoted text and are rechecked on follow-ups. Changing destinations or clearing/locking the conversation clears them. Native binary uploads, opaque provider file references and response filtering are not implemented.
 
 ## Browser verification
 
@@ -84,3 +90,5 @@ Some failure and rendering cases use explicit browser response fixtures; ordinar
 Use `OMNI_QA_VIEW_ONLY=1` for read-only screenshots. `OMNI_PLAYWRIGHT_MODULE` and `OMNI_QA_CHROMIUM` can point to a bundled Playwright package and Chromium executable. Additional manual checks should cover keyboard selection, reduced motion, offscreen rendering, **Copy response**, **Stop waiting**, provider changes and wildcard permissions.
 
 Application gateway, MCP and browser-extension integration details are in [INTEGRATIONS.md](../../docs/INTEGRATIONS.md).
+
+Run `npm run test:policies` as the sixth suite. It uses a real isolated core and synthetic provider to verify regex editing, saved-policy previews, file controls, blocked egress, successful attachment delivery, follow-up revalidation and mobile layout.

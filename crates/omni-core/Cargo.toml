@@ -13,6 +13,7 @@ futures-util = "0.3"
 hex = "0.4"
 opendp = { version = "0.15.1", default-features = false, features = ["contrib"] }
 rand = "0.8"
+regex = "1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls", "socks"] }
 rusqlite = { version = "0.40", features = ["bundled-sqlcipher-vendored-openssl"] }
 serde = { version = "1", features = ["derive"] }

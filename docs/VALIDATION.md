@@ -1,5 +1,26 @@
 # Validation evidence
 
+## Request policies — 2026-09-24
+
+The source policy implementation was verified locally on macOS ARM64 with synthetic data. It was not evaluated against a real corporate fleet or every provider API. The previously delivered revision-pinned Mac and Android installers below predate this change.
+
+| Check                | Observed result                                                                                                                                                                                                                         |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rust workspace       | 79 tests passed: 72 core and 7 VPN                                                                                                                                                                                                      |
+| Native macOS target  | Locked Tauri check and both application tests passed; embedded-runtime policy persistence and managed-denial tests passed in the core suite                                                                                       |
+| Policy enforcement   | Verified local/managed precedence, owner-only administration, atomic validation, stale revisions, bounded encrypted decisions and persistence through native IPC restart                                                                |
+| Blocked egress       | Launcher, both gateway protocols including streaming requests, history, tool arguments, authorized memory and capture rejected before contacting a fixture provider; MCP returned no blocked memory                                     |
+| Files                | Allowed UTF-8 text reached the synthetic model as text; disallowed types, mismatched media, oversized or disguised binary content and recognized opaque attachments were refused; historical files were rechecked after a policy change |
+| Policy UI            | Real isolated core and synthetic provider: read-only organization baseline, invalid regex recovery, saved-policy preview, file controls, successful send, rejected follow-up, metadata-only decisions, persistence and 390-pixel layout |
+| Interface regression | All six browser suites passed: interface, console, onboarding, setup, native bridge and policies                                                                                                                                        |
+| Build quality        | Rust formatting, Clippy with warnings denied, TypeScript and Vite production build passed                                                                                                                                               |
+| Unchanged services   | Nine collector tests and one extension test passed; the Redis-specific test was skipped locally because no isolated test Redis URL was supplied                                                                                         |
+| Documentation        | Seven Mermaid diagrams rendered successfully; 145 links across the initial 15 edited guides resolved, with the validation update checked separately                                                                                     |
+
+The policy UI suite uses the checked-in organization example and an isolated SQLCipher vault. Preview checks produce no inference or decision entry. Denied requests leave the fixture observation count unchanged. A later file-count restriction blocks an existing conversation carrying an earlier attachment. Mandatory decisions remain independent of optional interaction history; tests verify the 1,000-record cap and preservation after history clearing. No test result establishes universal secret detection, response filtering, device-wide routing or independent security certification.
+
+Screenshots are produced under `apps/desktop/artifacts/policies/`; the README includes the reviewed desktop view. Run `npm run test:policies` with a built core and the interface on port 3006 to reproduce this feature suite. It is also part of the application CI job. The [policy guide](POLICIES.md) defines the actual matching, file and deployment boundaries.
+
 ## macOS and Android delivery acceptance — 2026-09-24
 
 The exact local Android APK with SHA-256 `90bdadb2da84564e0c6be607398bed1688e2374157d82e5301d4b4d0e36d2c27` passed a fresh native installation and vault-reopening smoke test, then **18 native UI acceptance checks** on Android 15 AOSP ARM64. Playwright attached to the actual installed APK's WebView. Production Tauri IPC, Kotlin, Android Keystore, Rust and SQLCipher handled the requests; only the response model was synthetic, hosted on loopback through ADB forwarding.

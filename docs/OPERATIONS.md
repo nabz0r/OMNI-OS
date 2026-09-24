@@ -26,6 +26,10 @@ Provider profiles, rates and extractor settings are stored inside the vault. Ini
 
 Native desktop metadata exports go to `Documents/OMNI`; mobile exports open the system share sheet with no automatic recipient. Browser mode uses a normal download. Exported files contain private metadata outside SQLCipher protection. They are neither a complete memory export nor a vault backup; cancelling a mobile share sheet does not save a file.
 
+## Managed request policies
+
+The owner edits local rules under **Policies**. For an operator-enforced baseline, provision `OMNI_MANAGED_POLICY_FILE` and an administrator-controlled policy file. A missing or invalid configured file refuses startup. Changes require a process restart; there is no automatic remote policy fetch. Protect the launch environment and enforce routing outside OMNI if direct provider bypass must be prevented. The [policy guide](POLICIES.md) supplies a complete example, precedence, API contracts and operational limits.
+
 ## Collector deployment
 
 On a Linux host with Docker Compose and a DNS name pointing to it, export `OMNI_PUBLIC_HOST` with that actual name, then run:

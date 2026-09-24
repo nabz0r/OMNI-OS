@@ -366,6 +366,8 @@ fn valid_action(action: &str) -> bool {
             | "stream_aborted"
             | "access_denied"
             | "core_started"
+            | "policy_updated"
+            | "policy_blocked"
     )
 }
 fn period_start(period: &str, until: DateTime<Utc>) -> Result<Option<String>> {
@@ -466,7 +468,10 @@ pub(crate) fn audit_on(db: &Connection, action: &str, details: &AuditDetails) ->
         || details.http_status.is_some_and(|status| status >= 400)
     {
         "error"
-    } else if matches!(action, "access_denied" | "stream_aborted") {
+    } else if matches!(
+        action,
+        "access_denied" | "stream_aborted" | "policy_blocked"
+    ) {
         "warning"
     } else {
         "info"
