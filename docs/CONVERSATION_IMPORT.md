@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Use OMNI
+
+> **Guide** · Review selected ChatGPT, Claude or neutral JSON messages before creating proposed memories.
+<!-- /omni:header -->
+
 # Reviewed conversation imports
 
 ## Use the application
@@ -18,9 +24,9 @@ These are explicit parser contracts backed by synthetic fixtures, not vendor pro
 
 | Layout | Recognised fields | Selection and omissions |
 | --- | --- | --- |
-| ChatGPT | An object or array with mapping; nodes have parent and message; text uses author.role and content.parts with content_type=text | Follow current_node to the root; without it, accept only a unique leaf. Omit other branches, non-user/assistant roles, recognized hidden/non-final channels, tool recipients and non-text content |
-| Claude | An object or array with chat_messages, name, sender and content text blocks or legacy text | human becomes user; assistant stays assistant. Prefer structured content to avoid duplicate legacy text. Other block types and attachment/file arrays are not imported |
-| OMNI neutral | Explicit format=omni-conversations-v1, conversations array, title, messages with role and content | Only user/assistant strings or type=text blocks are retained; arbitrary nested strings are not scraped |
+| ChatGPT | An object or array with `mapping`; nodes have `parent` and `message`; text uses `author.role` and `content.parts` with `content_type=text` | Follow `current_node` to the root; without it, accept only a unique leaf. Omit other branches, non-user/assistant roles, recognized hidden/non-final channels, tool recipients and non-text content |
+| Claude | An object or array with `chat_messages`, `name`, `sender` and `content` text blocks or legacy `text` | `human` becomes `user`; `assistant` stays `assistant`. Prefer structured content to avoid duplicate legacy text. Other block types and attachment/file arrays are not imported |
+| OMNI neutral | Explicit `format=omni-conversations-v1`, `conversations` array, `title`, `messages` with `role` and `content` | Only user/assistant strings or `type=text` blocks are retained; arbitrary nested strings are not scraped |
 
 The omission count combines unsupported items, skipped messages and off-branch nodes; it is not a count of missing conversations or a completeness score. Files, images and tool outputs require a separate future import contract. Role/source fields can be forged in an input file, so human review remains necessary. JSON quoting preserves structural role boundaries but cannot guarantee that an extraction model ignores malicious text.
 
@@ -63,6 +69,21 @@ The [extension](../apps/extension/README.md) supports ChatGPT/Claude rendered-me
 
 ## Verification
 
-Run npm run test:imports for branching, malformed trees, role handling, unsupported blocks, multilingual text and byte limits. Run node --test apps/extension/adapters.test.mjs for origin checks, selection-only Z.AI behavior, short replies and missing-layout failures. No test requires a provider API key or personal export.
+Run these checks from the repository root:
+
+```bash
+npm run test:imports
+node --test apps/extension/adapters.test.mjs
+```
+
+The import suite covers branching, malformed trees, role handling, unsupported blocks, multilingual text and byte limits. The extension suite covers origin checks, selection-only Z.AI behavior, short replies and missing-layout failures. No test requires a provider API key or personal export.
 
 The current change adds no route or database migration. Rust now validates the closed omni-reviewed-conversation-v1 envelope and inspects its decoded message strings in addition to the stored JSON and extractor request. This prevents JSON-escaped whitespace from hiding a match in an imported message. The envelope is recognised even when the source kind is manual_capture; declared export kinds with malformed envelopes are rejected before extraction. Ordinary arbitrary JSON-inside-strings remains outside general recursive decoding. Local extraction, proposed-memory and grant boundaries remain in force. UI and integration verification outcomes are recorded in [the implementation checks](PRO_MVP_VERIFICATION.md).
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Run your AI workspace](ADMINISTRATION.md) · [Set the rules before sending](POLICIES.md) · [The native workspace](../apps/desktop/README.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

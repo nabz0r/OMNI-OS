@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Build & operate
+
+> **Reference** · Package targets, key custody, build procedures and measured platform coverage.
+<!-- /omni:header -->
+
 # Native platforms and deployment modes
 
 OMNI shares one React/Three.js interface and Rust core across its desktop and mobile targets. The implementation includes native adapters for macOS, Windows, Linux, Android and iOS. This document describes source behavior and build procedures. A target appearing here does not certify a successful build, physical-device test, signed release or store acceptance; current evidence belongs in [VALIDATION.md](VALIDATION.md).
@@ -111,3 +117,11 @@ Preserve both the encrypted database and an actually recoverable key strategy. C
 Android debug signing keys can differ between disposable CI runners. The published 0.2.0 APK retains the original local 0.1.0 development signing identity, with a verified in-place emulator upgrade. Independent CI APKs do not have that continuity. A pilot release still needs a protected, persistent production signing key before personal vaults depend on long-term updates.
 
 The [native platform workflow](../.github/workflows/platforms.yml) builds evaluation artifacts without production signing credentials. It is a reproducible procedure, not a published store release. Consult [VALIDATION.md](VALIDATION.md) for the exact revision, artifacts, device checks and outstanding blockers. Code generation, compilation, simulator execution, physical-device behavior and signed public distribution are different milestones.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Connect a client](INTEGRATIONS.md) · [How a request travels](ARCHITECTURE.md) · [Operate an installation](OPERATIONS.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

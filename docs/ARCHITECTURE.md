@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Build & operate
+
+> **Implementation map** · Implementation paths, native IPC, persisted objects and trust boundaries.
+<!-- /omni:header -->
+
 # Architecture and transaction paths
 
 This is the concise implementation map. Read the [architecture book](../ARCHITECTURE.md) for the doctrine, trust boundaries and target design, and the [diagram collection](../DIAGRAMS.md) for the current and planned flows.
@@ -147,3 +153,11 @@ These are source-development and explicit integration defaults. The standalone n
 | Synthetic providers       | 127.0.0.1:4101–4102      | Test-only local/SaaS fixtures          |
 | Synthetic clients         | 127.0.0.1:4201–4216      | Isolated test processes                |
 | WireGuard / knock / relay | Deployment configuration | See VPN guide                          |
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Connect a client](INTEGRATIONS.md) · [Native platforms](PLATFORMS.md) · [Operate an installation](OPERATIONS.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

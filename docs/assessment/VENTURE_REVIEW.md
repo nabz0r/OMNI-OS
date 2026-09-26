@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Assessment · 24 Sep 2026** · Product strengths, weaknesses, positioning, economics and success gates.
+<!-- /omni:header -->
+
 # OMNI venture review
 
 Fintech product, commercial and funding assessment. Evidence cutoff: 24 September 2026. Outlook: 2027. Prepared from the current repository, the v0.2.0 evaluation release, the application package, new local checks and primary-source research.
@@ -279,3 +285,11 @@ All sources below were accessed or rechecked on 24 September 2026 unless a limit
 - S14: [Fit 4 Start #18 notification route](https://luxinnovation.lu/fit-4-start-pre-register-now). Does not establish an open application deadline.
 
 No production incident history, actual accounts, signed customer records, founder biographies, physical devices or independent penetration-test report was supplied. Those limits remain visible in the conclusions.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](README.md) · [The 26-action plan](ACTION_PLAN.md) · [Assessment verification](VERIFICATION.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

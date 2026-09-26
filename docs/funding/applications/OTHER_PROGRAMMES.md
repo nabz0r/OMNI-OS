@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../../README.md) / [Field guide](../../README.md) / Evaluation & funding
+
+> **Unsubmitted draft · 24 Sep 2026** · LHoFT, Technoport, Techstars and EIC screening notes.
+<!-- /omni:header -->
+
 # Other programme briefs
 
 These are tailored starting documents for the shortlisted routes. They are not submitted forms. Owner and company fields remain governed by [READINESS.md](../READINESS.md).
@@ -33,3 +39,11 @@ Use the YC core answer bank for product, progress and competition, then add the 
 **Recommendation:** defer a full application. The [current programme](https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator_en) focuses on market-creating innovation with substantial technical and financing risk, including TRL 6-8 innovation activity. OMNI's repository does not establish a validated relevant environment, independent technical breakthrough assessment or a scale-up financing gap that private capital cannot address.
 
 Before reconsidering: document actual deployment results, define the unresolved research risk, compare alternatives, establish IP rights and show a credible route to market and financing. Assign a TRL only from evidence; a desktop MVP is not automatically TRL 6. Prepare the full proposal only after a qualified pre-screen and verification of the 2027 work programme. No EIC grant or investment belongs in the base cash plan.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../../assessment/README.md) · [The fintech venture review](../../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../../assessment/ACTION_PLAN.md)
+
+[All documentation](../../README.md) · [Delivery and verification](../../DELIVERY.md)
+<!-- /omni:footer -->

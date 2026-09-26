@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../../README.md) / [Field guide](../../README.md) / Evaluation & funding
+
+> **Unsubmitted draft · 24 Sep 2026** · Reusable draft answers and a register of founder facts still needed.
+<!-- /omni:header -->
+
 # Y Combinator application answer bank
 
 Prepared for Winter 2027 using public [application](https://www.ycombinator.com/apply), [deal](https://www.ycombinator.com/deal) and [video](https://www.ycombinator.com/video) guidance checked on 24 September 2026. The authenticated form was not inspected. Labels below cover typical topics and must be mapped to the live form without claiming identical field names or limits.
@@ -74,3 +80,11 @@ Do not claim customers or growth without records. Record the genuine founders an
 ## Final form review
 
 Cutoff and timezone conversion appear in [PROGRAMMES.md](../PROGRAMMES.md). Complete founder-specific fields, video and legal/traction information, then check all live requirements. The pitch deck is supplementary material, not a substitute for YC's written application. Retain the final answers and receipt privately after submission.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../../assessment/README.md) · [The fintech venture review](../../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../../assessment/ACTION_PLAN.md)
+
+[All documentation](../../README.md) · [Delivery and verification](../../DELIVERY.md)
+<!-- /omni:footer -->

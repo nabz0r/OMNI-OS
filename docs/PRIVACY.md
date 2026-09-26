@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Trust & evidence
+
+> **Protocol reference** · Local storage, provider disclosure, operational metadata and the precise privacy protocol.
+<!-- /omni:header -->
+
 # Privacy protocol v1
 
 ## Threat model
@@ -67,3 +73,11 @@ Deleting a memory prevents its future selection and removes its corresponding so
 Normalized contributions are quantized on an exact binary lattice of 1/65,536, with residual mass assigned to the other/unknown bin. This keeps each vector's sum exactly one. The sampler uses scale `6.00000000000001` so upward-rounded privacy-map arithmetic remains within the allocated one-third epsilon. The collector's displayed scale 6 is a rounded presentation of that conservative parameter. JSON round-trip support preserves floating-point values across retries.
 
 Successive published aggregates can be differenced to recover an individual already-noised contribution. That is within the local-DP threat model and does not create an additional independent noise sample. This release therefore does not claim aggregate-only public observability, secure aggregation, participation hiding or zero-knowledge proofs.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Know the security boundary](SECURITY.md) · [Evidence, by release](VALIDATION.md) · [Conversation-import evidence](PRO_MVP_VERIFICATION.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

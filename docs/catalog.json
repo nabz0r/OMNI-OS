@@ -1,0 +1,380 @@
+[
+  {
+    "path": "README.md",
+    "title": "Your context. Your authority.",
+    "group": "Start",
+    "summary": "Local memory and explicit request controls for the AI tools you choose.",
+    "status": "Overview"
+  },
+  {
+    "path": "docs/README.md",
+    "title": "The OMNI field guide",
+    "group": "Start",
+    "summary": "Choose a path through the product, integration contracts and evidence.",
+    "status": "Documentation"
+  },
+  {
+    "path": "docs/GETTING_STARTED.md",
+    "title": "Your first useful conversation",
+    "group": "Start",
+    "summary": "Install the evaluation app, connect a model and keep one useful memory.",
+    "status": "Guide"
+  },
+  {
+    "path": "docs/PRODUCT.md",
+    "title": "What OMNI is for",
+    "group": "Start",
+    "summary": "The product, the people it serves and the value still to be demonstrated.",
+    "status": "Product thesis"
+  },
+  {
+    "path": "docs/FAQ.md",
+    "title": "Questions, answered precisely",
+    "group": "Start",
+    "summary": "Quick answers about privacy, providers, imports, updates and the VPN.",
+    "status": "Guide"
+  },
+  {
+    "path": "docs/CONVERSATION_IMPORT.md",
+    "title": "Bring your context",
+    "group": "Use OMNI",
+    "summary": "Review selected ChatGPT, Claude or neutral JSON messages before creating proposed memories.",
+    "status": "Guide"
+  },
+  {
+    "path": "docs/ADMINISTRATION.md",
+    "title": "Run your AI workspace",
+    "group": "Use OMNI",
+    "summary": "Manage connections, models, history, usage, exports and local settings.",
+    "status": "Guide"
+  },
+  {
+    "path": "docs/POLICIES.md",
+    "title": "Set the rules before sending",
+    "group": "Use OMNI",
+    "summary": "Configure text and file rules, inspect decisions and understand the enforcement boundary.",
+    "status": "Guide + API contract"
+  },
+  {
+    "path": "apps/desktop/README.md",
+    "title": "The native workspace",
+    "group": "Use OMNI",
+    "summary": "The shared interface, embedded runtime and browser verification procedures.",
+    "status": "Component guide"
+  },
+  {
+    "path": "apps/extension/README.md",
+    "title": "Explicit browser capture",
+    "group": "Use OMNI",
+    "summary": "Capture supported visible text through a reviewed, user-triggered extension action.",
+    "status": "Component guide"
+  },
+  {
+    "path": "docs/INTEGRATIONS.md",
+    "title": "Connect a client",
+    "group": "Build & operate",
+    "summary": "Use the launcher, explicit API gateway or MCP tools with the correct authority.",
+    "status": "Integration contract"
+  },
+  {
+    "path": "docs/ARCHITECTURE.md",
+    "title": "How a request travels",
+    "group": "Build & operate",
+    "summary": "Implementation paths, native IPC, persisted objects and trust boundaries.",
+    "status": "Implementation map"
+  },
+  {
+    "path": "docs/PLATFORMS.md",
+    "title": "Native platforms",
+    "group": "Build & operate",
+    "summary": "Package targets, key custody, build procedures and measured platform coverage.",
+    "status": "Reference"
+  },
+  {
+    "path": "docs/OPERATIONS.md",
+    "title": "Operate an installation",
+    "group": "Build & operate",
+    "summary": "Separate native operation, source services, runtime data and deployment tasks.",
+    "status": "Runbook"
+  },
+  {
+    "path": "docs/VPN.md",
+    "title": "Optional encrypted transport",
+    "group": "Build & operate",
+    "summary": "Enroll, route and rotate the optional WireGuard transport without changing application trust.",
+    "status": "Runbook"
+  },
+  {
+    "path": "crates/tauri-plugin-omni-device/README.md",
+    "title": "The device bridge",
+    "group": "Build & operate",
+    "summary": "Native key custody, bounded exports and platform-specific behavior.",
+    "status": "Component contract"
+  },
+  {
+    "path": "docs/DOCUMENTATION.md",
+    "title": "Maintain this field guide",
+    "group": "Build & operate",
+    "summary": "Edit one Markdown source, rebuild the portal and verify links and diagrams.",
+    "status": "Contributor guide"
+  },
+  {
+    "path": "docs/SECURITY.md",
+    "title": "Know the security boundary",
+    "group": "Trust & evidence",
+    "summary": "Credentials, native custody, policy enforcement and the protections this MVP does not claim.",
+    "status": "Security reference"
+  },
+  {
+    "path": "docs/PRIVACY.md",
+    "title": "Follow the data",
+    "group": "Trust & evidence",
+    "summary": "Local storage, provider disclosure, operational metadata and the precise privacy protocol.",
+    "status": "Protocol reference"
+  },
+  {
+    "path": "docs/VALIDATION.md",
+    "title": "Evidence, by release",
+    "group": "Trust & evidence",
+    "summary": "Dated package checks, test results, exact hashes and explicit validation limits.",
+    "status": "Evidence record"
+  },
+  {
+    "path": "docs/PRO_MVP_VERIFICATION.md",
+    "title": "Conversation-import evidence",
+    "group": "Trust & evidence",
+    "summary": "What the import implementation and native delivery were actually tested against.",
+    "status": "Evidence \u00b7 26 Sep 2026"
+  },
+  {
+    "path": "ARCHITECTURE.md",
+    "title": "The architecture book",
+    "group": "Design & direction",
+    "summary": "The implemented boundaries and the larger personal-context architecture, clearly separated.",
+    "status": "Implementation + targets"
+  },
+  {
+    "path": "DIAGRAMS.md",
+    "title": "An atlas of the boundaries",
+    "group": "Design & direction",
+    "summary": "Visual explanations of request authority, context, policies, analytics and transport.",
+    "status": "Implemented + target diagrams"
+  },
+  {
+    "path": "MANIFESTO.md",
+    "title": "Our memory. Our authority.",
+    "group": "Design & direction",
+    "summary": "The principles behind continuity, personal representation and deliberate disclosure.",
+    "status": "Product principles"
+  },
+  {
+    "path": "DECISIONS.md",
+    "title": "Five decisions behind OMNI",
+    "group": "Design & direction",
+    "summary": "The technical and product choices that keep the system inspectable.",
+    "status": "Decision record"
+  },
+  {
+    "path": "ROADMAP.md",
+    "title": "The path from MVP to trusted use",
+    "group": "Design & direction",
+    "summary": "Delivered checkpoints, open work and evidence required before each expansion.",
+    "status": "Delivered + planned"
+  },
+  {
+    "path": "docs/PRO_MVP.md",
+    "title": "OMNI for professional work",
+    "group": "Design & direction",
+    "summary": "A focused AI gateway and context workflow, with explicit enterprise gaps.",
+    "status": "MVP direction"
+  },
+  {
+    "path": "docs/assessment/README.md",
+    "title": "The venture assessment",
+    "group": "Evaluation & funding",
+    "summary": "Read the assessment, action plan and verification record in the intended order.",
+    "status": "Assessment \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/assessment/VENTURE_REVIEW.md",
+    "title": "The fintech venture review",
+    "group": "Evaluation & funding",
+    "summary": "Product strengths, weaknesses, positioning, economics and success gates.",
+    "status": "Assessment \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/assessment/ACTION_PLAN.md",
+    "title": "The 26-action plan",
+    "group": "Evaluation & funding",
+    "summary": "Priorities, dependencies, accountable roles and evidence required to close each action.",
+    "status": "Proposed work \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/assessment/VERIFICATION.md",
+    "title": "Assessment verification",
+    "group": "Evaluation & funding",
+    "summary": "The source checks, recalculations and limitations behind the venture review.",
+    "status": "Evidence \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/README.md",
+    "title": "The 2027 application package",
+    "group": "Evaluation & funding",
+    "summary": "A reading order for programme briefs, business assumptions and missing owner facts.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/COMPANY_BRIEF.md",
+    "title": "Company brief",
+    "group": "Evaluation & funding",
+    "summary": "A concise product and proposed-market narrative without invented traction.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/BUSINESS_PLAN.md",
+    "title": "The first commercial pilot",
+    "group": "Evaluation & funding",
+    "summary": "Buyer hypotheses, differentiation, pricing experiments and the proposed route to revenue.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/FINANCIAL_PLAN.md",
+    "title": "Financial planning assumptions",
+    "group": "Evaluation & funding",
+    "summary": "Scenario inputs and runway limits, separated from actual cash or sales records.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/PILOT_PROPOSAL.md",
+    "title": "A four-week pilot",
+    "group": "Evaluation & funding",
+    "summary": "A bounded proposed scope, measurements, data handling and customer discovery.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/DEMO_AND_INTERVIEW.md",
+    "title": "Show the product, explain the evidence",
+    "group": "Evaluation & funding",
+    "summary": "A demonstration sequence and grounded interview answers.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/PROGRAMMES.md",
+    "title": "Programme routes and dates",
+    "group": "Evaluation & funding",
+    "summary": "Dated research on eligibility, deadlines and preparation priorities.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/READINESS.md",
+    "title": "Application readiness",
+    "group": "Evaluation & funding",
+    "summary": "The owner facts and supporting records still needed before submission.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/EVIDENCE.md",
+    "title": "A register of supported claims",
+    "group": "Evaluation & funding",
+    "summary": "The source and release evidence available when the application package was prepared.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/SOURCES.md",
+    "title": "Research source register",
+    "group": "Evaluation & funding",
+    "summary": "Primary references and the dates and claims they support.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/SECURITY_AND_REGULATORY.md",
+    "title": "Security and regulatory positioning",
+    "group": "Evaluation & funding",
+    "summary": "A planning brief for customer assessment; no compliance certification is claimed.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/OUTREACH_DRAFTS.md",
+    "title": "Outreach drafts",
+    "group": "Evaluation & funding",
+    "summary": "Prepared messages for owner review; no messages have been sent.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/QUALITY_CHECKS.md",
+    "title": "Application-package verification",
+    "group": "Evaluation & funding",
+    "summary": "What was checked during preparation and what remains unverified.",
+    "status": "Planning \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/applications/NEXUS.md",
+    "title": "Nexus Luxembourg",
+    "group": "Evaluation & funding",
+    "summary": "Prepared answers and attachment requirements for the researched programme route.",
+    "status": "Unsubmitted draft \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/applications/LUXINNOVATION.md",
+    "title": "Luxinnovation and Fit 4 Start",
+    "group": "Evaluation & funding",
+    "summary": "A venture brief, advisory agenda and proposed work programme.",
+    "status": "Unsubmitted draft \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/applications/Y_COMBINATOR.md",
+    "title": "Y Combinator answer bank",
+    "group": "Evaluation & funding",
+    "summary": "Reusable draft answers and a register of founder facts still needed.",
+    "status": "Unsubmitted draft \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/funding/applications/OTHER_PROGRAMMES.md",
+    "title": "Other programme briefs",
+    "group": "Evaluation & funding",
+    "summary": "LHoFT, Technoport, Techstars and EIC screening notes.",
+    "status": "Unsubmitted draft \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "docs/DELIVERY.md",
+    "title": "Installers and delivery records",
+    "group": "Releases",
+    "summary": "Find the local 0.3.0 packages, retained public release and reproducible acceptance procedure.",
+    "status": "Delivery reference"
+  },
+  {
+    "path": "docs/releases/v0.3.0.md",
+    "title": "OMNI 0.3.0",
+    "group": "Releases",
+    "summary": "Reviewed conversation import in matched macOS and Android evaluation packages.",
+    "status": "Local evaluation \u00b7 26 Sep 2026"
+  },
+  {
+    "path": "docs/releases/v0.2.0.md",
+    "title": "OMNI 0.2.0",
+    "group": "Releases",
+    "summary": "The preserved public evaluation release with request policies and text attachments.",
+    "status": "Historical release \u00b7 24 Sep 2026"
+  },
+  {
+    "path": "scripts/delivery/README.md",
+    "title": "Offline installation guide template",
+    "group": "Releases",
+    "summary": "The source template used when assembling a verified application delivery.",
+    "status": "Packaging template"
+  },
+  {
+    "path": "NETWORK_DESIGN_NOTES.md",
+    "title": "Network design notes",
+    "group": "Design history",
+    "summary": "Earlier alternatives and proposals, retained as history rather than delivered behavior.",
+    "status": "Historical notes"
+  },
+  {
+    "path": "PROTOCOL_NOTES.md",
+    "title": "Protocol design notes",
+    "group": "Design history",
+    "summary": "Earlier protocol ideas, including superseded parameters and unimplemented proposals.",
+    "status": "Historical notes"
+  }
+]

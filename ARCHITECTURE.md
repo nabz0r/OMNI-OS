@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](README.md) / [Field guide](docs/README.md) / Design & direction
+
+> **Implementation + targets** · The implemented boundaries and the larger personal-context architecture, clearly separated.
+<!-- /omni:header -->
+
 # OMNI-OS — Architecture of a Personal Context Authority
 
 This document describes two distinct things: **the executable v1 in this repository** and **the target architecture** that can be built around its boundaries.
@@ -417,3 +423,11 @@ The status of these validations is centralized in [docs/VALIDATION.md](docs/VALI
 The recommended order of evolution is: verified memory utility, per-agent capabilities, OS isolation, a traceable temporal graph, and then broader analytics only if its signal justifies collection.
 SingleStore and Kubernetes address measured storage or operational needs; their presence alone adds neither understanding nor privacy.
 The defining property remains verifiable at every step: **who knows what, from which source, for which task, with which authorization, and within which demonstrated limit**.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [An atlas of the boundaries](DIAGRAMS.md) · [Our memory. Our authority.](MANIFESTO.md) · [Five decisions behind OMNI](DECISIONS.md)
+
+[All documentation](docs/README.md) · [Delivery and verification](docs/DELIVERY.md)
+<!-- /omni:footer -->

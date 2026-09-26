@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../../README.md) / [Field guide](../../README.md) / Evaluation & funding
+
+> **Unsubmitted draft · 24 Sep 2026** · A venture brief, advisory agenda and proposed work programme.
+<!-- /omni:header -->
+
 # Luxinnovation venture brief and Fit 4 Start preparation
 
 Prepared 24 September 2026. Immediate route: an advisory discussion. Future application: Fit 4 Start #18, subject to call opening and its actual rules. Edition #17 is closed. This document is not an aid application or a request to be admitted late.
@@ -45,3 +51,11 @@ The [programme register](../PROGRAMMES.md) records the edition 17 capital, team 
 Ask the adviser to establish the right programme and current eligibility, the documentation needed for the actual corporate structure, the treatment of prior aid, the admissibility and timing of planned costs, the next Digital call and the compatibility of a potential YC structure. These are points for the eventual meeting, not questions sent during this preparation.
 
 Attachments: one-page brief, pitch deck, financial model, product evidence and pilot proposal. Keep identities, cap table and bank records in a private data room.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../../assessment/README.md) · [The fintech venture review](../../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../../assessment/ACTION_PLAN.md)
+
+[All documentation](../../README.md) · [Delivery and verification](../../DELIVERY.md)
+<!-- /omni:footer -->

@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](README.md) / [Field guide](docs/README.md) / Design history
+
+> **Historical notes** · Earlier protocol ideas, including superseded parameters and unimplemented proposals.
+<!-- /omni:header -->
+
 # Historical Protocol Notes
 
 > Historical note: these translated working notes preserve earlier proposals, including superseded privacy parameters and unimplemented ideas. They are not a description of delivered guarantees. For the current implementation and target architecture, read the [README](README.md) and [architecture guide](ARCHITECTURE.md).
@@ -154,3 +160,11 @@ Points to settle:
 - Retain noisy reports without clipping individual values for estimation.
 - 10,000 reports remains an operational threshold, not a precision guarantee: at scale 6, uncertainty from noise alone reaches approximately ±16.6 percentage points at 95% confidence per coordinate.
 - Distinguish pointwise intervals from simultaneous intervals over 24 coordinates; count deduplicated reports without claiming distinct users or protection across devices.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Network design notes](NETWORK_DESIGN_NOTES.md)
+
+[All documentation](docs/README.md) · [Delivery and verification](docs/DELIVERY.md)
+<!-- /omni:footer -->

@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../../docs/README.md) / Use OMNI
+
+> **Component guide** · The shared interface, embedded runtime and browser verification procedures.
+<!-- /omni:header -->
+
 # OMNI Nebula
 
 A shared interface built with React, Three.js and Tauri 2 for desktop and mobile targets. Native applications embed the Rust engine and use platform key stores; the historical `apps/desktop` directory name does not limit the source to desktop. The interface makes saved memories, sharing permissions and disclosure receipts inspectable without treating a model's interpretation as a fact.
@@ -35,6 +41,10 @@ Use **Add memory** for a fact you choose to confirm yourself. Use **Memory → I
 The list supports text search and status filters. Open a memory to correct its content or change its status. **Delete** first asks for confirmation; **Keep memory** cancels that choice. Confirming deletion removes the memory and its revision history from this vault. A shared source remains while other memories depend on it. Copies already disclosed cannot be recalled.
 
 A permission names an exact destination, selected confirmed memories and an expiry. Revocation prevents future disclosures under that permission. Demonstration data is explicitly labeled synthetic.
+
+## Import selected conversation context
+
+In **Memory → Import text → Import chats**, read a supported ChatGPT, Claude or neutral JSON export. Choose a conversation and review individual messages. Assistant replies are unchecked by default. The prepared text is readable before extraction; resulting memories remain proposed and carry no sharing grant. The standalone 0.3.0 packages include both this interface and the matching Rust policy inspection. See [formats and limits](../../docs/CONVERSATION_IMPORT.md).
 
 ## Continue a conversation deliberately
 
@@ -92,3 +102,11 @@ Use `OMNI_QA_VIEW_ONLY=1` for read-only screenshots. `OMNI_PLAYWRIGHT_MODULE` an
 Application gateway, MCP and browser-extension integration details are in [INTEGRATIONS.md](../../docs/INTEGRATIONS.md).
 
 Run `npm run test:policies` as the sixth suite. It uses a real isolated core and synthetic provider to verify regex editing, saved-policy previews, file controls, blocked egress, successful attachment delivery, follow-up revalidation and mobile layout.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Bring your context](../../docs/CONVERSATION_IMPORT.md) · [Run your AI workspace](../../docs/ADMINISTRATION.md) · [Set the rules before sending](../../docs/POLICIES.md)
+
+[All documentation](../../docs/README.md) · [Delivery and verification](../../docs/DELIVERY.md)
+<!-- /omni:footer -->

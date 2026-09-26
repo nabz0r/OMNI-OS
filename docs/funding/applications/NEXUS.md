@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../../README.md) / [Field guide](../../README.md) / Evaluation & funding
+
+> **Unsubmitted draft · 24 Sep 2026** · Prepared answers and attachment requirements for the researched programme route.
+<!-- /omni:header -->
+
 # Nexus Luxembourg 2027 application
 
 Prepared 24 September 2026. Use the [official portal](https://nexuslux.co/startup). The live first page showed a 16-step form. Later field labels and limits were not verified; the sections below are a reusable answer bank rather than a claimed export of the complete form.
@@ -41,3 +47,11 @@ We want to meet technical and security leaders who can evaluate a narrowly scope
 The portal's first step explicitly requested a vector logo (AI/EPS/SVG), a transparent PNG and a PDF pitch deck no larger than 20 MB. A YouTube video link is optional. Use the supplied SVG/PNG and deck PDF. The supplied demo outline is not a recorded video URL.
 
 The [official awards page](https://nexusluxembourg.com/startups-awards-2027) supplies the deadline and selected-company package terms. Review the form's publication permissions: submitted information may be used in signage, promotional material and matchmaking. Include only shareable product information. Replace owner facts, add verified founder profiles to the deck, reconcile form limits and retain a submission receipt. Do not treat the advertised prize value as cash financing.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../../assessment/README.md) · [The fintech venture review](../../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../../assessment/ACTION_PLAN.md)
+
+[All documentation](../../README.md) · [Delivery and verification](../../DELIVERY.md)
+<!-- /omni:footer -->

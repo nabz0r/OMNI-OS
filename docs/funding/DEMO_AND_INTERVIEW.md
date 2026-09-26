@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · A demonstration sequence and grounded interview answers.
+<!-- /omni:header -->
+
 # Product demonstration and interview guide
 
 ## Three-minute product demonstration
@@ -43,3 +49,11 @@ We are looking for design partners and feedback on the controls buyers need. Pro
 ## Recording and demo handoff
 
 Record the product walkthrough separately from YC's founder video. Include a visible synthetic-data label, readable UI, clear sound and a final statement of limits. Test viewing access without a logged-in account before placing a link in a form. No founder recording or public upload has been fabricated or performed in this preparation.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

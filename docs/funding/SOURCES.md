@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · Primary references and the dates and claims they support.
+<!-- /omni:header -->
+
 # Research source register
 
 All sources accessed on 24 September 2026. Organiser pages are primary sources. Product vendor descriptions are not independent comparative tests. The roadmap and financial plan contain explicitly labelled author assumptions, not external statistics.
@@ -161,3 +167,11 @@ Four-month concept-validation programme for individuals and small teams. Page de
 ## Source precedence and refresh
 
 Use the current edition guidelines over older cached FAQs. The verified edition 17 document is S25; S10 is historical. No edition 18 call date was verified. Recheck deadlines and terms immediately before submitting, and save the exact applicable rules privately with the application receipt. The Nexus live portal first step was read without submitting any company information.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Start
+
+> **Product thesis** · The product, the people it serves and the value still to be demonstrated.
+<!-- /omni:header -->
+
 # Product thesis and conversation decisions
 
 OMNI is a personal representative across AI agents and services: a correctable memory, a boundary for disclosure and a source of bounded authority. A VPN, database or model is a means to deliver that experience, not the definition of the product.
@@ -13,9 +19,15 @@ The product should help a person continue work across providers while knowing wh
 
 These are vendor-described capabilities, not independent proof of adoption or privacy. OMNI's differentiation must be demonstrated through useful independent control, not a claim that this category is new.
 
-## Business hypothesis
+## Current professional focus
 
-Initially test a user-paid subscription for useful memory continuity, maintained integrations and transparent control. A price such as €12/month is a research hypothesis, not validated willingness to pay. Partner distribution may reduce acquisition friction but must not give the partner silent authority over personal memory. Profile sales and covert pay-to-rank recommendations conflict with the intended representation role; neither is implemented.
+The professional MVP tests a narrower, inspectable proposition: reviewed context imports, destination-scoped permissions and policy checks on supported AI request paths. It is intended for teams that need useful AI assistance with control over disclosure. It does not silently intercept every browser or mobile application.
+
+The [professional MVP](PRO_MVP.md) defines the implemented boundary and remaining work. The [pilot proposal](funding/PILOT_PROPOSAL.md) describes an unvalidated commercial offer, not a signed customer commitment. Buyer demand, team administration and production assurance still need evidence.
+
+## Earlier consumer business hypothesis
+
+The earlier consumer direction proposed a user-paid subscription for useful memory continuity, maintained integrations and transparent control. A price such as €12/month remains a research hypothesis, not a current priced offer or validated willingness to pay. Partner distribution may reduce acquisition friction but must not give the partner silent authority over personal memory. Profile sales and covert pay-to-rank recommendations conflict with the intended representation role; neither is implemented.
 
 ## Evaluation
 
@@ -32,3 +44,11 @@ Analytics is an opt-in experiment with a finite privacy budget. The standalone n
 The delivered console makes provider choice, loaded local models, individual requests, permissions, token observations and configuration visible in one place. This is the first measurement surface for the product hypothesis: it exposes what happened without pretending that fewer context bytes prove better task outcomes. Costs require explicit rates; cloud API catalogs do not imply surveillance of ChatGPT or Claude website sessions. See the [administration guide](ADMINISTRATION.md).
 
 The guided first run reduces setup to a chosen connection, an optional local preference and a first conversation. It does not invent an account, a cloud credential, an installed model or a permission on the user's behalf. The native interface can be locked and deliberately reopened on the device; this is a convenience boundary, not OS reauthentication. Startup diagnostics and visible recovery paths are part of the experience; signed installation, key recovery and broader device validation remain release gates. [Platform architecture and limits →](PLATFORMS.md)
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Your context. Your authority.](../README.md) · [The OMNI field guide](README.md) · [Your first useful conversation](GETTING_STARTED.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

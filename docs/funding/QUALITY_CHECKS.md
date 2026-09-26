@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · What was checked during preparation and what remains unverified.
+<!-- /omni:header -->
+
 # Delivery checks and limits
 
 Prepared 24 September 2026. This record describes checks actually performed during preparation. It is not an independent audit or a submission receipt.
@@ -41,3 +47,11 @@ These are conditional forecasts with EUR 350,000 financing in January 2027 and i
 The local review bundle includes final attachments, this written package, the roadmap, an offline reader and file hashes. It excludes source-code vaults, personal records, builder scripts and temporary render files. The original English Markdown remains available in the repository. Nothing has been submitted, emailed, purchased or published as part of this work.
 
 The package is ready for owner review. Formal submission still requires authentic founder/company facts, actual financial and traction records, a genuine YC founder video, verified live form requirements and acceptance of the applicable terms. The [readiness register](READINESS.md) lists these exact prerequisites. They cannot be resolved from software or replaced with fabricated answers.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

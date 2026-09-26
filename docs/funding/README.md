@@ -1,6 +1,14 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · A reading order for programme briefs, business assumptions and missing owner facts.
+<!-- /omni:header -->
+
 # OMNI 2027 application package
 
 Prepared on 24 September 2026. Research and product evidence have this cutoff. All applications remain unsubmitted.
+
+> **Product update after this research cutoff:** the local [0.3.0 delivery](../releases/v0.3.0.md) adds reviewed conversation import. The dated assessment, forecasts, programme research and unverified owner facts below remain a 24 September record; they have not been recertified by a documentation redesign.
 
 **Recommendation:** present OMNI as local AI memory with explicit sharing controls and request policies. Test demand with small fintech engineering and operations teams. The repository supports a working evaluation MVP; it does not establish revenue, customer adoption, independent security assurance or a zero-knowledge proof system.
 
@@ -34,3 +42,11 @@ The local `deliverables/OMNI-funding-2027/` directory contains the editable pitc
 - Start the discovery and pilot work in the [updated roadmap](../../ROADMAP.md). Programme selection is not a prerequisite for testing customer demand.
 
 The internal dates are planning choices, not organiser deadlines or scheduled reminders. No account was created, no message was sent, no fee was paid and no form was submitted during preparation. See [quality checks](QUALITY_CHECKS.md) for the delivered scope.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

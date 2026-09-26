@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../../docs/README.md) / Build & operate
+
+> **Component contract** · Native key custody, bounded exports and platform-specific behavior.
+<!-- /omni:header -->
+
 # OMNI native device bridge
 
 This internal Tauri plugin provides system key custody, one fixed browser link, and owner-requested metadata exports. It has no JavaScript API or frontend permissions. Its invoke handler rejects every webview call, including Tauri's mobile fallback path. The application calls it directly from Rust.
@@ -77,3 +83,11 @@ The Rust tests cover missing and corrupted key handling, store and random-source
 Android instrumentation tests use isolated temporary aliases to exercise real AndroidKeyStore wrapping, persistence across store instances, malformed and tampered envelopes, a missing wrapping key, and refusal to replace an existing vault's missing key. They require an Android device or emulator and must run separately from Rust tests.
 
 A successful desktop Rust build does not verify Android JNI, an iOS app build, mobile share-sheet behavior, Linux Secret Service availability, or Windows credential persistence. Platform compilation and runtime smoke tests are separate acceptance checks.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Connect a client](../../docs/INTEGRATIONS.md) · [How a request travels](../../docs/ARCHITECTURE.md) · [Native platforms](../../docs/PLATFORMS.md)
+
+[All documentation](../../docs/README.md) · [Delivery and verification](../../docs/DELIVERY.md)
+<!-- /omni:footer -->

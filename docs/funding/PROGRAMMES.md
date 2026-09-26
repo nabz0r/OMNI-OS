@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · Dated research on eligibility, deadlines and preparation priorities.
+<!-- /omni:header -->
+
 # Programme selection and application calendar
 
 Verified on 24 September 2026. Rank reflects product fit and preparation cost, not probability of acceptance. **Nexus is an event and competition, Luxinnovation is an innovation agency, and YC is an equity investor and accelerator. Their headline benefits are not interchangeable cash.**
@@ -43,3 +49,11 @@ The older Guichet downloadable guidelines are explicitly edition 16. Their 2026-
 - Prepare a small number of strong applications. Allocate most founder time to customer interviews, pilot delivery and removal of release blockers.
 
 See [sources](SOURCES.md) for verification scope and [readiness](READINESS.md) for the facts needed to establish eligibility.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

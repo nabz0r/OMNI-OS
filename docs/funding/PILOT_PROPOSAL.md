@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · A bounded proposed scope, measurements, data handling and customer discovery.
+<!-- /omni:header -->
+
 # OMNI four-week pilot proposal
 
 Proposed commercial scope. This document does not form a signed agreement. Parties, tax treatment, liability, confidentiality and data-processing terms must be settled in the actual contract.
@@ -56,3 +62,11 @@ Use only after a genuine customer requests it, with their actual details and exp
 “[Organisation] is interested in evaluating OMNI for [specific workflow], subject to an agreed pilot scope, internal security review and commercial terms. [Sponsor name and role] will assess the proposed evaluation with [intended participant range]. This expression of interest does not commit either party to purchase, establish exclusivity or authorize the public use of our name.”
 
 This is a template, not evidence of a signed customer commitment.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](README.md) / [Field guide](docs/README.md) / Design & direction
+
+> **Implemented + target diagrams** · Visual explanations of request authority, context, policies, analytics and transport.
+<!-- /omni:header -->
+
 # OMNI-OS · The Boundaries of Understanding
 
 > A diagram should show what can cross a boundary—and who decides.
@@ -256,3 +262,11 @@ Capture and MCP use the same evaluator before local extraction and memory return
 | VPN client → hub      | Encrypted transport and a peer identity             | Universal semantic interception of applications         |
 
 [Back to README](README.md) · [Architecture](ARCHITECTURE.md) · [Roadmap](ROADMAP.md)
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The architecture book](ARCHITECTURE.md) · [Our memory. Our authority.](MANIFESTO.md) · [Five decisions behind OMNI](DECISIONS.md)
+
+[All documentation](docs/README.md) · [Delivery and verification](docs/DELIVERY.md)
+<!-- /omni:footer -->

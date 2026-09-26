@@ -1,6 +1,14 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · The source and release evidence available when the application package was prepared.
+<!-- /omni:header -->
+
 # Product and claims evidence
 
 Research cutoff: 24 September 2026. Audited checkout: `98dfd581582049e106da84c7f772e834117b4814`. Released installer source: `a5458a484cab949d22bbe6b44faf9f954dc8d688`. These are different revisions and must not be conflated.
+
+> **Product update after this research cutoff:** the local [0.3.0 delivery](../releases/v0.3.0.md) adds reviewed conversation import. The dated assessment, forecasts, programme research and unverified owner facts below remain a 24 September record; they have not been recertified by a documentation redesign.
 
 The GitHub connector confirmed the [v0.2.0 pre-release](https://github.com/nabz0r/OMNI-OS/releases/tag/v0.2.0), six assets and their published SHA-256 metadata. It also confirmed a successful [Verify OMNI workflow](https://github.com/nabz0r/OMNI-OS/actions/runs/35983746338) for the audited checkout. The GitHub `latest` endpoint excludes pre-releases, so the tag-specific endpoint is the correct evidence route. This preparation did not repeat physical-device testing or an independent security assessment.
 
@@ -36,3 +44,11 @@ Revenue, incorporation, full-time founder commitment, team composition, cash bal
 ## Roadmap audit conclusion
 
 The original roadmap already distinguishes targets from measurements, includes comparison-based utility tests and preserves security release gates. Its weakness for applications was the absence of a dated, resourced near-term commercial plan. The added 2026-2027 execution section supplies that plan without relabelling the long-term architecture as delivered. The new enterprise pilot route is a proposed market experiment, not evidence of a customer pivot already validated.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->
