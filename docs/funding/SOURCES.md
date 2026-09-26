@@ -168,10 +168,14 @@ Four-month concept-validation programme for individuals and small teams. Page de
 
 Use the current edition guidelines over older cached FAQs. The verified edition 17 document is S25; S10 is historical. No edition 18 call date was verified. Recheck deadlines and terms immediately before submitting, and save the exact applicable rules privately with the application receipt. The Nexus live portal first step was read without submitting any company information.
 
+## Research extension — 26 September 2026
+
+The [AI security acquisition assessment](../assessment/ACQUISITION_STRATEGY.md) links the primary Cisco and Palo Alto Networks transaction/product explanations reviewed on this date and distinguishes their public rationale from OMNI strategy inferences. It also links current Gen and Symantec product announcements. The [efficiency protocol](../EFFICIENCY.md) links the Green Software Foundation SCI methodology and Google's production inference measurement study. These additions do not refresh programme deadlines or validate historical financial assumptions above.
+
 <!-- omni:footer -->
 ---
 
-**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The action plan](../assessment/ACTION_PLAN.md)
 
 [All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
 <!-- /omni:footer -->

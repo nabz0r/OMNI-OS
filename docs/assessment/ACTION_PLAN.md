@@ -1,7 +1,7 @@
 <!-- omni:header -->
 [OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
 
-> **Proposed work · 24 Sep 2026** · Priorities, dependencies, accountable roles and evidence required to close each action.
+> **Proposed work · 24 Sep 2026** · The original 26 actions and six strategy additions, with roles, dependencies and acceptance evidence.
 <!-- /omni:header -->
 
 # OMNI success action plan
@@ -81,6 +81,21 @@ Use a weekly sheet or CRM with these definitions before collecting data. Do not 
 | Cash runway | Forecast using reconciled cash, liabilities and committed receipts | Reforecast monthly; separate pending grants and investor discussions |
 
 After two focused iterations without useful gains, stop expanding the segment and revisit the workflow. After three pilots without repeat willingness to pay, diagnose value, buyer, pricing and support before raising acquisition spend. These are management rules, not a guarantee of success.
+
+## Strategy extension — 26 September 2026
+
+The original A01–A26 register retains its dated estimates. Use the current [Work evidence](../WORK_VERIFICATION.md) for implemented authority/recovery and [roadmap G0–G4](../../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026) for expansion decisions. The following additions operationalise the [acquisition analysis](ACQUISITION_STRATEGY.md); they do not mark older external or commercial gates complete.
+
+| ID | Action and accountable role | Dependency | Acceptance evidence |
+| --- | --- | --- | --- |
+| A27 | Promote two customer-tool adapters to live validation; integration owner | A17, approved accounts and G1 scope | Exact versions, streaming/error/retry and unsupported-state cases, receipts and denied upstream counts |
+| A28 | Measure efficiency per completed task; product/research owner | A10 and [measurement protocol](../EFFICIENCY.md) | Provider usage provenance, strong baseline, preparation/retries, quality and uncertainty; energy/carbon unavailable unless supported |
+| A29 | Make the same offer repeatable; commercial/operations owner | A14–A19 | G2 payment, renewal, onboarding, support contribution and no-custom-fork evidence |
+| A30 | Publish an engine integration contract and conformance kit; integration/security owner | Proven workflow, A25 and rights review | Versioned interface, authority invariants, upgrade guide, dependency inventory and adapter fixtures |
+| A31 | Validate independent partner integration; integration/commercial owner | A30 and an actual partner | G3 external-engineer trial, elapsed time/assistance, security tests and operated evaluation |
+| A32 | Expand one adjacent segment and maintain strategic options; founder/product | G2–G3 and actual capacity | G4 paid-use/support evidence, refreshed competitive comparison and truthful partner materials; no acquisition forecast |
+
+Energy instrumentation and broader adapters follow available resources and customer need. An acquisition ambition does not authorise external spending or replace customer validation.
 
 <!-- omni:footer -->
 ---

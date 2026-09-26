@@ -15,6 +15,10 @@ OMNI keeps the context you choose in a local encrypted vault and controls how it
 
 A remote model still receives the request and context you send to it. OMNI's control applies to its supported request paths. The optional VPN protects transport; it does not unlock encrypted conversations inside other apps.
 
+**Built toward an integrable context layer.** The professional direction combines disclosure control, useful continuity across supported tools and measurable resource efficiency. The application proves the workflow; a planned engine interface would let partners bring those controls into their own products. [Ecosystem plan](docs/ECOSYSTEM.md).
+
+**Use less unnecessary context. Measure the difference.** Scoped context may reduce repeated prompts and inference work. Net token savings and lower carbon emissions are hypotheses to test against completed-task quality, retries and local overhead; neither is established by the current benchmark. [Efficiency and carbon measurement](docs/EFFICIENCY.md).
+
 ## Begin where you are
 
 | I want to… | Start here |
@@ -23,6 +27,7 @@ A remote model still receives the request and context you send to it. OMNI's con
 | Bring context from ChatGPT or Claude | [Review and import a conversation](docs/CONVERSATION_IMPORT.md) |
 | Control what a model receives | [Permissions and integrations](docs/INTEGRATIONS.md) · [Request policies](docs/POLICIES.md) |
 | Evaluate OMNI for a team | [Professional MVP scope](docs/PRO_MVP.md) · [Pilot proposal](docs/funding/PILOT_PROPOSAL.md) |
+| Explore partner integration and efficiency | [Ecosystem plan](docs/ECOSYSTEM.md) · [Measurement plan](docs/EFFICIENCY.md) |
 | Inspect the implementation | [Architecture map](docs/ARCHITECTURE.md) · [Security boundary](docs/SECURITY.md) |
 | Check the evidence | [Release validation](docs/VALIDATION.md) · [Roadmap](ROADMAP.md) |
 
@@ -129,7 +134,7 @@ After the documented prerequisites, use `./scripts/verify.sh` for application ch
 
 ## The next proof is useful work
 
-The professional direction is approved reusable context plus inspectable request control in a workflow people already use. Shared team identity, production distribution, physical-device recovery drills, independent review and measured customer value remain work to complete. Billing and validated commercial traction are not established by this repository.
+The professional direction is approved reusable context plus inspectable request control in a workflow people already use. Production distribution, physical-device recovery drills, independent review and measured customer value remain work to complete. Billing and validated commercial traction are not established by this repository. The [commercial gates](ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026) define the transition to repeatable sales, independent engine integration and adjacent markets. The [AI security acquisition analysis](docs/assessment/ACQUISITION_STRATEGY.md) explains the strategic rationale without implying acquisition interest or a forecast.
 
 [Professional MVP](docs/PRO_MVP.md) · [Roadmap](ROADMAP.md) · [Venture assessment](docs/assessment/README.md) · [2027 application package](docs/funding/README.md)
 

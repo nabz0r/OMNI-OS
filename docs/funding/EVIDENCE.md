@@ -26,6 +26,8 @@ The GitHub connector confirmed the [v0.2.0 pre-release](https://github.com/nabz0
 
 ## Facts the repository cannot establish
 
+**26 September strategy addendum:** [roadmap G0–G4](../../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026), the [ecosystem plan](../ECOSYSTEM.md) and [efficiency protocol](../EFFICIENCY.md) add proposed work and evidence thresholds. They establish no delivered SDK, partner endorsement, universal integration, paid traction, measured token reduction or carbon saving. The [0.4.0 evidence](../WORK_VERIFICATION.md) remains the current controlled-work implementation record; the table above retains its original 0.2.0 cutoff.
+
 Revenue, incorporation, full-time founder commitment, team composition, cash balance, customer count, signed design partners, legal ownership of all code, independent audit, certifications and public release signing remain unverified. Code contributors are not automatically employees or cofounders. Download counts and stars are not usage or retention measures.
 
 ## Wording to retire from applications
@@ -37,6 +39,9 @@ Revenue, incorporation, full-time founder commitment, team composition, cash bal
 | GDPR/DORA/AI Act compliant or certified | Controls intended to support a customer's governance process, subject to deployment and legal assessment |
 | Bank-grade, unhackable or anonymous | Specific documented controls and threat boundaries |
 | Proven token savings or 30% productivity improvement | Planned controlled comparison; no measured improvement claimed |
+| Lower carbon footprint because fewer tokens are used | Potential efficiency benefit; token, cost, energy and carbon require separate evidence |
+| Works in every ecosystem / OEM SDK available | Documented current integration subset; SDK and partner distribution are planned |
+| Acquisition within two years | Strategic ambition; no buyer interest, transaction or valuation established |
 | Enterprise-ready policy management | Local policies and a provisioned baseline; fleet identity/distribution are planned |
 | One million users | Long-term reach scenario in the roadmap; no adoption claim |
 | Patented or proprietary moat | Public AGPL source; differentiation and chain of title still need validation |
@@ -48,7 +53,7 @@ The original roadmap already distinguishes targets from measurements, includes c
 <!-- omni:footer -->
 ---
 
-**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The action plan](../assessment/ACTION_PLAN.md)
 
 [All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
 <!-- /omni:footer -->

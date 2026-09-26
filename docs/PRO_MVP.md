@@ -94,6 +94,8 @@ Use OMNI's launcher or a supported client routed through the local gateway. Do n
 
 ## Relationship to the broader plan
 
+The next commercial steps follow [roadmap G1–G4](../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026): paid-pilot readiness, repeatable sales, independently reproduced integration and one adjacent segment at a time. A planned SDK or management service is not part of the current implementation. The [ecosystem plan](ECOSYSTEM.md) defines the proposed contract and support levels. Add matched token/cost measurements to pilots using the [efficiency protocol](EFFICIENCY.md); carbon savings remain unproven until separately measured or explicitly estimated within a documented boundary.
+
 This professional focus narrows the [roadmap](../ROADMAP.md) and the [venture assessment](assessment/VENTURE_REVIEW.md); it does not make prior company, funding or security gaps disappear. The immediate differentiation to test is the combination of approved reusable context and inspectable request control in a workflow users already perform. Neither “VPN” branding nor collecting a large history proves that advantage.
 
 Sources checked on 26 September 2026. Future programme terms, provider features and export layouts require fresh verification before a customer commitment.

@@ -25,6 +25,14 @@ The professional MVP tests a narrower, inspectable proposition: reviewed context
 
 The [professional MVP](PRO_MVP.md) defines the implemented boundary and remaining work. The [pilot proposal](funding/PILOT_PROPOSAL.md) describes an unvalidated commercial offer, not a signed customer commitment. Buyer demand, team administration and production assurance still need evidence.
 
+## An integrable product with measurable efficiency
+
+The professional direction joins three outcomes: control disclosure, preserve useful continuity across supported tools and measure the resources needed to finish the task. The application is the first delivery surface; a stable engine interface and partner packaging are planned after workflow validation. The [ecosystem plan](ECOSYSTEM.md) defines compatibility levels and independent integration acceptance. The [roadmap gates](../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026) separate pilot readiness, repeatable sales, partner integration and adjacent-market expansion.
+
+Selected context may reduce repeated input and avoidable model calls, but storing memory can also add context and compute. Publish token, cost, energy and carbon results separately, including retries, task quality and local overhead. No environmental saving is currently established. The [efficiency plan](EFFICIENCY.md) defines the comparison and permitted claims.
+
+The [acquisition analysis](assessment/ACQUISITION_STRATEGY.md) supports building a specialist, testable capability that established platforms can integrate. It does not make a 12–24 month acquisition a product promise or justify launching every segment at once.
+
 ## Earlier consumer business hypothesis
 
 The earlier consumer direction proposed a user-paid subscription for useful memory continuity, maintained integrations and transparent control. A price such as €12/month remains a research hypothesis, not a current priced offer or validated willingness to pay. Partner distribution may reduce acquisition friction but must not give the partner silent authority over personal memory. Profile sales and covert pay-to-rank recommendations conflict with the intended representation role; neither is implemented.

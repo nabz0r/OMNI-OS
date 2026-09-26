@@ -35,6 +35,8 @@ Record participants recruited, activated and completing four weeks separately. A
 
 For each paired task, record task type, model/version, preparation time, completion result, incorrect/stale memory inclusion, policy false positives, support minutes and revocation outcome. Alternate order between OMNI and a manually maintained brief. Keep the same model and budget. Seek at least 30 paired tasks per pilot; do not present three such pilots as the larger 200-task utility study.
 
+Add the [efficiency protocol](../EFFICIENCY.md): provider-reported input/output and available cache/reasoning breakdown, counter provenance and missing fields, all preparation/retry calls, dated cost assumptions and local overhead. Compare with the existing workflow as well as a maintained manual brief; record cold/warm cache conditions and task quality. A proposed 20% input-token reduction is a study target, not a promised saving. Provider energy and carbon stay unavailable unless the stated measurement/estimation boundary supports them; fewer tokens alone do not establish lower emissions.
+
 Proposed decision thresholds: all observed disclosures match permission, no unresolved high/critical bypass, at least 70% of activated participants complete a useful session in week four, and a documented buyer decision on a paid continuation. Evaluate the 30% context-time target descriptively at pilot scale, with sample sizes and uncertainty. A serious disclosure failure overrides favorable averages.
 
 ## Data handling and deliverables
@@ -42,6 +44,8 @@ Proposed decision thresholds: all observed disclosures match permission, no unre
 The customer approves the material and providers. Each participant controls the selected local memories within the agreed workflow. Authorized content reaches the chosen provider. OMNI's operational metadata remains local unless deliberately exported. Export only the minimum aggregate study data, with explicit consent and a defined retention period in the signed scope. Do not treat telemetry opt-in as consent for all processing.
 
 Deliver a setup record, tested policy examples, aggregate pilot report, open-issues list and a deletion/exit checklist. The exit checklist covers local memories, exported metadata and customer-controlled provider retention. Revocation cannot recover content already delivered to a provider.
+
+The report should also distinguish observed usage, calculated cost and measured/estimated environmental impact, with baseline, sample size and uncertainty. Record the exact client/provider/device matrix for later [compatibility promotion](../ECOSYSTEM.md#compatibility-levels). Broader sales and partner integrations depend on [roadmap G2–G4](../../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026), not completion of the four-week calendar alone.
 
 ## Discovery questions for the sponsor
 
@@ -66,7 +70,7 @@ This is a template, not evidence of a signed customer commitment.
 <!-- omni:footer -->
 ---
 
-**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The action plan](../assessment/ACTION_PLAN.md)
 
 [All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
 <!-- /omni:footer -->

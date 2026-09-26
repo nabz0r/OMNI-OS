@@ -8,6 +8,8 @@
 
 Planning proposal, 24 September 2026. The product evidence is verified separately in [EVIDENCE.md](EVIDENCE.md). Market, pricing and conversion assumptions below remain hypotheses.
 
+**Strategy addendum, 26 September 2026:** [roadmap G0–G4](../../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026) now governs readiness for pilots, repeatable sales, partner integrations and adjacent segments. The historical calendar and financial model remain scenarios, not automatic expansion dates. See the [acquisition analysis](../assessment/ACQUISITION_STRATEGY.md).
+
 ## Product and customer problem
 
 OMNI stores reviewable memories locally and controls which context goes to a chosen AI provider. The evaluation MVP also applies request policies to supported exchanges, including inspectable text files, and records disclosure and policy metadata. Its first commercial question is whether this improves an everyday workflow enough for someone to pay.
@@ -24,6 +26,8 @@ The potential advantage is the combined user experience of editable local memory
 
 ## Competitive alternatives
 
+Longer-term distribution can include an embedded engine for software and security partners, following independent integration and licence review. This is a proposed second offer, not a delivered SDK or existing OEM revenue. [Ecosystem plan](../ECOSYSTEM.md). Test selective context as a source of token and cost efficiency; publish carbon claims only at the evidence level supported by the [measurement protocol](../EFFICIENCY.md). No percentage saving is currently part of the offer.
+
 | Alternative | Relevant strength | OMNI proposition to test | Unresolved question |
 | --- | --- | --- | --- |
 | Manual context brief | Cheap, understandable and portable | Faster reuse with explicit permissions and receipts | Is saved effort larger than setup and correction effort? |
@@ -32,7 +36,7 @@ The potential advantage is the combined user experience of editable local memory
 | [LiteLLM guardrails](https://docs.litellm.ai/docs/proxy/guardrails/quick_start) | Gateway policy integration | Memory permissions and personal review in the same flow | Would a gateway plus a context file be sufficient? |
 | [Microsoft Purview](https://learn.microsoft.com/en-us/purview/ai-microsoft-purview) | Enterprise governance and security integrations | Small-team adoption with a local memory layer | Can OMNI coexist with enterprise controls without extra risk? |
 
-Vendor descriptions were reviewed on 24 September 2026. No comparative product benchmark or claim of exclusive features is made. Do not use a checklist that assumes competitors lack features simply because they were not researched.
+Vendor descriptions in the table were reviewed on 24 September 2026. The [26 September research addendum](../assessment/ACQUISITION_STRATEGY.md#market-fit-and-potential-partners) also covers Gen's agent-security direction and Symantec's AI data controls. No comparative product benchmark or claim of exclusive features is made. Do not use a checklist that assumes competitors lack features simply because they were not researched.
 
 ## Pricing and commercial path
 
@@ -54,7 +58,7 @@ There is no researched, verified count of organisations willing and able to buy 
 
 All account counts and the price are illustrative assumptions. These rows are nested possibilities, not additive markets, a sales forecast or a claim that the named organisations exist. Replace counts with a deduplicated account list qualified for workflow, budget and permission to use the product. The first 20 interviews should establish whether the proposed segment is coherent.
 
-## Acquisition and sales experiment
+## Customer acquisition and sales experiment
 
 Build a first list of 50 named organisations from public ecosystem directories after the selection criteria are fixed. Seek introductions through LHoFT, Luxinnovation and Nexus, without claiming any of them as a partner. Ask for a short workflow interview, then an observed demo, then a bounded pilot. Keep owner, next step, objections, budget authority and permission to follow up in a private pipeline.
 
@@ -68,6 +72,8 @@ The owner must supply team biographies and actual time allocation. Fit 4 Start's
 
 ## Milestones and decision rules
 
+The roadmap's G2 threshold defines repeatable sales within the initial segment; G3 defines independent integration and G4 tests an adjacent segment. Require the applicable evidence before expansion. A scoped pilot may start before the illustrative April 2027 date if G1 and actual resources permit; changing timing requires an explicit cash-plan update. A strategic acquisition is optional and is not forecast revenue or a source of runway.
+
 By December 2026, seek 20 interviews and three pilot intents without labelling them customers. By March 2027, complete distribution/recovery gates and the agreed security review before wider real-data deployment. During April-June, deliver up to three paid pilot hypotheses. By September, evaluate renewal and contribution margin. By December, expand only the workflow that has both utility and repeat purchases.
 
 Run the original roadmap utility comparison: 30 recruited participants, 20 completing four weeks and at least 200 paired tasks. Target a 30% median reduction in context preparation time without task success falling by more than five percentage points. Report sample size and uncertainty. The three-organisation commercial pilot does not automatically satisfy that study size. Stop expansion after two focused iterations without useful gains. Any unauthorized disclosure blocks affected release paths.
@@ -79,7 +85,7 @@ The proposed planning envelope is **EUR 350,000 over 18 months**, starting Janua
 <!-- omni:footer -->
 ---
 
-**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The action plan](../assessment/ACTION_PLAN.md)
 
 [All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
 <!-- /omni:footer -->

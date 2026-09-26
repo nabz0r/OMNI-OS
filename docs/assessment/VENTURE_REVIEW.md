@@ -289,7 +289,7 @@ No production incident history, actual accounts, signed customer records, founde
 <!-- omni:footer -->
 ---
 
-**Continue reading** · [The venture assessment](README.md) · [The 26-action plan](ACTION_PLAN.md) · [Assessment verification](VERIFICATION.md)
+**Continue reading** · [The venture assessment](README.md) · [The action plan](ACTION_PLAN.md) · [Assessment verification](VERIFICATION.md)
 
 [All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
 <!-- /omni:footer -->

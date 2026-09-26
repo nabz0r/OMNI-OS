@@ -79,6 +79,10 @@ Exercise a contextual request and a follow-up, inspect the outgoing history and 
 
 The [desktop browser verification guide](../apps/desktop/README.md#browser-verification) describes the expanded automated flow and manual checks. These are procedures to run, not a claim that an integration or the latest changes have passed. Record outcomes and limitations in [VALIDATION.md](VALIDATION.md).
 
+## Planned ecosystem distribution
+
+The [ecosystem plan](ECOSYSTEM.md) describes a future stable engine interface, adapter conformance levels and partner acceptance. Current API contracts above remain authoritative; the plan does not add a supported SDK, Responses/WebSocket paths, mandatory browser routing or tenant hosting. [Roadmap G2–G4](../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026) requires repeatable customer use and external integration evidence before broader claims.
+
 <!-- omni:footer -->
 ---
 

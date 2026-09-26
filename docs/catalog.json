@@ -176,9 +176,9 @@
   },
   {
     "path": "ROADMAP.md",
-    "title": "The path from MVP to trusted use",
+    "title": "From MVP to an integrable product",
     "group": "Design & direction",
-    "summary": "Delivered checkpoints, open work and evidence required before each expansion.",
+    "summary": "Commercial gates, partner integration and measured efficiency, alongside delivered checkpoints.",
     "status": "Delivered + planned"
   },
   {
@@ -204,9 +204,9 @@
   },
   {
     "path": "docs/assessment/ACTION_PLAN.md",
-    "title": "The 26-action plan",
+    "title": "The action plan",
     "group": "Evaluation & funding",
-    "summary": "Priorities, dependencies, accountable roles and evidence required to close each action.",
+    "summary": "The original 26 actions and six strategy additions, with roles, dependencies and acceptance evidence.",
     "status": "Proposed work \u00b7 24 Sep 2026"
   },
   {
@@ -228,7 +228,7 @@
     "title": "Company brief",
     "group": "Evaluation & funding",
     "summary": "A concise product and proposed-market narrative without invented traction.",
-    "status": "Planning \u00b7 24 Sep 2026"
+    "status": "Planning \u00b7 updated 26 Sep 2026"
   },
   {
     "path": "docs/funding/BUSINESS_PLAN.md",
@@ -411,5 +411,26 @@
     "group": "Releases",
     "summary": "Named authority, explicit continuity and bounded recovery.",
     "status": "Release notes"
+  },
+  {
+    "path": "docs/assessment/ACQUISITION_STRATEGY.md",
+    "title": "AI security acquisitions and OMNI",
+    "group": "Evaluation & funding",
+    "summary": "Public acquisition rationales, strategic interpretation and evidence needed for an integrable business.",
+    "status": "Research + proposed strategy \u00b7 26 Sep 2026"
+  },
+  {
+    "path": "docs/ECOSYSTEM.md",
+    "title": "From application to ecosystem",
+    "group": "Design & direction",
+    "summary": "Planned engine distribution, compatibility levels and independently tested partner integration.",
+    "status": "Proposed integration plan \u00b7 26 Sep 2026"
+  },
+  {
+    "path": "docs/EFFICIENCY.md",
+    "title": "Useful context, measured resources",
+    "group": "Trust & evidence",
+    "summary": "A protocol for testing token, cost, energy and carbon effects without assuming savings.",
+    "status": "Measurement plan \u00b7 26 Sep 2026"
   }
 ]

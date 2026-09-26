@@ -1,10 +1,51 @@
 <!-- omni:header -->
 [OMNI](README.md) / [Field guide](docs/README.md) / Design & direction
 
-> **Delivered + planned** · Delivered checkpoints, open work and evidence required before each expansion.
+> **Delivered + planned** · Commercial gates, partner integration and measured efficiency, alongside delivered checkpoints.
 <!-- /omni:header -->
 
-# OMNI — From the First Thread of Continuity to Personal Infrastructure
+# OMNI — From a Controlled Workflow to an Integrable Product
+
+## Commercial and ecosystem gates — 26 September 2026
+
+**Current execution priority:** make one professional workflow useful and safe enough to renew, then distribute its context-authority engine through documented integrations. The [Cisco / Robust Intelligence and Palo Alto Networks / Protect AI analysis](docs/assessment/ACQUISITION_STRATEGY.md) informs this order: specialist capability, repeatable validation and integration into an established platform matter together. It provides no acquisition forecast or evidence of buyer interest in OMNI.
+
+The product direction has three connected outcomes: **control disclosure, preserve useful continuity and measure resource efficiency**. [Ecosystem plan](docs/ECOSYSTEM.md) · [Token, energy and carbon measurement](docs/EFFICIENCY.md). An SDK, fleet administration, universal compatibility and environmental savings are not delivered by this roadmap update.
+
+The following gates govern expansion. Counts and thresholds are proposed management targets, not observed results, industry standards or acquisition conditions. Accountable roles describe responsibilities, not existing hires. The dated budget scenario below remains conditional; readiness can be reached earlier or later and the forecast must then be revised explicitly.
+
+| Gate | Offer and accountable role | Acceptance evidence | Decision |
+| --- | --- | --- | --- |
+| **G0 — Demonstrable workflow** | Evaluation app; product/engineering | Reviewed import → confirm → named client/destination → send → receipt → revoke → denied upstream arrival count. Existing 0.4.0 evidence covers two executable reference clients and a synthetic provider | Bounded technical checkpoint delivered; no live commercial-client or production assurance inferred |
+| **G1 — Paid-pilot readiness** | One workflow, one initial segment; product, release and security owners | Two actual customer-tool workflows with authorised live providers and versioned coverage; trusted installation/update identities; supported-device restore drill; independent scoped review with no unresolved critical/high disclosure finding; approved data scope, support and incident owner | Start a signed, bounded paid pilot once the relevant gates are met. Synthetic discovery can proceed earlier |
+| **G2 — Repeatable sale** | Same supported offer across small organisations; commercial/operations owner | Three paid pilots, at least two paid continuations, and five paying organisations observed over three months; agreed recurring-use measure; at least 90% of ten observed new-user setups reach first useful interaction within ten minutes from instructions; no custom core forks; positive measured contribution after allocated delivery/support costs | This is the proposed MVP-to-repeatable-product transition within the supported segment. If unmet, fix the workflow, onboarding or offer before widening sales |
+| **G3 — Independent integration** | Embedded engine/SDK evaluation; integration/security owner | Stable versioned interface and licence rights; conformance suite; external engineer completes the approved loop and negative tests in one working day using published instructions, without a custom core fork; one operated partner evaluation; upgrade and support ownership | Offer a bounded partner integration. Initial partner design may run alongside G2; broad OEM sales require both G2 and G3 evidence |
+| **G4 — Adjacent-market expansion** | One additional sector or ecosystem at a time; product/commercial owner | Three paying organisations in the proposed adjacent segment using the same core; observed retention and support contribution; each advertised adapter reaches operated compatibility; applicable administration and deployment controls pass review | Expand the specific supported offer. Do not translate this into “all users, all ecosystems” or unlimited capacity |
+
+For G2, record denominators, failures, assistance, actual invoices/collections and renewal dates. Five paying organisations means actual paying organisations, not pilot intentions; this remains a small sample, not proof of mass-market fit. Customer deployment time and procurement time are separate from the new-user ten-minute interaction test. Security failures override favourable commercial averages.
+
+### The next implementation sequence
+
+| Order | Work package | Dependency and evidence |
+| --- | --- | --- |
+| 1 | Finish G1 reliability and real-client coverage | Build on current Work/recovery contracts; record exact supported versions, denied traffic, update/recovery and independent findings |
+| 2 | Add efficiency evidence to the paid workflow | Provider usage provenance, matched task baseline, retries, preparation and quality; test the proposed 20% input-token reduction target without claiming it is achieved |
+| 3 | Run pilots and remove deployment friction | Collected revenue, weekly task use, correction/support time and paid continuation; reuse the [pilot protocol](docs/funding/PILOT_PROPOSAL.md) |
+| 4 | Stabilise the engine contract and adapter suite | Extract from proven workflows; authorisation precedes selection; unsupported state is rejected; customer content stays outside default telemetry |
+| 5 | Add administration required by paying deployments | Separate administrator authority, signed policy expiry/rollback, device acknowledgements and offboarding; retain per-device storage unless a reviewed shared-service need exists |
+| 6 | Validate partner distribution and an adjacent segment | Apply G3/G4 separately. Compare integration/support cost with revenue; stop maintaining unsupported marketing claims |
+
+The 12–24 month strategic horizon is a planning ambition. In the first 90 days, prioritise G1 evidence and customer discovery within actual capacity. Thereafter pursue G2 and an early partner prototype, then G3/G4 when their evidence exists. Programme applications and an acquisition discussion do not substitute for a passed gate. No new hiring, cloud expenditure or revised revenue forecast is authorised by these targets.
+
+### Efficiency and environmental claim gate
+
+Measure full tasks against the customer's existing workflow and a maintained manual brief. Preserve task quality, input/output/cache breakdown, retries and local overhead. The proposed input-token target is an experiment; a missed target does not invalidate independently demonstrated security value, but prevents advertising that efficiency result. Do not convert token savings into proportional CO2 savings.
+
+Measure energy and emissions only with a named system boundary, functional unit, dated factors and uncertainty, including local overhead and provider infrastructure where observable. If provider energy is unavailable, display unavailable or a clearly identified scenario. The [measurement plan](docs/EFFICIENCY.md) governs all product, partner and application wording.
+
+### Strategic readiness
+
+Prepare a maintainable integration package, independent security evidence, references authorised by actual customers, recurring-revenue/support records and verified company/IP/licence documentation. Existing AGPL-3.0-only terms require a rights review before any proprietary OEM promise. Evaluate partnerships, licensing and independent growth alongside a potential acquisition; no named company is presented as a partner or interested buyer.
 
 ## 0.4.0 implementation checkpoint — 26 September 2026
 
@@ -17,6 +58,10 @@ The baseline records policy/preflight cost separately from a synthetic provider 
 The updated macOS and Android evaluation installers now include reviewed conversation import and policy inspection of decoded messages. Both were packaged from one clean source snapshot. The exact Android APK passed 38 native checks, five Keystore tests and seven update checks from 0.2.0; macOS passed native startup with a fresh encrypted vault and package-integrity checks. The local delivery includes an offline guide, source archive and checksums. [Release notes](docs/releases/v0.3.0.md).
 
 At that checkpoint, production gates included Developer ID/notarization, a protected Android release identity, physical-device coverage, recovery, tenant/agent identity and native browser pairing. The 0.4.0 checkpoint above updates the implemented subset. File import does not establish account synchronization, device-wide interception or enterprise-wide enforcement. These remain roadmap items rather than delivered behavior.
+
+## Longer-term continuity vision
+
+The remaining Genesis / Sovereign Agent / Global Mesh framework preserves the broader product vision. The G0–G4 commercial and integration gates above govern current execution; these long-term population scenarios are not a separate commitment to launch a consumer business or reach a million users.
 
 The journey from zero to a million people begins with one person choosing to return.
 
@@ -55,6 +100,8 @@ Proposed capacity is one founder plus an integration/security engineer from mont
 **Scope discipline:** prioritise utility, recovery and trusted distribution. Agent delegation, a temporal knowledge graph, personal device synchronization, fleet-wide policy enforcement and federation remain gated later work. ZKP claims, bank-wide production readiness and million-user capacity are outside this application-stage promise. The original Phase II/III targets remain a long-term framework, not funded 2027 commitments.
 
 **Decision cadence:** review customer evidence and burn monthly. A security bypass pauses affected distribution immediately. Two focused iterations without useful gains trigger a workflow/segment decision before expansion. Reviews use actual records, and programme acceptance never substitutes for utility or paid demand.
+
+The calendar above is the retained funding scenario. Start a bounded paid pilot earlier if G1, buyer commitment and actual resources allow; delay it if they do not. G2–G4 govern expansion rather than elapsed calendar time. The financial model has not been silently accelerated to match the strategic ambition.
 
 ## The Starting Point — An Executable v1 With Explicit Boundaries
 

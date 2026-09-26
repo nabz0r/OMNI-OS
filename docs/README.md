@@ -30,6 +30,9 @@ A practical map of the product, the contracts and the evidence. Start with the e
 | Guide | Question it answers |
 | --- | --- |
 | [Product thesis](PRODUCT.md) | What problem should OMNI solve, and for whom? |
+| [Ecosystem plan](ECOSYSTEM.md) | When can another product integrate OMNI, and what does supported mean? |
+| [Efficiency and carbon measurement](EFFICIENCY.md) | How will token, cost, energy and emissions claims be tested? |
+| [AI security acquisition analysis](assessment/ACQUISITION_STRATEGY.md) | What do Cisco and Palo Alto Networks' acquisitions imply for the roadmap? |
 | [Architecture map](ARCHITECTURE.md) | What runs today, and how does a request travel? |
 | [Architecture book](../ARCHITECTURE.md) | What are the deeper principles and target design? |
 | [Diagram atlas](../DIAGRAMS.md) | Where are the boundaries between systems? |

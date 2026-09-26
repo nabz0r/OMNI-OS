@@ -1,20 +1,26 @@
 <!-- omni:header -->
 [OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
 
-> **Planning · 24 Sep 2026** · A concise product and proposed-market narrative without invented traction.
+> **Planning · updated 26 Sep 2026** · A concise product and proposed-market narrative without invented traction.
 <!-- /omni:header -->
 
 # OMNI company brief
 
-Local AI memory with explicit sharing controls. September 2026.
+Useful AI context. Explicit authority. Measurable resource use. Updated 26 September 2026; commercial assumptions remain unvalidated.
 
 ## Product and problem
 
 Professionals using several AI tools repeatedly rebuild project context and need to understand what each provider receives. OMNI stores reviewable memories in an encrypted local vault. Users correct context, grant it to a destination, inspect disclosure receipts and stop future sharing. Request policies check supported exchanges and text attachments before provider egress.
 
+The professional application is the initial delivery surface. A planned, versioned engine interface would let software and security partners embed the same context controls in their own products. Compatibility must be demonstrated per integration; no universal SDK or ecosystem coverage is currently claimed. [Integration direction](../ECOSYSTEM.md).
+
 ## Working evaluation MVP
 
-The public v0.2.0 release includes macOS and Android packages, model administration and usage metadata. Published release evidence reports 28 Android native acceptance checks, five Keystore tests and seven upgrade checks using an emulator and a synthetic provider. Six source-verification jobs passed for the audited revision. These results describe engineering progress, not customer adoption.
+The local 0.4.0 macOS/Android evaluation delivery adds named client authority, bounded encrypted recovery and opted-in scoped continuity. Sixteen controlled-loop checks use two executable reference clients and a counted synthetic provider; denied requests do not reach that provider in the tested scenarios. These clients are not commercial application certifications. The public 0.2.0 release remains an older, separate package. [Current evidence](../WORK_VERIFICATION.md) · [Delivery scope](../DELIVERY.md). Neither record establishes customer adoption.
+
+## Efficiency proposition
+
+Selected context may reduce repeated input and avoidable model calls. The pilot will compare full tasks, including preparation, retries, answer quality and local overhead. Net token savings and lower carbon emissions have not yet been established. Energy and carbon require a documented boundary and measured data or clearly labelled estimates, separate from token counts. [Measurement protocol](../EFFICIENCY.md).
 
 ## First market and proposed offer
 
@@ -24,9 +30,11 @@ The proposed first market is small fintech engineering and operations teams with
 
 The next targets are 20 discovery interviews and three paid pilot experiments, followed by at least two paid continuations before broader sales. A separate paired-task study will compare utility against a manual context brief. The proposed financing envelope is EUR 350,000 over 18 months. The model assumes no grant receipts. Financing, customer demand and recurring revenue are not established by this brief.
 
+The [commercial gates](../../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026) define repeatable sales, independent partner integration and adjacent-market expansion. Research on Cisco / Robust Intelligence and Palo Alto Networks / Protect AI informs this direction; no buyer interest or acquisition outcome is claimed.
+
 ## Product boundaries
 
-Current controls cover supported OMNI paths. Production signing, complete recovery, physical-device coverage and managed enterprise deployment remain release gates. Revocation cannot retrieve copies already received by providers. Optional analytics use differential privacy, not zero-knowledge proofs. No independent security audit or regulatory certification is claimed.
+Current controls cover supported OMNI paths. Production signing, independent review and physical-device update/recovery drills remain release gates; implemented recovery has explicit capacity limits. Managed enterprise administration is planned. Revocation cannot retrieve copies already received by providers. Optional analytics use differential privacy, not zero-knowledge proofs. No completed independent security audit or regulatory certification is claimed.
 
 ## Programme objective
 
@@ -37,7 +45,7 @@ Seek design partners and feedback on a measurable workflow, then the support and
 <!-- omni:footer -->
 ---
 
-**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The action plan](../assessment/ACTION_PLAN.md)
 
 [All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
 <!-- /omni:footer -->

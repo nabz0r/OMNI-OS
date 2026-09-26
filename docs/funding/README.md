@@ -47,10 +47,14 @@ The local `deliverables/OMNI-funding-2027/` directory contains the editable pitc
 
 The internal dates are planning choices, not organiser deadlines or scheduled reminders. No account was created, no message was sent, no fee was paid and no form was submitted during preparation. See [quality checks](QUALITY_CHECKS.md) for the delivered scope.
 
+## Strategy addendum — 26 September 2026
+
+Read the [acquisition analysis](../assessment/ACQUISITION_STRATEGY.md), [ecosystem plan](../ECOSYSTEM.md), [efficiency measurement protocol](../EFFICIENCY.md) and [commercial gates](../../ROADMAP.md#commercial-and-ecosystem-gates--26-september-2026) before adapting a new pitch. Current Markdown briefs incorporate this direction. Existing dated PDFs, decks and financial scenarios retain their original cutoff; this update does not regenerate them, assert measured savings or submit an application.
+
 <!-- omni:footer -->
 ---
 
-**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The action plan](../assessment/ACTION_PLAN.md)
 
 [All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
 <!-- /omni:footer -->
