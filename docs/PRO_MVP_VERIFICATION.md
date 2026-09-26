@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Trust & evidence
+
+> **Evidence · 26 Sep 2026** · What the import implementation and native delivery were actually tested against.
+<!-- /omni:header -->
+
 # Professional context import: implementation verification
 
 Initial source verification: 26 September 2026. Host: macOS ARM64. This record concerns the reviewed conversation importer, the associated Rust policy inspection, and the extension's selected-text support for Z.AI. Earlier funding and assessment edits were preserved.
@@ -48,3 +54,11 @@ Markdown links and changed-file whitespace were checked. The source includes a s
 Use the matched 0.3.0 native packages, or deploy the updated frontend and Rust core together. An older running core does not contain decoded-conversation inspection. Public v0.2.0 installers were not replaced or republished.
 
 No live ChatGPT/Claude account export, extension marketplace installation, current authenticated provider-page DOM, paid API inference, Z.AI model compatibility, native file chooser, mobile device, TLS interception or organisation-wide prevention was validated. Provider layout support is bounded by the documented schemas and synthetic fixtures. The feature does not provide SSO, tenant isolation, background capture, complete chat synchronisation, deduplication, response filtering or an independent security assurance report.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Know the security boundary](SECURITY.md) · [Follow the data](PRIVACY.md) · [Evidence, by release](VALIDATION.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

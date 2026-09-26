@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](README.md) / [Field guide](docs/README.md) / Design & direction
+
+> **Product principles** · The principles behind continuity, personal representation and deliberate disclosure.
+<!-- /omni:header -->
+
 # OMNI — Our memory. Our authority.
 
 > Change AI models without having to start your story again.
@@ -79,3 +85,11 @@ The ultimate goal is an infrastructure in which intelligence can multiply around
 ---
 
 This manifesto sets a direction. Implemented capabilities, their validation and their limits are described in the [README](README.md), [architecture decisions](DECISIONS.md) and [validation evidence](docs/VALIDATION.md). The [roadmap](ROADMAP.md) makes each next step conditional on observable results.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The architecture book](ARCHITECTURE.md) · [An atlas of the boundaries](DIAGRAMS.md) · [Five decisions behind OMNI](DECISIONS.md)
+
+[All documentation](docs/README.md) · [Delivery and verification](docs/DELIVERY.md)
+<!-- /omni:footer -->

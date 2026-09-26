@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · Prepared messages for owner review; no messages have been sent.
+<!-- /omni:header -->
+
 # Outreach drafts
 
 Prepared text only. No messages have been sent. Replace `OWNER INPUT` with verified details before using a draft. Attach the one-page brief first; offer the deck and technical evidence where relevant. Do not distribute the complete internal package as an unsolicited attachment.
@@ -59,3 +65,11 @@ If local AI infrastructure is within your focus, I would welcome feedback on the
 
 Best regards,
 OWNER INPUT F01
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

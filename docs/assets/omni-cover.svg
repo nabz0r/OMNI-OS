@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="640" viewBox="0 0 1600 640" role="img" aria-labelledby="title description">
+  <title id="title">OMNI — Your context. Your authority.</title>
+  <desc id="description">Local memory, explicit permissions and request policies connect your chosen context to your chosen model. Conceptual product illustration, not an application screenshot.</desc>
+  <defs>
+    <radialGradient id="glow"><stop stop-color="#7dbb9c" stop-opacity=".16"/><stop offset="1" stop-color="#7dbb9c" stop-opacity="0"/></radialGradient>
+    <linearGradient id="panel" x2="1" y2="1"><stop stop-color="#172721"/><stop offset="1" stop-color="#101b18"/></linearGradient>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M44 0H0V44" fill="none" stroke="#a4d4b9" stroke-opacity=".045"/></pattern>
+  </defs>
+  <rect width="1600" height="640" rx="24" fill="#0b1512"/>
+  <rect width="1600" height="640" rx="24" fill="url(#grid)"/>
+  <ellipse cx="1190" cy="340" rx="530" ry="360" fill="url(#glow)"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="80" y="84" fill="#ecf2e9" font-size="27" font-weight="700" letter-spacing="7">OMNI<tspan fill="#b5dfc5">.</tspan></text>
+    <text x="80" y="202" fill="#9faf9f" font-size="14" letter-spacing="3">A PERSONAL CONTEXT LAYER</text>
+    <text x="76" y="300" fill="#f0f3e9" font-size="84" font-weight="700" letter-spacing="-4">Your context.</text>
+    <text x="76" y="397" fill="#b5dfc5" font-size="84" font-weight="700" letter-spacing="-4">Your authority.</text>
+    <text x="80" y="466" fill="#b4c1b7" font-size="23">Keep what matters. Choose what leaves.</text>
+    <path d="M80 534H729" stroke="#304139"/>
+    <text x="80" y="572" fill="#a1b0a5" font-size="14" letter-spacing="1.5">LOCAL MEMORY  /  EXPLICIT PERMISSIONS  /  REQUEST POLICIES</text>
+    <g fill="none" stroke="#729e82" stroke-width="2">
+      <path d="M895 265H951V336H1011"/><path d="M895 403H951V336"/>
+      <path d="M1222 336H1286V265H1320"/><path d="M1286 336V403H1320"/>
+    </g>
+    <g fill="url(#panel)" stroke="#364e40">
+      <rect x="813" y="206" width="148" height="111" rx="17"/>
+      <rect x="813" y="355" width="148" height="111" rx="17"/>
+      <rect x="1011" y="245" width="211" height="182" rx="23" stroke="#91b69b"/>
+      <rect x="1286" y="206" width="230" height="111" rx="17"/>
+      <rect x="1286" y="355" width="230" height="111" rx="17"/>
+    </g>
+    <g fill="#c9d5ca" font-size="17" text-anchor="middle">
+      <text x="887" y="251">Reviewed</text><text x="887" y="277">context</text>
+      <text x="887" y="400">Your</text><text x="887" y="426">request</text>
+      <text x="1401" y="251">Chosen model</text><text x="1401" y="279" font-size="13" fill="#91a899">Local or remote</text>
+      <text x="1401" y="400">Visible decision</text><text x="1401" y="428" font-size="13" fill="#91a899">Allowed or blocked</text>
+    </g>
+    <circle cx="1117" cy="285" r="6" fill="#b5dfc5"/>
+    <text x="1117" y="333" fill="#f0f3e9" font-size="29" font-weight="700" text-anchor="middle">OMNI</text>
+    <text x="1117" y="370" fill="#b4c1b7" font-size="14" text-anchor="middle">Memory · Permissions</text>
+    <text x="1117" y="393" fill="#b4c1b7" font-size="14" text-anchor="middle">Policies</text>
+    <text x="1516" y="84" fill="#afc2b3" font-size="13" text-anchor="end" letter-spacing="2">FIELD GUIDE / 0.3</text>
+    <text x="1166" y="532" fill="#91a899" font-size="13" text-anchor="middle">A conceptual view of supported OMNI request paths.</text>
+  </g>
+</svg>

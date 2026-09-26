@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](README.md) / [Field guide](docs/README.md) / Design & direction
+
+> **Decision record** · The technical and product choices that keep the system inspectable.
+<!-- /omni:header -->
+
 # Five decisions behind OMNI
 
 ## 1. The person owns an explicit, correctable memory
@@ -19,3 +25,11 @@ Clients optionally release fixed-size noised histograms using OpenDP. A standalo
 ## 5. Resource use and evidence take priority over spectacle
 
 Processing is event-driven; reports are batched; the UI pauses rendering while hidden. We measure resources rather than invent carbon savings, cognitive scores or global trends. Nebula distinguishes real local memories, decorative visuals, and synthetic test data. The console separates provider-reported tokens, measured payload bytes, manual-rate cost estimates and source-versus-context benchmarks. Its local journal excludes content and secrets; clearing it never resets the DP budget. The SaaS publishes cohort size and statistical uncertainty, and shows insufficient data until its threshold is met. The initial business hypothesis is a user-paid service, with no profile sales or advertisement-driven recommendations in the implementation.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The architecture book](ARCHITECTURE.md) · [An atlas of the boundaries](DIAGRAMS.md) · [Our memory. Our authority.](MANIFESTO.md)
+
+[All documentation](docs/README.md) · [Delivery and verification](docs/DELIVERY.md)
+<!-- /omni:footer -->

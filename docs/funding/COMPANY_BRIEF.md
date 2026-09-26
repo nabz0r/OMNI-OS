@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · A concise product and proposed-market narrative without invented traction.
+<!-- /omni:header -->
+
 # OMNI company brief
 
 Local AI memory with explicit sharing controls. September 2026.
@@ -27,3 +33,11 @@ Current controls cover supported OMNI paths. Production signing, complete recove
 Seek design partners and feedback on a measurable workflow, then the support and capital needed to deliver a reliable paid service. Founder biographies, corporate information and actual traction require verification before formal submission.
 
 [Product and source code](https://github.com/nabz0r/OMNI-OS) · [Evaluation release](https://github.com/nabz0r/OMNI-OS/releases/tag/v0.2.0)
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

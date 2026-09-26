@@ -1,0 +1,37 @@
+name: Verify documentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "**/*.md"
+      - "docs/**"
+      - "scripts/docs/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/docs.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  field-guide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Check Markdown navigation is up to date
+        run: npm run docs:sync && git diff --exit-code
+      - run: npm run docs:build
+      - run: npm run docs:check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: omni-field-guide
+          path: artifacts/docs-site/
+          if-no-files-found: error

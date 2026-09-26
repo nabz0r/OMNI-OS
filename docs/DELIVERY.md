@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Releases
+
+> **Delivery reference** · Find the local 0.3.0 packages, retained public release and reproducible acceptance procedure.
+<!-- /omni:header -->
+
 # macOS and Android MVP delivery
 
 The updated **0.3.0 evaluation delivery** is available locally in `deliverables/OMNI-0.3.0-mvp/`. Open `START-HERE.html` for the offline installation guide. The complete folder is also archived as `deliverables/OMNI-0.3.0-mvp.zip`. This local delivery is distinct from the preserved [public 0.2.0 release](https://github.com/nabz0r/OMNI-OS/releases/tag/v0.2.0); no 0.3.0 public release is claimed.
@@ -79,3 +85,11 @@ This workflow was used for the preserved 0.2.0 release. The 0.3.0 delivery above
 The [evaluation publication workflow](../.github/workflows/publish-evaluation.yml) accepts public package inputs on an explicitly pushed `codex/publish-*` branch. The temporary branch carries only a manifest, release notes and bounded chunks of an archive containing the six release assets. It contains no vault, signing key or runtime credential. Application code and documentation remain on `main`; installers are attached to the version tag, not committed to `main`.
 
 The [publisher](../scripts/publish-evaluation.py) verifies the tag, source revisions, clean build records, package hashes, native policy acceptance, upgrade evidence and Keystore report. It then creates a draft pre-release, verifies every uploaded asset's GitHub SHA-256 digest, and publishes only after those checks pass. `--verify-only` performs the checks locally without publication. The short-lived workflow token is used only inside Actions. Once the published assets have been independently checked, the input branch can be removed; the release assets remain available.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [OMNI 0.3.0](releases/v0.3.0.md) · [OMNI 0.2.0](releases/v0.2.0.md) · [Offline installation guide template](../scripts/delivery/README.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

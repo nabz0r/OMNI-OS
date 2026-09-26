@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](README.md) / [Field guide](docs/README.md) / Design history
+
+> **Historical notes** · Earlier alternatives and proposals, retained as history rather than delivered behavior.
+<!-- /omni:header -->
+
 # Historical Network Design Notes
 
 > Historical note: these translated working notes preserve earlier proposals, alternatives, and claims as discussed at the time. They are not a description of delivered capabilities. For the current implementation and target architecture, read the [README](README.md) and [architecture guide](ARCHITECTURE.md).
@@ -112,3 +118,11 @@ The VPN becomes a functional component, with two macOS execution modes sharing t
 - Honest bootstrapping: `run.sh` starts the interface, vault, local engine, and development SaaS without a peer. Show an explicit unconfigured VPN state; requests requiring that transport wait for configuration. `start_network.sh` requires a reachable UDP endpoint, the server's public key, and an assigned client address. After deployment, the server generates an enrollment file containing its actual configured endpoint details; no invented endpoint.
 - Validation: an isolated Linux test with a BoringTun client and kernel peer in two namespaces; handshake, bidirectional traffic, a TLS request through the relay, reconnection, rejection of an incorrect peer, and no direct fallback during an outage. A macOS `utun` test completes this verification.
 - Resource efficiency: event-driven collection, small batches of conventional statistics, models unloaded when idle, bounded queues, and keepalives disabled unless a demonstrated need exists. No quantum computation is claimed.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Protocol design notes](PROTOCOL_NOTES.md)
+
+[All documentation](docs/README.md) · [Delivery and verification](docs/DELIVERY.md)
+<!-- /omni:footer -->

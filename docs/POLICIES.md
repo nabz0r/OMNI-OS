@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Use OMNI
+
+> **Guide + API contract** · Configure text and file rules, inspect decisions and understand the enforcement boundary.
+<!-- /omni:header -->
+
 # Policies: memory with an enforceable boundary
 
 Memory answers “what may be shared?” Policies answer “may this request leave OMNI at all?” A valid memory permission never bypasses a content or file restriction. The Rust core makes the decision before provider egress; changing the interface or calling the gateway directly does not skip it.
@@ -123,3 +129,11 @@ Decision recording remains active when optional interaction history is disabled.
 Rust tests cover rule validation, precedence, file validation, encrypted persistence, conflicting updates, baseline enforcement, capture/MCP/gateway paths, blocked-provider non-delivery and bounded retention. `npm run test:policies` exercises the actual interface against an isolated core and a synthetic provider, including historical file revalidation and mobile layout. Native embedded-router tests cover policy persistence and managed denials through IPC. See [validation](VALIDATION.md) for observed results and package revisions.
 
 Fleet policy distribution, trusted group identity, work/personal vault separation, signed policy rollout, revocation acknowledgements, response filtering, content parsers for additional formats and independent security assessment remain [roadmap work](../ROADMAP.md). The published 0.2.0 macOS/Android packages include this implementation; historical 0.1.0 installers do not. See [delivery](DELIVERY.md) for installation and upgrade boundaries.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Bring your context](CONVERSATION_IMPORT.md) · [Run your AI workspace](ADMINISTRATION.md) · [The native workspace](../apps/desktop/README.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

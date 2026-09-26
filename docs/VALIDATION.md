@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Trust & evidence
+
+> **Evidence record** · Dated package checks, test results, exact hashes and explicit validation limits.
+<!-- /omni:header -->
+
 # Validation evidence
 
 ## 0.3.0 local delivery acceptance — 2026-09-26
@@ -135,3 +141,11 @@ The local universal Android evaluation APK is 102,007,285 bytes and includes bot
 The reusable Android smoke script also passed against a fresh installation of the final APK: native boot created the encrypted database, force-stop preserved it, and reopening produced a new encrypted audit write with the original database salt. It does not inspect plaintext or report any encryption key. The platform workflow repeats this check on a disposable x86_64 AOSP emulator before running the five Keystore tests.
 
 A later macOS app/DMG evaluation package was built successfully without distribution signing. Opening that new binary against the existing test vault requested macOS Keychain authorization; the computer-control tool refused access to the protected SecurityAgent UI. That attempt was cancelled without changing the vault or its key. The earlier native application flow remains the measured end-to-end macOS evidence; a build alone does not imply authorization to reopen an existing user's keychain item.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Know the security boundary](SECURITY.md) · [Follow the data](PRIVACY.md) · [Conversation-import evidence](PRO_MVP_VERIFICATION.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

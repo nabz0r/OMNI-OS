@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Use OMNI
+
+> **Guide** · Manage connections, models, history, usage, exports and local settings.
+<!-- /omni:header -->
+
 # Administration console
 
 OMNI's console manages the local gateway, its provider connections and the evidence produced by requests that pass through it. Provider settings, credentials, interaction metadata and audit events persist inside the encrypted SQLCipher vault. The native console reads them through authenticated IPC to its embedded Rust core; the browser development console uses authenticated loopback HTTP. Neither retrieves an account-wide history from OpenAI, Anthropic or a browser.
@@ -257,3 +263,11 @@ Implementation references: [administration settings and profiles](../crates/omni
 ## Guided first run
 
 The [first-run guide](GETTING_STARTED.md) introduces the same persistent profiles through Connect → Remember → Continue. Setup performs explicit catalog checks, sets a chosen primary model and optionally saves a confirmed preference. It does not create a grant or send an inference request. Return to the full Models and Settings pages for later administration.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Bring your context](CONVERSATION_IMPORT.md) · [Set the rules before sending](POLICIES.md) · [The native workspace](../apps/desktop/README.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

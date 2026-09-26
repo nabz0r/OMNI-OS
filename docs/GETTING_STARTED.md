@@ -1,10 +1,16 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Start
+
+> **Guide** · Install the evaluation app, connect a model and keep one useful memory.
+<!-- /omni:header -->
+
 # Your first useful conversation
 
 OMNI gives your AI tools a local memory and a visible boundary. Start with one connection. Add only what is useful. Nothing in setup grants a model access to your memories automatically.
 
 ## Open the native application
 
-For the macOS and Android MVP package set, open `deliverables/OMNI-0.1.0-mvp/START-HERE.html` on the delivery machine. The folder contains installers, an extracted Mac application, checksums and acceptance evidence. The [delivery guide](DELIVERY.md) explains installation, supported devices and OS permissions.
+For the macOS and Android MVP package set, open `deliverables/OMNI-0.3.0-mvp/START-HERE.html` on the delivery machine. The local 0.3.0 folder contains installers, an extracted Mac application, checksums and acceptance evidence. It is not included in a fresh clone. The preserved public 0.2.0 release predates conversation import. The [delivery guide](DELIVERY.md) explains installation, supported devices and OS permissions.
 
 A standalone native build opens its own local Rust core inside the application. It does not need a separately running terminal, Node.js server or port 3007. Its encrypted vault lives in the operating system's application-data directory and uses the platform key store. The current source targets and build instructions are in [PLATFORMS.md](PLATFORMS.md); actual package and device checks are recorded in [VALIDATION.md](VALIDATION.md), not implied by the presence of source code.
 
@@ -13,28 +19,6 @@ For iOS source builds, the default target is the ARM64 simulator. `node scripts/
 The native app opens its device session directly. If you select **Lock session**, it clears the interface conversation and drafts. Select **Unlock on this device** to deliberately reopen it. This is an interface lock, not a biometric challenge or OS security boundary; the local engine may still finish a request it already started.
 
 No model is bundled. Desktop setup begins with a local Ollama connection; mobile starts with an unconfigured remote connection and requires your own provider credential and model choice. The app contains no system-wide mobile VPN or background traffic monitor.
-
-## Run the source development stack
-
-From the cloned repository:
-
-```bash
-./run.sh --web
-```
-
-The launcher installs project dependencies, builds the core and opens the local interface. The browser uses a private, single-use connection link that expires two minutes after the core starts. It is removed from the address bar before the interface renders. You do not need to copy a token during this normal launch.
-
-For a native Tauri window connected to these same development services, use `./run.sh` instead. The script explicitly sets `OMNI_EXTERNAL_CORE=1` and provides its owner session. This external development mode is separate from the standalone native application and its vault. Keep the launcher running while using this mode; stopping it stops the services it owns.
-
-The source development stack requires Node.js 22.13+, npm and platform build tools; the launcher can install the minimal official Rust toolchain if it is missing. On macOS, Command Line Tools are required. An installed native package does not need these source-build tools. Signed public distribution and store acceptance remain separate release steps.
-
-To inspect this device before launching:
-
-```bash
-./run.sh --doctor
-```
-
-The diagnostic checks tools, dependency freshness, local ports and the local Ollama catalog. It does not install anything, stop another process, read your vault keys or contact a cloud provider.
 
 ## Connect → remember → continue
 
@@ -62,15 +46,11 @@ Use **History** for request outcomes and disclosure receipts. Use **Usage** for 
 
 Standalone native applications have no analytics collector configured by default. Analytics remains unavailable there until a deployment supplies one; memory, permissions and model requests do not depend on participation. Metadata export uses browser downloads, `Documents/OMNI` on native desktop, or the system share sheet on mobile. Exporting a report is not a complete vault backup.
 
-## Try without an AI account
+## Bring an existing conversation
 
-```bash
-./run.sh --web --simulate
-```
+Open **Memory → Import text → Import chats**. Choose a supported ChatGPT, Claude or neutral JSON file, select one conversation, and review the messages. User messages are selected by default; assistant replies are optional. **Use selected messages** prepares a readable draft. **Extract for review** creates proposed memories without sharing permissions.
 
-This opens a separate synthetic vault and runs six clients against local fake providers. SQLCipher, WireGuard, permissions and differential-privacy computations are real code; the model answers and identities are fictional. The simulation banner stays visible. Existing personal vaults are not converted into demo data.
-
-For CI, remote shells or manual opening, use `./run.sh --web --simulate --no-open`. This starts services without opening a browser or native window. Manually open `http://localhost:3006` and enter the private session token from `.omni/runtime/admin-token`. The same manual route is available after a link expires or you explicitly lock the interface. Do not share or publish that file.
+Confirm only the facts you want to keep. Importing the same conversation again can create duplicates. The [import guide](CONVERSATION_IMPORT.md) explains formats, limits, local extraction and the fallback when no extractor is available.
 
 ## When something needs attention
 
@@ -90,4 +70,44 @@ For CI, remote shells or manual opening, use `./run.sh --web --simulate --no-ope
 
 There is no guarantee of a flawless device, network, dependency or external model. The MVP makes these boundaries visible and keeps recovery actions under your control. Current runtime evidence is recorded in [VALIDATION.md](VALIDATION.md).
 
+## Try without an AI account
+
+```bash
+./run.sh --web --simulate
+```
+
+This opens a separate synthetic vault and runs six clients against local fake providers. SQLCipher, WireGuard, permissions and differential-privacy computations are real code; the model answers and identities are fictional. The simulation banner stays visible. Existing personal vaults are not converted into demo data.
+
+For CI, remote shells or manual opening, use `./run.sh --web --simulate --no-open`. This starts services without opening a browser or native window. Manually open `http://localhost:3006` and enter the private session token from `.omni/runtime/admin-token`. The same manual route is available after a link expires or you explicitly lock the interface. Do not share or publish that file.
+
+## Run the source development stack
+
+From the cloned repository:
+
+```bash
+./run.sh --web
+```
+
+The launcher installs project dependencies, builds the core and opens the local interface. The browser uses a private, single-use connection link that expires two minutes after the core starts. It is removed from the address bar before the interface renders. You do not need to copy a token during this normal launch.
+
+For a native Tauri window connected to these same development services, use `./run.sh` instead. The script explicitly sets `OMNI_EXTERNAL_CORE=1` and provides its owner session. This external development mode is separate from the standalone native application and its vault. Keep the launcher running while using this mode; stopping it stops the services it owns.
+
+The source development stack requires Node.js 22.13+, npm and platform build tools; the launcher can install the minimal official Rust toolchain if it is missing. On macOS, Command Line Tools are required. An installed native package does not need these source-build tools. Signed public distribution and store acceptance remain separate release steps.
+
+To inspect this device before launching:
+
+```bash
+./run.sh --doctor
+```
+
+The diagnostic checks tools, dependency freshness, local ports and the local Ollama catalog. It does not install anything, stop another process, read your vault keys or contact a cloud provider.
+
 For source contributors, `npm run test:native` is the fifth browser QA suite. Its mocked native bridge uses real isolated core responses to check the frontend contract. It does not replace a native package, OS key-store or device test; setup and prerequisites are in the [interface verification guide](../apps/desktop/README.md#browser-verification).
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Your context. Your authority.](../README.md) · [The OMNI field guide](README.md) · [What OMNI is for](PRODUCT.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

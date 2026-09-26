@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · Scenario inputs and runway limits, separated from actual cash or sales records.
+<!-- /omni:header -->
+
 # Financial planning assumptions
 
 The workbook models January 2027 through June 2028 in EUR. It is an operating cash-planning exercise, not actual accounts, a valuation or a grant claim. No authenticated opening cash, liabilities or sales records were supplied.
@@ -50,3 +56,11 @@ For the unfunded case, set proposed financing to zero. The operating plan then r
 ## Grant budget discipline
 
 Use this operating model to explain the venture, then map actual work packages into the specific call's eligible cost rules. Do not submit the entire cost reserve as automatically eligible expenditure. Keep invoices, timesheets, payment proof, cost category, funding source and reporting period in a private aid ledger. Check aid cumulation and avoid financing the same cost twice. Published Fit 4 Start instalments depend on conditions and reports; the default grant assumption remains zero. See [programme screening](PROGRAMMES.md).
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

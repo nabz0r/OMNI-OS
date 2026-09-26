@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · The owner facts and supporting records still needed before submission.
+<!-- /omni:header -->
+
 # Application readiness and missing facts
 
 As of 24 September 2026, the written application package is prepared for owner review. A complete, truthful portal submission requires the records below. An absent fact is **unknown**, not zero and not a negative answer.
@@ -50,3 +56,11 @@ Keep completed personal and corporate records in a private data room, outside th
 ## Private data room index
 
 Create controlled-access folders for `01-company`, `02-team-and-ip`, `03-finance`, `04-customers`, `05-product-and-security` and `06-applications`. Include incorporation records, cap table, founder agreements, IP assignments, actual bank-backed cash records, monthly revenue reconciliation, signed pilots and product evidence. Grant the minimum necessary access, record who received each version and remove access when the review ends. Do not add identity documents, bank statements, signatures, keys or customer data to this repository.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Evidence · 24 Sep 2026** · The source checks, recalculations and limitations behind the venture review.
+<!-- /omni:header -->
+
 # Verification record
 
 Audit date: 24 September 2026. Host: macOS ARM64. Source checkout: `98dfd581582049e106da84c7f772e834117b4814`. Existing funding-document changes were present before this audit. No application code was changed by this review.
@@ -66,3 +72,11 @@ The earlier package reader's local-file browser preview was unavailable under br
 Actual founder identity, founder contributions and availability; legal entity and capitalisation; IP assignments; actual cash and liabilities; paid customers and usage; contract enforceability; customer permissions; independent security assurance; physical-device coverage; real-provider compatibility across every advertised configuration; Rust dependency advisory coverage; production signing and safe upgrade/recovery; load/soak/energy behaviour; and live authenticated application fields.
 
 Passing checks support the tested behaviours. They cannot establish universal correctness, regulatory approval, product-market fit or future business success. There is no evidence basis for declaring all those dimensions perfect.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](README.md) · [The fintech venture review](VENTURE_REVIEW.md) · [The 26-action plan](ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

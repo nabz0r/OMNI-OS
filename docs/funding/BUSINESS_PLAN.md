@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · Buyer hypotheses, differentiation, pricing experiments and the proposed route to revenue.
+<!-- /omni:header -->
+
 # OMNI business plan for the first commercial pilot
 
 Planning proposal, 24 September 2026. The product evidence is verified separately in [EVIDENCE.md](EVIDENCE.md). Market, pricing and conversion assumptions below remain hypotheses.
@@ -69,3 +75,11 @@ Run the original roadmap utility comparison: 30 recruited participants, 20 compl
 ## Funding proposition
 
 The proposed planning envelope is **EUR 350,000 over 18 months**, starting January 2027. It supports product reliability, customer validation and a limited commercial release. The [financial plan](FINANCIAL_PLAN.md) separates costs, cash timing and scenarios. This is not a confirmed fundraising mandate, valuation, investment offer or awarded grant. Finalise the amount with actual compensation, cash and corporate information.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Build & operate
+
+> **Runbook** · Separate native operation, source services, runtime data and deployment tasks.
+<!-- /omni:header -->
+
 # Operations
 
 ## Standalone native application
@@ -85,3 +91,11 @@ Track CPU time, resident memory, processing latency, bytes transmitted and queue
 An encrypted database copy is useful only with an actually recoverable key. Native Android wrapping keys and iOS device-only Keychain items do not supply a cross-device recovery flow; Android automatic backup is disabled in the platform application configuration. No complete key migration or backup-and-restore wizard is implemented. Loss or invalidation of a key can make the vault unreadable, and the app will not replace a missing key for an existing database.
 
 Never commit live databases, model weights, tokens or enrollment secrets. Preserve the privacy ledger together with the vault when restoring, and treat concurrent cloned installations as separate privacy-accounting risks. Keep dependency locks and run the full checks before updating the network or DP implementation. Source development, desktop packaging, simulator execution, physical-device testing and signed public distribution each need their own evidence.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Connect a client](INTEGRATIONS.md) · [How a request travels](ARCHITECTURE.md) · [Native platforms](PLATFORMS.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

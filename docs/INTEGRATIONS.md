@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Build & operate
+
+> **Integration contract** · Use the launcher, explicit API gateway or MCP tools with the correct authority.
+<!-- /omni:header -->
+
 # Connect an application deliberately
 
 OMNI does not need an interception certificate. Use the desktop launcher, point a compatible client at the local gateway, or connect through its MCP memory tools. The browser extension captures visible conversation text only when its button is pressed; installation is described in the [extension guide](../apps/extension/README.md).
@@ -72,3 +78,11 @@ Every edit preserves history until the memory or source is deleted. The desktop 
 Exercise a contextual request and a follow-up, inspect the outgoing history and receipt, then change or revoke its permission and verify the next behavior. For the desktop, also check memory correction or deletion, unconfirmed import proposals, failure recovery, Markdown image suppression, lock/unlock isolation and the mobile layout. Use synthetic content in the isolated simulation stack.
 
 The [desktop browser verification guide](../apps/desktop/README.md#browser-verification) describes the expanded automated flow and manual checks. These are procedures to run, not a claim that an integration or the latest changes have passed. Record outcomes and limitations in [VALIDATION.md](VALIDATION.md).
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [How a request travels](ARCHITECTURE.md) · [Native platforms](PLATFORMS.md) · [Operate an installation](OPERATIONS.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

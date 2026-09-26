@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Planning · 24 Sep 2026** · A planning brief for customer assessment; no compliance certification is claimed.
+<!-- /omni:header -->
+
 # Security and regulatory diligence brief
 
 Prepared 24 September 2026 for programme reviewers and pilot buyers. This is a product boundary and diligence plan, not a legal opinion, certification or assurance report. The initial proposition is software for AI workflow control. The actual business activity and deployment determine legal obligations.
@@ -50,3 +56,11 @@ Repository metadata states AGPL-3.0-only and the [licence text](../../LICENSE) i
 ## Prioritised diligence actions
 
 Before a paid non-sensitive pilot: name the operational contact, agree data/provider boundaries, document incident escalation, confirm licence obligations and sign the correct scope. Before broader real-data deployment: complete recovery, trusted release distribution and a scoped external security review, remediate material findings and agree appropriate privacy/procurement terms. Before managed enterprise promises: verify identity, policy distribution, work/personal separation and bypass prevention on supported configurations.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](../assessment/README.md) · [The fintech venture review](../assessment/VENTURE_REVIEW.md) · [The 26-action plan](../assessment/ACTION_PLAN.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->

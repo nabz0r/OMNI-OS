@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Design & direction
+
+> **MVP direction** · A focused AI gateway and context workflow, with explicit enterprise gaps.
+<!-- /omni:header -->
+
 # OMNI Pro: controlled AI requests and reusable work context
 
 Decision brief, 26 September 2026. The recommended initial product is a local AI gateway for a bounded professional workflow. The first increment in this change is reviewed conversation import, not a completed enterprise security platform.
@@ -91,3 +97,11 @@ Use OMNI's launcher or a supported client routed through the local gateway. Do n
 This professional focus narrows the [roadmap](../ROADMAP.md) and the [venture assessment](assessment/VENTURE_REVIEW.md); it does not make prior company, funding or security gaps disappear. The immediate differentiation to test is the combination of approved reusable context and inspectable request control in a workflow users already perform. Neither “VPN” branding nor collecting a large history proves that advantage.
 
 Sources checked on 26 September 2026. Future programme terms, provider features and export layouts require fresh verification before a customer commitment.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The architecture book](../ARCHITECTURE.md) · [An atlas of the boundaries](../DIAGRAMS.md) · [Our memory. Our authority.](../MANIFESTO.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](README.md) / [Field guide](docs/README.md) / Design & direction
+
+> **Delivered + planned** · Delivered checkpoints, open work and evidence required before each expansion.
+<!-- /omni:header -->
+
 # OMNI — From the First Thread of Continuity to Personal Infrastructure
 
 ## 0.3.0 delivery checkpoint — 26 September 2026
@@ -144,3 +150,11 @@ We will track time saved rebuilding context, tasks completed, corrections requir
 Every experiment will state its comparison, duration, thresholds and stop criteria before it begins. Unfavorable results will have a place in the next decision.
 
 A million is a horizon for reach. The promise to preserve remains personal: recover your continuity, choose your boundaries, keep the freedom to leave.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The architecture book](ARCHITECTURE.md) · [An atlas of the boundaries](DIAGRAMS.md) · [Our memory. Our authority.](MANIFESTO.md)
+
+[All documentation](docs/README.md) · [Delivery and verification](docs/DELIVERY.md)
+<!-- /omni:footer -->

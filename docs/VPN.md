@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../README.md) / [Field guide](README.md) / Build & operate
+
+> **Runbook** · Enroll, route and rotate the optional WireGuard transport without changing application trust.
+<!-- /omni:header -->
+
 # VPN transport, admission and rotation
 
 The VPN is an optional transport for the local gateway. It does not read HTTPS, decrypt applications, install a certificate authority, or intercept every AI application. Understanding and permission checks belong to the local gateway. An unconfigured installation remains usable locally and reports `not_configured`; it never invents a connected peer.
@@ -91,3 +97,11 @@ sudo env PATH="$PATH" OMNI_VPN_BINARY="$PWD/target/debug/omni-vpn" infra/vpn/tes
 ```
 
 The privileged Linux interoperability test has passed in GitHub Actions with a real BoringTun userspace client and kernel WireGuard server in separate network namespaces. This verifies admission, rotation and retired-key rejection beyond the local cryptographic simulation. A public-server deployment and the privileged macOS utun path have not been exercised in this session. Cloud firewall policy, throughput and signed macOS distribution still require deployment-specific validation. See [validation evidence](VALIDATION.md).
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [Connect a client](INTEGRATIONS.md) · [How a request travels](ARCHITECTURE.md) · [Native platforms](PLATFORMS.md)
+
+[All documentation](README.md) · [Delivery and verification](DELIVERY.md)
+<!-- /omni:footer -->

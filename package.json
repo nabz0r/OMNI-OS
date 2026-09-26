@@ -24,10 +24,21 @@
     "test:onboarding": "node apps/desktop/qa-onboarding.mjs",
     "test:setup": "node apps/desktop/qa-setup-connections.mjs",
     "test:native": "node apps/desktop/qa-native.mjs",
-    "test:policies": "node apps/desktop/qa-policies.mjs"
+    "test:policies": "node apps/desktop/qa-policies.mjs",
+    "docs:sync": "node scripts/docs/sync.mjs",
+    "docs:diagrams": "node scripts/docs/diagrams.mjs",
+    "docs:build": "node scripts/docs/build.mjs",
+    "docs:check": "node scripts/docs/check.mjs",
+    "docs:serve": "node scripts/docs/serve.mjs"
   },
   "devDependencies": {
+    "github-slugger": "2.0.0",
+    "hast-util-to-html": "9.0.5",
     "playwright": "^1.62.1",
-    "prettier": "^3.9.8"
+    "prettier": "^3.9.8",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "remark-rehype": "11.1.2",
+    "unified": "11.0.5"
   }
 }

@@ -1,3 +1,9 @@
+<!-- omni:header -->
+[OMNI](../../README.md) / [Field guide](../README.md) / Evaluation & funding
+
+> **Proposed work · 24 Sep 2026** · Priorities, dependencies, accountable roles and evidence required to close each action.
+<!-- /omni:header -->
+
 # OMNI success action plan
 
 Baseline: 24 September 2026. These are proposed actions with acceptance criteria, not completed work or guaranteed outcomes. Owners are roles to assign to real people. The audit and documents are complete; company-building and customer-validation actions remain open.
@@ -75,3 +81,11 @@ Use a weekly sheet or CRM with these definitions before collecting data. Do not 
 | Cash runway | Forecast using reconciled cash, liabilities and committed receipts | Reforecast monthly; separate pending grants and investor discussions |
 
 After two focused iterations without useful gains, stop expanding the segment and revisit the workflow. After three pilots without repeat willingness to pay, diagnose value, buyer, pricing and support before raising acquisition spend. These are management rules, not a guarantee of success.
+
+<!-- omni:footer -->
+---
+
+**Continue reading** · [The venture assessment](README.md) · [The fintech venture review](VENTURE_REVIEW.md) · [Assessment verification](VERIFICATION.md)
+
+[All documentation](../README.md) · [Delivery and verification](../DELIVERY.md)
+<!-- /omni:footer -->
