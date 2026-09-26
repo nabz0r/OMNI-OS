@@ -3,6 +3,7 @@ fn main() {
         tauri_build::AppManifest::new().commands(&[
             "native_session",
             "core_request",
+            "client_gateway",
             "save_metadata",
             "open_setup_resource",
         ]),

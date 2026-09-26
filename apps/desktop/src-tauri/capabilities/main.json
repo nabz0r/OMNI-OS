@@ -1,12 +1,15 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main",
-  "description": "Only the main webview can start its encrypted local core, make authorized core requests, export bounded JSON/CSV metadata, and open the fixed official setup resource. Device keys remain native. No arbitrary shell, filesystem, HTTP plugin or shortcut management permission.",
-  "windows": ["main"],
+  "description": "Only the main webview can start its encrypted core, make owner-authorized requests, explicitly start or stop a named-client loopback gateway, export bounded JSON/CSV data and open the fixed setup resource. Device keys remain native. No arbitrary shell, filesystem or HTTP plugin permissions.",
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "allow-native-session",
     "allow-core-request",
     "allow-save-metadata",
-    "allow-open-setup-resource"
+    "allow-open-setup-resource",
+    "allow-client-gateway"
   ]
 }

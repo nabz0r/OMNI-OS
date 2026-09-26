@@ -104,8 +104,16 @@ export async function nativeGateway(
   if (!nativeSession || nativeSession.mode !== "embedded")
     throw new Error("This session uses the external gateway.");
   const { invoke } = await import("@tauri-apps/api/core");
-  return invoke("client_gateway", {
-    token: nativeSession.token,
-    enabled: enabled ?? null,
-  });
+  try {
+    return await invoke("client_gateway", {
+      token: nativeSession.token,
+      enabled: enabled ?? null,
+    });
+  } catch (error) {
+    throw new Error(
+      typeof error === "string"
+        ? error
+        : "The local gateway could not change state.",
+    );
+  }
 }
