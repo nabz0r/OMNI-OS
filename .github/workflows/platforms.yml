@@ -31,7 +31,7 @@ permissions:
 
 concurrency:
   group: native-platforms-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 # These are evaluation artifacts, not store releases. No signing credentials are
 # read. Android uses a development debug key; iOS targets an unsigned simulator.
@@ -141,6 +141,7 @@ jobs:
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
       - name: Exercise fresh native startup, reopening and Android Keystore
+        timeout-minutes: 20
         shell: bash
         env:
           ANDROID_SERIAL: emulator-5554
@@ -150,8 +151,10 @@ jobs:
           "$ANDROID_HOME/emulator/emulator" -avd omni-ci -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on -memory 2048 -cores 2 > artifacts/platforms/android/emulator.log 2>&1 &
           omni_emulator_pid=$!
           cleanup() {
-            "$ANDROID_HOME/platform-tools/adb" -s "$ANDROID_SERIAL" emu kill >/dev/null 2>&1 || true
+            timeout 10 "$ANDROID_HOME/platform-tools/adb" -s "$ANDROID_SERIAL" emu kill >/dev/null 2>&1 || true
             kill "$omni_emulator_pid" >/dev/null 2>&1 || true
+            sleep 2
+            kill -KILL "$omni_emulator_pid" >/dev/null 2>&1 || true
             wait "$omni_emulator_pid" 2>/dev/null || true
           }
           trap cleanup EXIT

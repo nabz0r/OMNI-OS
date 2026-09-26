@@ -468,7 +468,7 @@ try {
     .getByLabel("Client name", { exact: true })
     .fill("Synthetic Android client");
   await page
-    .getByLabel("Destination", { exact: true })
+    .getByRole("combobox", { name: "Destination", exact: true })
     .selectOption(`${provider.url}/v1`);
   await page
     .getByRole("button", { name: "Approve client", exact: true })
@@ -506,7 +506,7 @@ try {
     (p) => p.label === "Android acceptance fixture",
   );
   await page
-    .getByLabel("Provider", { exact: true })
+    .getByRole("combobox", { name: "Provider", exact: true })
     .selectOption(workProvider.id);
   await page
     .getByLabel("Store the text of this conversation", { exact: false })
