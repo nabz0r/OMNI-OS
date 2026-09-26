@@ -53,8 +53,11 @@ const check = (name, value) => {
   report.assertions[name] = true;
 };
 async function attach() {
-  device = (await _android.devices({ omitDriverInstall: true })).find(
-    (entry) => entry.serial() === options.serial,
+  const connected = await _android.devices({ omitDriverInstall: true });
+  device = connected.find((entry) => entry.serial() === options.serial);
+  // Enumeration opens transports for every emulator; close unused handles.
+  await Promise.all(
+    connected.filter((entry) => entry !== device).map((entry) => entry.close()),
   );
   assert.ok(device, "The explicitly selected emulator must be connected");
   device.setDefaultTimeout(120000);
@@ -228,7 +231,10 @@ try {
     .getByLabel("Rule 1 name", { exact: true })
     .fill("Block synthetic restricted content");
   await page.getByLabel("Rule 1 pattern", { exact: true }).fill("(");
-  await page.getByRole("button", { name: "Save policy", exact: true }).click();
+  // Keyboard activation avoids tapping stale coordinates while Android closes its IME.
+  await page
+    .getByRole("button", { name: "Save policy", exact: true })
+    .press("Enter");
   await page.getByRole("alert").filter({ hasText: "unsupported" }).waitFor();
   check(
     "invalid_regex_rejected",
@@ -237,7 +243,10 @@ try {
   await page
     .getByLabel("Rule 1 pattern", { exact: true })
     .fill("(?i)RESTRICTED_ANDROID|classification\\s*:\\s*restricted");
-  await page.getByRole("button", { name: "Save policy", exact: true }).click();
+  // Keyboard activation avoids tapping stale coordinates while Android closes its IME.
+  await page
+    .getByRole("button", { name: "Save policy", exact: true })
+    .press("Enter");
   await page.getByRole("status").filter({ hasText: "Revision 1" }).waitFor();
   check(
     "native_policy_saved",
@@ -510,10 +519,17 @@ try {
     .selectOption(workProvider.id);
   await page
     .getByLabel("Store the text of this conversation", { exact: false })
-    .check();
+    .press("Space");
+  assert.equal(
+    await page
+      .getByLabel("Store the text of this conversation", { exact: false })
+      .isChecked(),
+    true,
+    "Conversation storage requires explicit consent",
+  );
   await page
     .getByRole("button", { name: "Create conversation", exact: true })
-    .click();
+    .press("Enter");
   await page
     .getByRole("heading", { name: "Synthetic continuity", exact: true })
     .waitFor();
@@ -524,7 +540,7 @@ try {
     .fill("Synthetic human statement: keep this project concise.");
   await page
     .getByRole("button", { name: "Send and save", exact: true })
-    .click();
+    .press("Enter");
   await page
     .getByText("Reply saved with its original roles.", { exact: true })
     .waitFor();
@@ -630,6 +646,17 @@ try {
   );
 } catch (error) {
   report.status = "failed";
+  report.failure = String(error.message || error).slice(0, 1500);
+  report.visible_feedback = await page
+    ?.locator('[role="alert"], [role="status"]')
+    .allTextContents()
+    .catch(() => []);
+  report.webview_errors = errors;
+  report.pattern_at_failure = await page
+    ?.getByLabel("Rule 1 pattern", { exact: true })
+    .inputValue()
+    .catch(() => null);
+
   await page
     ?.screenshot({ path: join(directory, "android-failure.png") })
     .catch(() => {});

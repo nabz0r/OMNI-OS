@@ -63,8 +63,11 @@ const check = (name, value) => {
   report.assertions[name] = true;
 };
 async function attach() {
-  device = (await _android.devices({ omitDriverInstall: true })).find(
-    (d) => d.serial() === options.serial,
+  const connected = await _android.devices({ omitDriverInstall: true });
+  device = connected.find((entry) => entry.serial() === options.serial);
+  // Enumeration opens transports for every emulator; close unused handles.
+  await Promise.all(
+    connected.filter((entry) => entry !== device).map((entry) => entry.close()),
   );
   assert.ok(device);
   device.setDefaultTimeout(120000);

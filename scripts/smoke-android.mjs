@@ -201,8 +201,13 @@ export async function smokeAndroid(options) {
     // A successful read-only startup need not change ciphertext. Verify actual
     // SQLCipher decryption through production IPC and a reversible test setting.
     const attach = async () => {
-      device = (await _android.devices({ omitDriverInstall: true })).find(
-        (entry) => entry.serial() === options.serial,
+      const connected = await _android.devices({ omitDriverInstall: true });
+      device = connected.find((entry) => entry.serial() === options.serial);
+      // Enumeration opens transports for every emulator; close unused handles.
+      await Promise.all(
+        connected
+          .filter((entry) => entry !== device)
+          .map((entry) => entry.close()),
       );
       if (!device) throw new Error("The selected emulator disconnected.");
       device.setDefaultTimeout(120000);
