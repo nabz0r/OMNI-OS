@@ -25,6 +25,7 @@ const allowed = new Set([
   "--macos-revision",
   "--android-revision",
   "--macos-run",
+  "--previous-delivery",
 ]);
 const args = process.argv.slice(2),
   values = {};
@@ -96,6 +97,18 @@ const acceptance = await json(join(evidence, "android-native-acceptance.json"));
 const keystore = await json(join(evidence, "android-keystore-tests.json"));
 const smoke = await json(join(evidence, "android-smoke.json"));
 const upgrade = await json(join(evidence, "android-upgrade.json"));
+const previousDirectory = resolve(values["--previous-delivery"]);
+const previous = await json(join(previousDirectory, "delivery.json"));
+assert.match(previous.version, /^\d+\.\d+\.\d+$/);
+const previousApk = previous.packages.find((entry) =>
+  entry.file.endsWith(".apk"),
+);
+assert.ok(previousApk, "The previous delivery must identify its Android APK");
+assert.equal(previousApk.sha256, upgrade.from_apk_sha256);
+assert.equal(
+  await digest(join(previousDirectory, previousApk.file)),
+  upgrade.from_apk_sha256,
+);
 assert.equal(macBuild.platform, "macos");
 assert.equal(macBuild.target, "aarch64-apple-darwin");
 assert.equal(macBuild.status, "built");
@@ -137,7 +150,7 @@ assert.equal(androidBuild.platform, "android");
 assert.equal(androidBuild.status, "built");
 assert.equal(acceptance.status, "passed");
 assert.ok(
-  Object.keys(acceptance.assertions).length >= 28 &&
+  Object.keys(acceptance.assertions).length >= 38 &&
     Object.values(acceptance.assertions).every((x) => x === true),
 );
 for (const name of [
@@ -146,6 +159,12 @@ for (const name of [
   "blocked_request_never_reaches_provider",
   "native_text_attachment_inference",
   "policy_survives_process_restart",
+  "import_assistant_unselected",
+  "import_review_does_not_save",
+  "import_native_proposed_memories",
+  "import_does_not_grant_access",
+  "import_decoded_policy_denial",
+  "import_survives_process_restart",
 ])
   assert.equal(
     acceptance.assertions[name],
@@ -219,10 +238,32 @@ try {
     "android-reopened.png",
     "android-policies.png",
     "android-upgrade.json",
+    "android-import.png",
+    "android-keystore-junit.xml",
+    "android-package.txt",
   ])
     files.push([join(evidence, name), `Evidence/${name}`]);
   for (const [source, target] of files)
     await cp(source, join(stage, target), { errorOnExist: true, force: false });
+  for (const name of ["README.md", "START-HERE.html"])
+    await writeFile(
+      join(stage, name),
+      (await readFile(join(stage, name), "utf8"))
+        .replaceAll("{{VERSION}}", version)
+        .replaceAll(
+          "{{ANDROID_CHECKS}}",
+          String(Object.keys(acceptance.assertions).length),
+        )
+        .replaceAll("{{PREVIOUS_VERSION}}", previous.version),
+    );
+  const sourceArchive = `OMNI-${version}-source.zip`;
+  run("git", [
+    "archive",
+    "--format=zip",
+    "--output",
+    join(stage, sourceArchive),
+    values["--macos-revision"],
+  ]);
   run("ditto", [
     "-x",
     "-k",
@@ -297,8 +338,7 @@ try {
         acceptance: `${Object.keys(acceptance.assertions).length} native acceptance checks passed`,
         keystore: "5 instrumentation tests passed",
         tested_apk_sha256: acceptance.apk_sha256,
-        upgrade:
-          "7 in-place upgrade checks passed from the 0.1.0 evaluation APK",
+        upgrade: `${Object.keys(upgrade.assertions).length} in-place upgrade checks passed from the ${previous.version} evaluation APK`,
         certificate_sha256: upgrade.certificate_sha256,
       },
     },
@@ -310,6 +350,11 @@ try {
       "Separate device vaults; no synchronization or complete recovery wizard",
     ],
     packages: [],
+    source_archive: {
+      file: sourceArchive,
+      revision: values["--macos-revision"],
+      sha256: await digest(join(stage, sourceArchive)),
+    },
   };
   for (const [, file] of files.filter(([, file]) =>
     /\.(apk|dmg|zip)$/.test(file),

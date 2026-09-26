@@ -1,5 +1,11 @@
 # OMNI — From the First Thread of Continuity to Personal Infrastructure
 
+## 0.3.0 delivery checkpoint — 26 September 2026
+
+The updated macOS and Android evaluation installers now include reviewed conversation import and policy inspection of decoded messages. Both were packaged from one clean source snapshot. The exact Android APK passed 38 native checks, five Keystore tests and seven update checks from 0.2.0; macOS passed native startup with a fresh encrypted vault and package-integrity checks. The local delivery includes an offline guide, source archive and checksums. [Release notes](docs/releases/v0.3.0.md).
+
+Production gates remain Developer ID/notarization, a protected Android release identity, physical-device coverage, recovery, tenant/agent identity and native browser pairing. File import does not establish account synchronization, device-wide interception or enterprise-wide enforcement. These remain roadmap items rather than delivered behavior.
+
 The journey from zero to a million people begins with one person choosing to return.
 
 This roadmap has three phases: **Genesis**, **Sovereign Agent**, **Global Mesh**. The cohort sizes and thresholds below are proposed experimental targets. They describe neither existing adoption, commercial forecasts nor demonstrated capacity. Progress between phases depends on evidence; no date makes it automatic.
