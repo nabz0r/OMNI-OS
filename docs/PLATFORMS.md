@@ -2,6 +2,12 @@
 
 OMNI shares one React/Three.js interface and Rust core across its desktop and mobile targets. The implementation includes native adapters for macOS, Windows, Linux, Android and iOS. This document describes source behavior and build procedures. A target appearing here does not certify a successful build, physical-device test, signed release or store acceptance; current evidence belongs in [VALIDATION.md](VALIDATION.md).
 
+## Current macOS and Android delivery
+
+The local 0.3.0 installers include the reviewed conversation importer and decoded-message policy inspection in the embedded Rust core. The macOS application targets Apple Silicon and macOS 14.4+; Android includes ARM64 and x86_64 with minimum API 24. Android version name is `0.3.0` and version code is `3000`. Both packages use the same clean source snapshot. Native startup on a fresh macOS runner, 38 Android acceptance checks, five Keystore tests and seven update checks from 0.2.0 passed. See [delivery](DELIVERY.md) for package paths and [validation](VALIDATION.md) for scope.
+
+Distribution status is unchanged: the Mac application remains ad-hoc signed and not notarized; Android retains the same local development certificate used for the preceding delivery. The standalone app still has no HTTP listener by default. The separate browser extension therefore does not automatically pair with this native application; native users can explicitly import conversation files through Memory.
+
 ## Two deliberately separate modes
 
 | Mode                             | What runs                                                                             | How the interface connects                            | Where the vault lives                                                                 |

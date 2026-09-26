@@ -1200,7 +1200,7 @@ dependencies = [
 
 [[package]]
 name = "omni-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -1228,7 +1228,7 @@ dependencies = [
 
 [[package]]
 name = "omni-vpn"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "base64",

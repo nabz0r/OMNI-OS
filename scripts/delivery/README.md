@@ -8,7 +8,7 @@ The application embeds its Rust engine and encrypted database. You do not need N
 
 Requires an **Apple Silicon Mac (M1 or later), macOS 14.4 or later**. This build does not support Intel Macs.
 
-1. Open `macOS/OMNI-0.2.0-macOS-arm64.dmg`.
+1. Open `macOS/OMNI-{{VERSION}}-macOS-arm64.dmg`.
 2. Drag **OMNI** into **Applications**, then open it there. The extracted `macOS/OMNI.app` and ZIP contain the same application.
 3. Follow **Guided setup**. Use an existing local Ollama model, or add your own provider key in **Models**.
 
@@ -18,7 +18,7 @@ This evaluation build has a verified ad-hoc signature, without an Apple Develope
 
 Requires **Android 7 or later** on **ARM64** or **x86_64**. The native acceptance run used Android 15; older supported API levels have not been device-tested. A current Android System WebView is required. ARM32-only phones are not supported by this APK.
 
-1. Copy `Android/OMNI-0.2.0-android.apk` to your phone and open it.
+1. Copy `Android/OMNI-{{VERSION}}-android.apk` to your phone and open it.
 2. If Android asks, allow installation from the specific browser or file manager you are using, then install **OMNI**. You can revoke that install permission afterward.
 3. Open OMNI and follow **Guided setup**. Supply your provider API key and choose a model. In **Models**, a compatible remote endpoint is also supported; use HTTPS outside loopback.
 
@@ -34,11 +34,25 @@ On a phone, `localhost` refers to the phone. It does not point to your Mac's Oll
 
 Use **Memory** to correct your context, **Permissions** to control disclosure, **Policies** to restrict text patterns and attachment types, **Models** for connections, and **Settings** for local preferences. Metadata exports contain request records, not conversation bodies. An interface lock hides your space; it is not biometric authentication.
 
+## Import a previous conversation
+
+Open **Memory → Import text → Import chats**. Choose an extracted ChatGPT or Claude JSON export, or a neutral OMNI conversation file. JSON paste is also available. Select a conversation, review its messages, then choose **Use selected messages** and **Extract for review**.
+
+Only user messages are selected by default. AI replies are optional context. Imported memories remain **proposed** and do not create sharing permissions. Review and confirm them before granting access. Files must be valid UTF-8 JSON, at most 5 MB; the selected text must fit the 100,000-byte capture limit. Images, attachments, tool output and hidden reasoning are omitted. Repeating an import can create duplicates.
+
+This is an explicit import of a file you provide. It does not sign in to ChatGPT or Claude, synchronize accounts, or intercept other applications. A compatible local extractor may propose memories; when unavailable, OMNI stores a bounded excerpt for review. The complete selected source is retained in the encrypted vault.
+
+## Update an existing installation
+
+Close OMNI before replacing the Mac application. On Android, install the APK over the previous application using the same signing identity. The {{PREVIOUS_VERSION}} → {{VERSION}} Android update preserved synthetic memory and settings in the tested emulator. Do not uninstall a personal vault or delete its system key to fix an update error. macOS may ask the owner to authorize access to the existing Keychain item; that upgrade authorization was not exercised for this exact package.
+
 ## What was verified
 
 - The delivered macOS package passed native startup and fresh encrypted-vault initialization on a macOS runner. Its application resource seal, disk image and delivery checksums are verified. An earlier native build also completed real local Ollama inference, history, export and reopening on the project Mac.
-- The exact delivered Android APK passed fresh installation and encrypted-vault reopening, followed by **28 native acceptance checks**: actual WebView/IPC, model setup and discovery, synthetic-provider inference, private memory boundaries, token history, the native export share sheet, metadata-only export, lock/reload and persistence after process restart. All **five Android Keystore instrumentation tests** also passed.
+- The exact delivered Android APK passed fresh installation and encrypted-vault reopening, followed by **{{ANDROID_CHECKS}} native acceptance checks**: actual WebView/IPC, model setup and discovery, synthetic-provider inference, private memory boundaries, token history, the native export share sheet, metadata-only export, lock/reload and persistence after process restart. Conversation import additionally passed selection, readable review, proposed-memory creation, decoded-text policy denial and restart checks. All **five Android Keystore instrumentation tests** also passed.
 - Android screenshots in `Evidence/` come from that installed APK on an emulator. The response model is explicitly synthetic. These checks do not establish physical-phone compatibility with every vendor, minimum-OS compatibility, app-store approval or absence of every possible defect.
+
+The included `OMNI-{{VERSION}}-source.zip` contains the exact source snapshot used for both applications, including build instructions and lockfiles.
 
 `delivery.json` identifies the source revisions and package hashes. `Evidence/` preserves the machine-readable build and acceptance reports. Run `shasum -a 256 -c SHA256SUMS` from this folder on a Mac to verify every delivered file.
 

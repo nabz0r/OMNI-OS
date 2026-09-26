@@ -315,7 +315,7 @@
     <main>
       <header>
         <div class="wordmark">OMNI<span style="color: #8bc6b2">.</span></div>
-        <span class="badge">MVP 0.2.0 · Evaluation builds</span>
+        <span class="badge">MVP {{VERSION}} · Evaluation builds</span>
       </header>
       <section class="intro">
         <div class="eyebrow">Your personal context layer</div>
@@ -333,11 +333,14 @@
             Apple Silicon · macOS 14.4 or later<br />Native app. Encrypted local
             memory.
           </p>
-          <a class="button" href="macOS/OMNI-0.2.0-macOS-arm64.dmg" download
+          <a
+            class="button"
+            href="macOS/OMNI-{{VERSION}}-macOS-arm64.dmg"
+            download
             >Get the macOS app ↗</a
           ><a
             class="secondary"
-            href="macOS/OMNI-0.2.0-macOS-arm64.app.zip"
+            href="macOS/OMNI-{{VERSION}}-macOS-arm64.app.zip"
             download
             >Prefer a ZIP? Download the application archive.</a
           >
@@ -364,7 +367,7 @@
             Android 7+ · ARM64 and x86_64<br />Native app. Android Keystore
             protection.
           </p>
-          <a class="button" href="Android/OMNI-0.2.0-android.apk" download
+          <a class="button" href="Android/OMNI-{{VERSION}}-android.apk" download
             >Get the Android APK ↗</a
           ><span class="secondary"
             >Install directly on your Android device.</span
@@ -421,9 +424,13 @@
           <h2>A working MVP.<br />An honest delivery.</h2>
           <ul>
             <li>macOS native startup and encrypted vault</li>
-            <li>28 Android native acceptance checks</li>
+            <li>{{ANDROID_CHECKS}} Android native acceptance checks</li>
             <li>5 Android Keystore tests</li>
-            <li>Policy enforcement, text files and restart persistence</li>
+            <li>Reviewed conversation import and decoded-text policy checks</li>
+            <li>
+              Update from {{PREVIOUS_VERSION}} preserves test memory and
+              settings
+            </li>
             <li>Native metadata export and permission boundaries</li>
             <li>Package integrity and SHA-256 checksums</li>
           </ul>
@@ -444,6 +451,20 @@
             Actual Android application · synthetic test conversation
           </figcaption>
         </figure>
+      </section>
+      <section class="section">
+        <div class="eyebrow">New in {{VERSION}}</div>
+        <h2>Bring the context you choose.</h2>
+        <p>
+          Open <strong>Memory → Import text → Import chats</strong>. Choose a
+          ChatGPT, Claude or neutral JSON conversation export. Review the
+          messages, then extract proposed memories. AI replies are unchecked by
+          default; importing creates no sharing permission.
+        </p>
+        <p>
+          Conversation import works with files you supply. It does not sign in
+          to other AI services or synchronize their accounts.
+        </p>
       </section>
       <div class="notice">
         <strong>Your model, your device.</strong> No model or API credits are

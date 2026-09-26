@@ -1,5 +1,29 @@
 # Validation evidence
 
+## 0.3.0 local delivery acceptance — 2026-09-26
+
+The updated local delivery is `deliverables/OMNI-0.3.0-mvp/`, with an offline guide, source archive, evidence and a 27-file SHA-256 inventory. This is a local evaluation delivery, not a newly published GitHub release. The public 0.2.0 assets remain unchanged.
+
+Both applications were built from clean snapshot `fe7dbf5c9cf0412a32f5a1977cfc51f30941b5e1`, the tested merge of `a2f582592da58f843f139342ba02f10172188f30` with the previous main. The [macOS native job](https://github.com/nabz0r/OMNI-OS/actions/runs/36250109825/job/108426428384) passed package creation, fresh embedded encrypted-vault startup and native runtime tests. All six jobs in the [source verification workflow](https://github.com/nabz0r/OMNI-OS/actions/runs/36250109819) passed. The downloaded macOS Actions archive matched GitHub's SHA-256 digest `01399a588ce52b6195f80c3a440507ad0234a364f12cd6849debbfed796b1173`.
+
+| Delivered package | SHA-256 |
+| --- | --- |
+| `OMNI-0.3.0-macOS-arm64.dmg` | `dd7b88d2c006a66fa5f49dba5fa56871c4e53f7085759881ab8919c3d635be10` |
+| `OMNI-0.3.0-macOS-arm64.app.zip` | `e868bfe97696196a4928771673c15cdbf080ca7b99e1fb12a6b32aef9f4389c1` |
+| `OMNI-0.3.0-android.apk` | `78bd6ff80df26f7be177d2ddfa58123df9f72fefd250979c9d14a5571fef3d1d` |
+
+The exact Android APK passed **38 native acceptance checks** on a fresh Android 15 AOSP ARM64 emulator. This includes the existing setup, inference, policies, attachments, export, lock and persistence checks, plus file-input conversation import, no automatic conversation selection, user-only defaults, disabled empty selection, readable preview without persistence, proposed memories without grants or receipts, decoded-message policy denial and import persistence after restart. The response provider was synthetic and loopback-only. The file was supplied by WebView automation; Android's document-provider chooser was not exercised.
+
+**Five Keystore instrumentation tests** passed with no failures, errors or skips. **Seven in-place upgrade checks** installed this APK over the exact 0.2.0 delivery without uninstalling and preserved synthetic memory and settings. The Android development certificate remained `497a8facf989aaaf6e18f0d5d7131620b96f9a11b8660d67281477b276a976dc`; version name/code are `0.3.0`/`3000`, target API 36, minimum API 24. Both ARM64 and x86_64 libraries are present. Runtime acceptance used ARM64; local x86_64 or minimum-API execution is not claimed.
+
+Local assembly verified the APK signature, macOS bundle resource seal and DMG checksum. It mounted the DMG read-only and matched its application with the extracted application ZIP. The previous APK was verified against the upgrade report's source digest. The exact build source is included in `OMNI-0.3.0-source.zip`. Later delivery-documentation changes do not alter these binaries.
+
+Local source checks also passed: **80 Rust tests** (73 core, seven VPN), formatting, strict Clippy, **14 import tests**, **five extension tests**, **nine collector tests** and **two Android smoke-helper tests**. The optional local Redis case was skipped; the separate green application CI job supplied Redis and ran browser regressions. The production frontend built successfully for native packaging.
+
+The offline guide was rendered and inspected, with its Android image loaded and no horizontal overflow in the inspected desktop viewport. All 84 local Markdown links/anchors in the seven updated guides resolved; guide resource links and all 27 file hashes passed. No Mermaid diagrams changed. The complete ZIP passed archive-integrity validation.
+
+macOS evidence for this exact package establishes native startup and encrypted-vault initialization, not an end-to-end conversation/import or existing-Keychain upgrade test. Android evidence is from an emulator, not a physical phone. The Mac is ad-hoc signed and not notarized; Android is development-signed. No paid-provider, account-sync, device-wide interception or independent security-certification claim is made. See [delivery](DELIVERY.md) and [feature verification](PRO_MVP_VERIFICATION.md).
+
 ## 0.2.0 release acceptance — 2026-09-24
 
 The [publication workflow](https://github.com/nabz0r/OMNI-OS/actions/runs/35983500546) published the 0.2.0 pre-release on 2026-09-24. All six public asset sizes and GitHub SHA-256 digests matched the local release manifest. A separate download check retrieved the published checksum file and macOS DMG and confirmed their exact hashes. The temporary publication branch was removed after verification; the release assets remain available.

@@ -51,6 +51,8 @@ import {
 import Administration, { type AdminState } from "./Administration";
 import Operations from "./Operations";
 import Policies from "./Policies";
+import ConversationImport from "./ConversationImport";
+import type { ImportedMessage } from "./conversations";
 import { readTextFiles, type TextAttachment } from "./files";
 import Setup from "./Setup";
 import { isNative, provisionNativeSession, vaultStorageLabel } from "./native";
@@ -251,6 +253,28 @@ function OmniSpace({
   const [captureOpen, setCaptureOpen] = useState(false);
   const [captureContent, setCaptureContent] = useState("");
   const [captureTitle, setCaptureTitle] = useState("");
+  const [captureSource, setCaptureSource] = useState("manual_capture");
+  const [importConversations, setImportConversations] = useState(false);
+  const capturePreview = useMemo(() => {
+    if (captureSource === "manual_capture") return captureContent;
+    const reviewed = JSON.parse(captureContent) as {
+      messages: ImportedMessage[];
+    };
+    return reviewed.messages
+      .map(
+        (message) =>
+          `${message.role === "user" ? "User" : "AI assistant"}:\n${message.text}`,
+      )
+      .join("\n\n");
+  }, [captureContent, captureSource]);
+  useEffect(() => {
+    if (!captureOpen) {
+      setCaptureContent("");
+      setCaptureTitle("");
+      setCaptureSource("manual_capture");
+      setImportConversations(false);
+    }
+  }, [captureOpen]);
   const [deletePending, setDeletePending] = useState(false);
   const [selected, setSelected] = useState<Memory | null>(null);
   const [editContent, setEditContent] = useState("");
@@ -885,13 +909,15 @@ function OmniSpace({
         body: JSON.stringify({
           content,
           title: captureTitle.trim() || "Reviewed text",
-          source: "manual_capture",
+          source: captureSource,
         }),
       });
       await refresh();
       setCaptureOpen(false);
       setCaptureContent("");
       setCaptureTitle("");
+      setCaptureSource("manual_capture");
+      setImportConversations(false);
       setMemoryFilter("proposed");
       setQuery("");
       setView("memories");
@@ -2240,7 +2266,7 @@ function OmniSpace({
             className="modal capture-modal"
             role="dialog"
             aria-modal="true"
-            aria-label="Import text"
+            aria-label="Import text or conversations"
             onClick={(event) => event.stopPropagation()}
           >
             <button
@@ -2257,38 +2283,99 @@ function OmniSpace({
               Paste a note or a conversation. Local extraction suggests memories
               for you to review. Nothing is approved for sharing automatically.
             </p>
-            <label htmlFor="capture-title">Source title</label>
-            <input
-              id="capture-title"
-              value={captureTitle}
-              onChange={(event) => setCaptureTitle(event.target.value)}
-              placeholder="For example: project notes"
-              maxLength={200}
-            />
-            <label htmlFor="capture-content">Text to remember</label>
-            <textarea
-              id="capture-content"
-              value={captureContent}
-              onChange={(event) => setCaptureContent(event.target.value)}
-              rows={8}
-              placeholder="Paste the text you want to keep in your local vault…"
-            />
-            <div className="capture-footnote">
-              <LockKeyhole size={14} />
-              <span>
-                Saved to this device. Processed by your local extraction model.
-              </span>
-            </div>
-            <button
-              className="primary full"
-              disabled={
-                busy || !captureContent.trim() || connection !== "online"
-              }
-              onClick={() => void capture()}
+            <div
+              className="import-mode"
+              role="group"
+              aria-label="Import method"
             >
-              {busy ? "Preparing memories…" : "Extract for review"}
-              <ArrowRight size={16} />
-            </button>
+              <button
+                className={importConversations ? "secondary" : "primary"}
+                disabled={busy}
+                aria-pressed={!importConversations}
+                onClick={() => setImportConversations(false)}
+              >
+                Reviewed text
+              </button>
+              <button
+                className={importConversations ? "primary" : "secondary"}
+                disabled={busy}
+                aria-pressed={importConversations}
+                onClick={() => setImportConversations(true)}
+              >
+                Import chats
+              </button>
+            </div>
+            {importConversations ? (
+              <ConversationImport
+                onReview={(value) => {
+                  setCaptureContent(value.content);
+                  setCaptureTitle(value.title);
+                  setCaptureSource(value.source);
+                  setImportConversations(false);
+                  setError("");
+                }}
+              />
+            ) : (
+              <>
+                {captureSource !== "manual_capture" && (
+                  <p className="import-boundary">
+                    Selected conversation text is ready. Review it before
+                    extraction. Importing again can create duplicate memories.
+                  </p>
+                )}
+                <label htmlFor="capture-title">Source title</label>
+                <input
+                  id="capture-title"
+                  value={captureTitle}
+                  onChange={(event) => setCaptureTitle(event.target.value)}
+                  placeholder="For example: project notes"
+                  maxLength={200}
+                  disabled={busy}
+                />
+                <label htmlFor="capture-content">Text to remember</label>
+                <textarea
+                  id="capture-content"
+                  value={capturePreview}
+                  readOnly={captureSource !== "manual_capture"}
+                  onChange={(event) => {
+                    setCaptureContent(event.target.value);
+                    setCaptureSource("manual_capture");
+                  }}
+                  rows={8}
+                  disabled={busy}
+                  placeholder="Paste the text you want to keep in your local vault…"
+                />
+                {captureSource !== "manual_capture" && (
+                  <button
+                    className="secondary"
+                    disabled={busy}
+                    onClick={() => {
+                      setCaptureContent(capturePreview);
+                      setCaptureSource("manual_capture");
+                    }}
+                  >
+                    Edit as text
+                  </button>
+                )}
+                <div className="capture-footnote">
+                  <LockKeyhole size={14} />
+                  <span>
+                    Saved to this device. Processed by your local extraction
+                    model.
+                  </span>
+                </div>
+                <button
+                  className="primary full"
+                  disabled={
+                    busy || !captureContent.trim() || connection !== "online"
+                  }
+                  onClick={() => void capture()}
+                >
+                  {busy ? "Preparing memories…" : "Extract for review"}
+                  <ArrowRight size={16} />
+                </button>
+              </>
+            )}
             {error && (
               <p className="error" role="alert">
                 {error}

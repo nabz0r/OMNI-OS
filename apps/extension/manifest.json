@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "OMNI — Explicit local capture",
-  "version": "0.2.0",
-  "description": "Preview and explicitly save selected ChatGPT or Claude conversation text to your local OMNI vault.",
+  "version": "0.3.0",
+  "description": "Review ChatGPT or Claude messages, or selected Z.AI text, before saving to your local OMNI vault.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["http://127.0.0.1:3007/*"],
   "action": {

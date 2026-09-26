@@ -8,6 +8,12 @@
 
 [Manifesto](MANIFESTO.md) · [Architecture](ARCHITECTURE.md) · [Diagrams](DIAGRAMS.md) · [Platforms](docs/PLATFORMS.md) · [Roadmap](ROADMAP.md)
 
+[2027 application package](docs/funding/README.md) provides researched programme routes, application drafts, a proposed commercial plan and a register separating verified product evidence from unconfirmed founder and business facts.
+
+[Fintech venture assessment](docs/assessment/README.md) reviews the MVP, application deliverables and economics, with verified test results and a prioritised 26-action plan.
+
+[Professional MVP direction](docs/PRO_MVP.md) defines the API gateway, browser-capture and network boundaries. [Reviewed conversation import](docs/CONVERSATION_IMPORT.md) now prepares selected ChatGPT/Claude JSON messages for memory review; the extension also supports selected text from Z.AI.
+
 ![Nebula — the actual interface, showing explicitly synthetic demonstration memories](docs/images/nebula.png)
 
 ## The problem in one sentence
@@ -27,6 +33,8 @@ Use **Import text** to turn notes into reviewable proposals. Filter memories by 
 Revocation blocks future sharing through OMNI. It cannot retrieve copies a provider has already received.
 
 ## Native applications and the development demo
+
+**Updated local delivery: OMNI 0.3.0 for macOS and Android.** The installers in `deliverables/OMNI-0.3.0-mvp/` add reviewed conversation import and decoded-message policy filtering. Both embed the updated interface and Rust core. The exact Android APK passed 38 native checks, five Keystore tests and seven update checks from 0.2.0; the Mac package passed native startup and integrity checks. Open the included `START-HERE.html` or read [0.3.0 release notes](docs/releases/v0.3.0.md). The public 0.2.0 release below remains preserved.
 
 **Download [OMNI 0.2.0 for macOS and Android](https://github.com/nabz0r/OMNI-OS/releases/tag/v0.2.0).** This evaluation release includes **Policies**, text attachments, memory, model administration, history and usage. Open the DMG on an Apple Silicon Mac with macOS 14.4+, or install the APK on Android ARM64/x86_64 with API 24+ and a current System WebView. No development tools or OMNI server are required; connect your own model or provider account. The complete package and offline guide also live in `deliverables/OMNI-0.2.0-mvp/`. The exact APK passed 28 native acceptance checks, five Keystore tests and seven in-place upgrade checks from the previous evaluation APK. The Mac package passed native startup and package-integrity checks. These are ad-hoc/development-signed packages; Developer ID, notarization and Play Store distribution remain separate. [Installation and release details →](docs/DELIVERY.md)
 

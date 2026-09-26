@@ -2976,7 +2976,7 @@ dependencies = [
 
 [[package]]
 name = "omni-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -3003,7 +3003,7 @@ dependencies = [
 
 [[package]]
 name = "omni-desktop"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "omni-core",
  "serde",
@@ -4669,7 +4669,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-omni-device"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "fs2",
  "keyring",

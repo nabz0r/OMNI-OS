@@ -2,6 +2,7 @@ export const SUPPORTED_HOSTS = new Set([
   "chatgpt.com",
   "chat.openai.com",
   "claude.ai",
+  "chat.z.ai",
 ]);
 export function supportedURL(value) {
   try {
@@ -20,10 +21,14 @@ export function supportedURL(value) {
 
 // Serialized by chrome.scripting into an isolated world. It receives no token.
 export function captureVisibleConversation() {
-  const host = location.hostname;
+  const page = new URL(location.href);
+  const host = page.hostname;
   if (
-    location.protocol !== "https:" ||
-    !["chatgpt.com", "chat.openai.com", "claude.ai"].includes(host)
+    page.protocol !== "https:" ||
+    page.port ||
+    page.username ||
+    page.password ||
+    !["chatgpt.com", "chat.openai.com", "claude.ai", "chat.z.ai"].includes(host)
   )
     return { error: "This website is not supported." };
   const selection = window.getSelection()?.toString().trim();
@@ -35,9 +40,14 @@ export function captureVisibleConversation() {
   if (selection)
     return {
       content: selection,
-      title: document.title,
-      url: location.origin + location.pathname,
+      title: document.title.slice(0, 200),
+      url: page.origin + page.pathname,
       mode: "Selected text",
+    };
+  if (host === "chat.z.ai")
+    return {
+      error:
+        "Select the exact Z.AI conversation text you want to keep, then review again. Automatic page extraction is not supported for this site.",
     };
   const selectors =
     host === "claude.ai"
@@ -55,9 +65,10 @@ export function captureVisibleConversation() {
         (el.getAttribute("data-testid") === "user-message"
           ? "user"
           : "assistant");
-      return `${role}: ${el.innerText?.trim() || ""}`;
+      const text = el.innerText?.trim() || "";
+      return text ? `${role}: ${text}` : "";
     })
-    .filter((text) => text.length > 15);
+    .filter(Boolean);
   if (!messages.length)
     return {
       error:
@@ -71,8 +82,8 @@ export function captureVisibleConversation() {
     };
   return {
     content,
-    title: document.title,
-    url: location.origin + location.pathname,
+    title: document.title.slice(0, 200),
+    url: page.origin + page.pathname,
     mode: "Rendered conversation messages",
   };
 }
