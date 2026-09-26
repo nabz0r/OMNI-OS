@@ -12,6 +12,32 @@ This roadmap has three phases: **Genesis**, **Sovereign Agent**, **Global Mesh**
 
 Installations, accounts, subscriptions, study participants and active users remain distinct measures. Their counting methods will be published with the results. The current collector receives installation reports; it does not count unique people. Pilot measurement will use separate consent, without making telemetry a condition of using OMNI.
 
+## 2026-2027 execution plan for applications and first revenue
+
+**Professional focus, 26 September 2026:** the [Pro MVP brief](docs/PRO_MVP.md) narrows the next experiment to controlled AI requests and reusable approved work context. Reviewed conversation import is implemented; per-user professional authority, trusted distribution/recovery and supported-client acceptance remain gates. API mediation, browser capture and VPN routing are distinct scopes. This focus does not claim universal HTTPS interception or replace resource and paid-demand requirements below.
+
+Added 24 September 2026 after reviewing the public 0.2.0 evaluation release and current source verification. This section supplies near-term priorities for the broader phases below. Dates are planning targets, conditional on resources and acceptance gates. The [application package](docs/funding/README.md) records researched programme deadlines, a proposed business plan, product evidence and unresolved owner facts.
+
+**Initial commercial experiment:** small fintech engineering and operations teams using several AI tools for recurring documentation work. Start with synthetic or approved non-sensitive material. This is a proposed segment to validate, not an existing customer base or a change to the principle that users control personal memory.
+
+| Period | Priority and proposed owner | Deliverable and acceptance gate | Dependency |
+| --- | --- | --- | --- |
+| Sep-Oct 2026 | Application preparation; founder | Truthful Nexus/YC answers, programme eligibility register, founder/company/IP records, genuine founder video | Actual founder and corporate facts; no invented team or traction |
+| Oct-Dec 2026 | Discovery; founder | 20 completed interviews, one recurring workflow, eight scoped demos and three pilot intents as targets | Reachable buyers and separately consented research; intents are not sales |
+| Jan-Mar 2027 | Release reliability; product owner with security support | Trusted signing/update route, physical-device coverage for claims, encrypted backup/restore and loss/recovery drills | Funding, platform credentials and a documented recovery design |
+| Jan-Mar 2027 | Buyer readiness; founder and specialist | Deployment threat model, pilot data scope, incident process, IP/licence review and scoped external assessment | No unresolved critical/high disclosure bypass before broader real-data use |
+| Apr-Jun 2027 | Paid pilot; founder and integration engineer | Up to three four-week paid pilot experiments, measured support cost and explicit renewal decisions | Release gates met; EUR 2,000 pilot price is an unvalidated proposal |
+| Jul-Sep 2027 | Repeatable offer; founder | Test EUR 500 monthly organisation offer, billing and three-month contribution measurement | Buyer commitment and a deliverable support scope; prices are hypotheses |
+| Oct-Dec 2027 | Focused expansion; product and commercial owners | Continue only with demonstrated utility, retention and paid renewal; close the most frequent deployment gaps | Satisfactory security, recovery and unit economics |
+
+The commercial pilot and the larger utility study below are separate. Three organisations do not automatically provide 30 recruited people, 20 completed participant journeys or 200 paired tasks. For the organisation offer, require three actual paid pilots and at least two paid continuations before widening sales. Retain the individual subscription experiment only if discovery supports that buyer; do not force both commercial models into the first release. The original ten-payment criterion below applies to the individual offer if pursued.
+
+Proposed capacity is one founder plus an integration/security engineer from month four if funding allows, with specialist contractors. These are budgeted roles, not current headcount. The [18-month financial plan](docs/funding/FINANCIAL_PLAN.md) starts January 2027 as an assumption, uses a proposed EUR 350,000 envelope and assumes no grant receipts. Actual cash and liabilities remain owner inputs. Without financing, defer hiring and paid infrastructure commitments and continue a separately budgeted discovery/synthetic evaluation track.
+
+**Scope discipline:** prioritise utility, recovery and trusted distribution. Agent delegation, a temporal knowledge graph, personal device synchronization, fleet-wide policy enforcement and federation remain gated later work. ZKP claims, bank-wide production readiness and million-user capacity are outside this application-stage promise. The original Phase II/III targets remain a long-term framework, not funded 2027 commitments.
+
+**Decision cadence:** review customer evidence and burn monthly. A security bypass pauses affected distribution immediately. Two focused iterations without useful gains trigger a workflow/segment decision before expansion. Reviews use actual records, and programme acceptance never substitutes for utility or paid demand.
+
 ## The Starting Point — An Executable v1 With Explicit Boundaries
 
 The repository contains a **SQLCipher** vault, memories with provenance and status, sharing permissions bounded by destination, scope and expiry, disclosure receipts, and explicit connections to the OpenAI and Anthropic protocols. Browser capture requires a deliberate action. Local extraction proposes memories for review.

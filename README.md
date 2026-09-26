@@ -8,6 +8,12 @@
 
 [Manifesto](MANIFESTO.md) · [Architecture](ARCHITECTURE.md) · [Diagrams](DIAGRAMS.md) · [Platforms](docs/PLATFORMS.md) · [Roadmap](ROADMAP.md)
 
+[2027 application package](docs/funding/README.md) provides researched programme routes, application drafts, a proposed commercial plan and a register separating verified product evidence from unconfirmed founder and business facts.
+
+[Fintech venture assessment](docs/assessment/README.md) reviews the MVP, application deliverables and economics, with verified test results and a prioritised 26-action plan.
+
+[Professional MVP direction](docs/PRO_MVP.md) defines the API gateway, browser-capture and network boundaries. [Reviewed conversation import](docs/CONVERSATION_IMPORT.md) now prepares selected ChatGPT/Claude JSON messages for memory review; the extension also supports selected text from Z.AI.
+
 ![Nebula — the actual interface, showing explicitly synthetic demonstration memories](docs/images/nebula.png)
 
 ## The problem in one sentence

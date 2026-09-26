@@ -16,6 +16,65 @@ fn restrictive() -> PolicySpec {
         ..Default::default()
     }
 }
+
+#[tokio::test]
+async fn reviewed_conversations_inspect_decoded_text_before_extraction() {
+    let (tx, mut received) = tokio::sync::mpsc::unbounded_channel();
+    let provider = provider(Router::new().fallback(post(move |Json(body): Json<Value>| {
+        let tx = tx.clone();
+        async move {
+            tx.send(body).unwrap();
+            Json(json!({"choices":[{"message":{"content":"{\"memories\":[{\"content\":\"Synthetic approved context\"}]}"}}]}))
+        }
+    }))).await;
+    let (_dir, mut state) = test_state();
+    use_provider(&mut state, &provider);
+    let mut policy = restrictive();
+    policy.rules[0].pattern = r"(?i)classification\s*:\s*restricted".into();
+    state.vault().unwrap().policy_save(0, policy).unwrap();
+    let router = app(state.clone());
+    for source in [
+        "chatgpt_export_review",
+        "claude_export_review",
+        "other_export_review",
+        "manual_capture",
+    ] {
+        let content = json!({"format":"omni-reviewed-conversation-v1","provider":"ChatGPT","title":"Synthetic","messages":[{"role":"user","text":"Classification:\nrestricted"}]}).to_string();
+        let response = call(
+            &router,
+            "/api/capture",
+            Some(json!({"content":content,"source":source})),
+        )
+        .await;
+        assert_eq!(response.0, StatusCode::FORBIDDEN, "{}", response.1);
+        assert!(
+            received.try_recv().is_err(),
+            "Denied conversation reached extractor"
+        );
+        assert!(state.vault().unwrap().memories().unwrap().is_empty());
+    }
+    let valid = json!({"format":"omni-reviewed-conversation-v1","provider":"Claude","title":"Synthetic","messages":[{"role":"user","text":"Approved synthetic context"}]}).to_string();
+    let response = call(
+        &router,
+        "/api/capture",
+        Some(json!({"content":valid,"source":"claude_export_review"})),
+    )
+    .await;
+    assert_eq!(response.0, StatusCode::OK, "{}", response.1);
+    assert_eq!(response.1["memories"][0]["status"], "proposed");
+    assert!(received.try_recv().is_ok());
+    assert!(state.vault().unwrap().grants().unwrap().is_empty());
+    for content in [
+        "not JSON".to_owned(),
+        json!({"format":"omni-reviewed-conversation-v1","provider":"Other","title":"x","messages":[{"role":"system","text":"Invalid role"}]}).to_string(),
+        json!({"format":"omni-reviewed-conversation-v1","provider":"Other","title":"x","messages":[],"unknown":"field"}).to_string(),
+    ] {
+        let response = call(&router, "/api/capture", Some(json!({"content":content,"source":"other_export_review"}))).await;
+        assert_eq!(response.0, StatusCode::BAD_REQUEST);
+        assert!(received.try_recv().is_err());
+    }
+    assert_eq!(state.vault().unwrap().memories().unwrap().len(), 1);
+}
 async fn call(router: &Router, path: &str, body: Option<Value>) -> (StatusCode, Value) {
     request(router.clone(), path, Some(OWNER), None, body).await
 }

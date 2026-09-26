@@ -90,7 +90,7 @@ $("read").addEventListener("click", async () => {
       currentWindow: true,
     });
     if (!tab?.id || !supportedURL(tab.url))
-      throw new Error("Open a ChatGPT or Claude conversation tab first.");
+      throw new Error("Open a ChatGPT, Claude or Z.AI conversation tab first.");
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: captureVisibleConversation,

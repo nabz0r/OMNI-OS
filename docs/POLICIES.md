@@ -78,6 +78,8 @@ Provider-native opaque file IDs, remote file/image URLs, binary/image/audio/vide
 
 For chat/gateway requests, the recorded size is the serialized outbound JSON body. Capture checks the full source plus its actual extractor request envelope, even though extraction uses a bounded excerpt; its recorded size is this inspection object. MCP checks the query plus the memory result object. These measurements are not TCP/TLS bandwidth.
 
+The explicit [reviewed conversation import](CONVERSATION_IMPORT.md) also validates its closed `omni-reviewed-conversation-v1` envelope and inspects the decoded message strings. JSON-escaped newlines must not conceal a match in those messages. The capture inspection size includes both the stored source and this decoded representation. This is a specific supported envelope, not general recursive parsing of arbitrary JSON-inside-strings. Import source labels are provenance claims, not authenticated user or provider identities.
+
 ## Integration contract
 
 All policy administration routes require the **owner** credential. Integration/agent credentials cannot read or edit policy administration or decision history.

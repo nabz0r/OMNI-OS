@@ -1729,6 +1729,51 @@ struct Capture {
     title: Option<String>,
     url: Option<String>,
 }
+
+#[derive(Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+struct ReviewedConversation {
+    format: String,
+    provider: String,
+    title: String,
+    messages: Vec<ReviewedMessage>,
+}
+
+#[derive(Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+struct ReviewedMessage {
+    role: String,
+    text: String,
+}
+
+fn decoded_reviewed_conversation(input: &Capture) -> ApiResult<Value> {
+    let declared = matches!(
+        input.source.as_deref(),
+        Some("chatgpt_export_review" | "claude_export_review" | "other_export_review")
+    );
+    let value = serde_json::from_str::<Value>(&input.content).ok();
+    let recognized = value.as_ref().is_some_and(|value| {
+        value.get("format").and_then(Value::as_str) == Some("omni-reviewed-conversation-v1")
+    });
+    if !declared && !recognized {
+        return Ok(Value::Null);
+    }
+    let reviewed: ReviewedConversation = value
+        .and_then(|value| serde_json::from_value(value).ok())
+        .ok_or_else(|| ApiError::bad("Invalid reviewed conversation format"))?;
+    if reviewed.format != "omni-reviewed-conversation-v1"
+        || !matches!(reviewed.provider.as_str(), "ChatGPT" | "Claude" | "Other")
+        || reviewed.title.len() > 800
+        || reviewed.messages.is_empty()
+        || reviewed.messages.len() > 500
+        || reviewed.messages.iter().any(|message| {
+            !matches!(message.role.as_str(), "user" | "assistant") || message.text.trim().is_empty()
+        })
+    {
+        return Err(ApiError::bad("Invalid reviewed conversation fields"));
+    }
+    serde_json::to_value(reviewed).map_err(|_| ApiError::bad("Invalid reviewed conversation"))
+}
 async fn capture_status(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -1748,6 +1793,9 @@ async fn capture(
         return Err(ApiError::bad("Capture must contain 1–100000 bytes"));
     }
     crate::vault::check_source(input.source.as_deref().unwrap_or("browser"))?;
+    // Inspect the exact decoded text as well as its stored JSON representation.
+    // Otherwise JSON escaping can conceal whitespace-sensitive policy matches.
+    let reviewed = decoded_reviewed_conversation(&input)?;
     let settings = state.vault()?.admin_settings()?;
     // Persisted settings are validated as loopback; extraction never falls back to cloud.
     let excerpt: String = input.content.chars().take(12_000).collect();
@@ -1756,7 +1804,10 @@ async fn capture(
     // The combined size bounds locally processed input, not only the excerpt.
     enforce_policy(
         &state,
-        &Inspection::new(&json!({"source":input.content,"request":request}), &[])?,
+        &Inspection::new(
+            &json!({"source":input.content,"reviewed_conversation":reviewed,"request":request}),
+            &[],
+        )?,
         "capture",
     )?;
     let serialized =

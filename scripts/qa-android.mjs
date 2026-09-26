@@ -236,7 +236,7 @@ try {
   );
   await page
     .getByLabel("Rule 1 pattern", { exact: true })
-    .fill("(?i)RESTRICTED_ANDROID");
+    .fill("(?i)RESTRICTED_ANDROID|classification\\s*:\\s*restricted");
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
   await page.getByRole("status").filter({ hasText: "Revision 1" }).waitFor();
   check(
@@ -312,6 +312,127 @@ try {
       !JSON.stringify(decisions).includes("RESTRICTED_ANDROID") &&
       !JSON.stringify(decisions).includes("public.txt"),
   );
+  await nav("Memory");
+  const importDialog = page.getByRole("dialog", {
+    name: "Import text or conversations",
+  });
+  const conversation = (text) => ({
+    format: "omni-conversations-v1",
+    conversations: [
+      {
+        title: "Synthetic native import",
+        messages: [
+          { role: "user", content: text },
+          {
+            role: "assistant",
+            content: "Unselected synthetic assistant reply.",
+          },
+        ],
+      },
+    ],
+  });
+  async function openImport(text) {
+    await page
+      .getByRole("button", { name: "Import text", exact: true })
+      .click();
+    await importDialog
+      .getByRole("button", { name: "Import chats", exact: true })
+      .click();
+    await importDialog
+      .getByLabel("Conversation JSON · up to 5 MB", { exact: true })
+      .setInputFiles({
+        name: "synthetic-conversation.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify(conversation(text))),
+      });
+    const selector = importDialog.getByLabel(/Choose one conversation/);
+    await selector.waitFor();
+    check(
+      "import_no_automatic_conversation_selection",
+      (await selector.inputValue()) === "-1",
+    );
+    await selector.selectOption("0");
+    check(
+      "import_assistant_unselected",
+      !(await importDialog
+        .getByLabel("Message 2 · AI assistant", { exact: true })
+        .isChecked()),
+    );
+  }
+  const beforeImport = await localApi("/api/state");
+  await openImport("SIM_CANARY_NATIVE_IMPORT: concise weekly updates.");
+  await importDialog
+    .getByRole("button", { name: "Clear selection", exact: true })
+    .click();
+  check(
+    "import_empty_selection_disabled",
+    await importDialog
+      .getByRole("button", { name: "Use selected messages", exact: true })
+      .isDisabled(),
+  );
+  await importDialog
+    .getByRole("button", { name: "Select user messages", exact: true })
+    .click();
+  check(
+    "import_no_horizontal_overflow",
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  await page.screenshot({ path: join(directory, "android-import.png") });
+  await importDialog
+    .getByRole("button", { name: "Use selected messages", exact: true })
+    .click();
+  const preview = await importDialog
+    .getByLabel("Text to remember", { exact: true })
+    .inputValue();
+  check(
+    "import_readable_review",
+    preview.includes("User:") &&
+      preview.includes("SIM_CANARY_NATIVE_IMPORT") &&
+      !preview.includes("Unselected synthetic assistant"),
+  );
+  check(
+    "import_review_does_not_save",
+    (await localApi("/api/state")).memories.length ===
+      beforeImport.memories.length,
+  );
+  await importDialog
+    .getByRole("button", { name: "Extract for review", exact: true })
+    .click();
+  await importDialog.waitFor({ state: "hidden" });
+  const imported = await localApi("/api/state");
+  const proposed = imported.memories.filter(
+    (item) => !beforeImport.memories.some((old) => old.id === item.id),
+  );
+  check(
+    "import_native_proposed_memories",
+    proposed.length > 0 && proposed.every((item) => item.status === "proposed"),
+  );
+  check(
+    "import_does_not_grant_access",
+    imported.grants.length === 0 && imported.receipts.length === 0,
+  );
+  await openImport("Classification:\nrestricted");
+  await importDialog
+    .getByRole("button", { name: "Use selected messages", exact: true })
+    .click();
+  await importDialog
+    .getByRole("button", { name: "Extract for review", exact: true })
+    .click();
+  await page
+    .getByRole("alert")
+    .filter({ hasText: "Request blocked" })
+    .waitFor();
+  check(
+    "import_decoded_policy_denial",
+    (await localApi("/api/state")).memories.length ===
+      imported.memories.length &&
+      (await localApi("/api/policies/decisions")).blocked > decisions.blocked,
+  );
+  await importDialog
+    .getByRole("button", { name: "Close import", exact: true })
+    .click();
   await page.getByRole("button", { name: "Lock session", exact: true }).click();
   await page
     .getByRole("button", { name: "Unlock on this device", exact: true })
@@ -345,6 +466,14 @@ try {
   check(
     "memory_survives_process_restart",
     restored.memories.some((item) => item.content === preference),
+  );
+  check(
+    "import_survives_process_restart",
+    proposed.every((item) =>
+      restored.memories.some(
+        (saved) => saved.id === item.id && saved.status === "proposed",
+      ),
+    ),
   );
   check(
     "history_survives_process_restart",

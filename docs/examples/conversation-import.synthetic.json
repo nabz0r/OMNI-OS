@@ -1,0 +1,12 @@
+{
+  "format": "omni-conversations-v1",
+  "conversations": [
+    {
+      "title": "Synthetic work context — example only",
+      "messages": [
+        { "role": "user", "content": "Use EUR in the synthetic project examples." },
+        { "role": "assistant", "content": "This is an AI suggestion, not a confirmed user fact." }
+      ]
+    }
+  ]
+}

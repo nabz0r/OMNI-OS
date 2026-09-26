@@ -1,0 +1,65 @@
+.conversation-import > p {
+  line-height: 1.6;
+}
+.conversation-import details {
+  margin: 16px 0;
+}
+.conversation-import summary {
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.conversation-import select {
+  width: 100%;
+}
+.import-mode {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0;
+}
+.import-mode button {
+  flex: 1;
+}
+.import-selection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.import-messages {
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.import-messages article {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.import-messages article:last-child {
+  border-bottom: 0;
+}
+.import-messages .import-message-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+}
+.import-messages input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+}
+.import-messages pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  max-height: 180px;
+  overflow: auto;
+}
+.import-boundary {
+  font-size: 13px;
+}

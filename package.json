@@ -1,6 +1,6 @@
 {
   "name": "omni-os",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Your memory. Your permissions. Your AI.",
   "license": "AGPL-3.0-only",
@@ -15,7 +15,8 @@
     "dev": "npm run dev --workspace @omni/desktop",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "npm run test --workspace @omni/collector && node --test apps/extension/adapters.test.mjs",
+    "test": "npm run test --workspace @omni/collector && node --test apps/extension/adapters.test.mjs && npm run test:imports",
+    "test:imports": "node --experimental-strip-types --test apps/desktop/conversations.test.mjs",
     "simulate": "node scripts/simulate.mjs",
     "collector": "npm run start --workspace @omni/collector",
     "test:ui": "node apps/desktop/qa.mjs",
