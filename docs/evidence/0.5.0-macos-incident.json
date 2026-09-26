@@ -9,7 +9,6 @@
     "architecture": "Apple Silicon arm64"
   },
   "observations": {
-    "installed_0_4_0_blank_before_vault_opening": true,
     "preserved_0_2_0_also_blank_in_current_session": true,
     "standalone_swift_wkwebview_static_html_also_stalls": true,
     "probe_uses_no_omni_code_or_vault": true,
@@ -21,7 +20,8 @@
     "native_reload_action_checked": true,
     "native_quit_action_checked": true,
     "encrypted_database_matches_closed_private_backup": true,
-    "ci_macos_26_package_reproduces_local_stall": true
+    "ci_macos_26_package_reproduces_local_stall": true,
+    "0_4_0_blank_before_vault_opening": true
   },
   "data_preservation": {
     "vault_reset": false,

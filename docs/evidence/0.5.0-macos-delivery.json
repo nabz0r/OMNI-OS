@@ -52,5 +52,6 @@
   ],
   "installed_app_replaced": false,
   "private_vault_data_included": false,
-  "public_release_published": false
+  "public_release_published": false,
+  "applications_folder_app_present_at_handoff": false
 }
