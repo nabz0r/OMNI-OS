@@ -6,6 +6,7 @@ fn main() {
             "client_gateway",
             "save_metadata",
             "open_setup_resource",
+            "startup_report",
         ]),
     ))
     .expect("Could not build the restricted desktop command manifest");

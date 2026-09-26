@@ -10,6 +10,7 @@
     "allow-core-request",
     "allow-save-metadata",
     "allow-open-setup-resource",
-    "allow-client-gateway"
+    "allow-client-gateway",
+    "allow-startup-report"
   ]
 }
