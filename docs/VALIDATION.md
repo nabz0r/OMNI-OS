@@ -6,9 +6,20 @@
 
 # Validation evidence
 
-## 0.5.0 startup reliability — in validation
+## 0.5.0 startup reliability — candidate evidence, local acceptance blocked
 
-Five production-bundle startup fault scenarios passed, alongside the native-transport browser suite using an isolated real Rust core and synthetic provider, two desktop Rust tests, strict desktop Clippy and the frontend production build. Browser transport tests do not verify WKWebView or the OS key store. The native macOS recovery alert and Reload action were inspected on the affected machine; its full native render/upgrade acceptance remains open. [Exact investigation scope](releases/v0.5.0.md).
+Clean source `19d706ab8fea591cdeb28fc07f00f90d6d709232` passed all six jobs in [source verification](https://github.com/nabz0r/OMNI-OS/actions/runs/36271947479). [Five production-bundle startup fault scenarios](evidence/0.5.0-startup-faults.json) passed, alongside the native-transport browser suite using an isolated real Rust core and synthetic provider, two desktop Rust tests, strict desktop Clippy and the frontend production build. Browser transport tests do not verify WKWebView or the OS key store.
+
+| Native gate | Exact environment and result |
+| --- | --- |
+| [macOS 15 build and startup](https://github.com/nabz0r/OMNI-OS/actions/runs/36271947430/job/108487961591) | macOS 15.7.9, build 24G830, arm64; frontend/core readiness, fresh Keychain-backed encrypted vault, package checks and native tests passed. [Build record](evidence/0.5.0-macos15-build.json) |
+| [macOS 26 build and startup](https://github.com/nabz0r/OMNI-OS/actions/runs/36271947430/job/108487961632) | macOS 26.6.2, build 25G83, arm64; the same gates passed. This is the package in the local candidate folder. [Build record](evidence/0.5.0-macos26-build.json) |
+| [Local package integrity](evidence/0.5.0-macos-integrity.json) | Download and package hashes, complete ad-hoc resource seal, DMG checksum, and matching application files/permissions between the mounted image and ZIP passed |
+| [Affected Mac](evidence/0.5.0-macos-incident.json) | macOS 26.5.2, build 25F84, arm64; main interface still stalls. Native recovery, Reload and Quit were checked; the encrypted database remains unchanged. Full native workflow and existing-vault upgrade are blocked |
+
+The readiness signal demonstrates frontend execution and a successful core-state read. It does not establish screenshot quality, a provider conversation, an existing-Keychain upgrade or a production signing identity. The wider native workflow passed Linux, Windows, Android and unsigned iOS-device jobs, but its iOS-simulator job failed; the workflow as a whole must not be called green. No new iOS or Android delivery is included in this Mac-only candidate.
+
+The [candidate manifest](evidence/0.5.0-macos-delivery.json) binds the delivered files to this source and evidence. [Exact investigation and remaining acceptance](releases/v0.5.0.md).
 
 The historical macOS startup records below cover their original environments and fresh vaults. They do not establish successful operation on the currently affected macOS 26.5.2 session.
 

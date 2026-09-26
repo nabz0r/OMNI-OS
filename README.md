@@ -47,7 +47,7 @@ Revocation cannot retrieve content a provider has already received. The launcher
 
 ## macOS reliability update
 
-The reported blank-screen incident is under investigation. **0.5.0 adds bounded startup, visible recovery and a stricter native release gate; the affected Mac has not yet passed full acceptance.** [Status and investigation](docs/releases/v0.5.0.md). The earlier Work checkpoint below is preserved as historical evidence.
+**0.5.0 adds bounded startup, visible recovery and a stricter native release gate.** Native frontend/core readiness and fresh encrypted-vault startup passed on macOS 15.7.9 and 26.6.2. The affected macOS 26.5.2 session still stalls, including with a standalone WebKit probe; its repair remains unverified. A Mac-only candidate package, source archive and evidence are available locally. [Delivery](docs/DELIVERY.md#050-macos-reliability-candidate) · [Investigation and exact scope](docs/releases/v0.5.0.md). The earlier Work checkpoint below is preserved as historical evidence.
 
 ## The 0.4.0 work increment
 

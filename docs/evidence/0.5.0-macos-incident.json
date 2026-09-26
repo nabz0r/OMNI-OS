@@ -1,0 +1,40 @@
+{
+  "version": "0.5.0",
+  "source_revision": "19d706ab8fea591cdeb28fc07f00f90d6d709232",
+  "observed_on": "2026-09-26",
+  "status": "blocked_on_affected_mac",
+  "environment": {
+    "os": "macOS 26.5.2",
+    "os_build": "25F84",
+    "architecture": "Apple Silicon arm64"
+  },
+  "observations": {
+    "installed_0_4_0_blank_before_vault_opening": true,
+    "preserved_0_2_0_also_blank_in_current_session": true,
+    "standalone_swift_wkwebview_static_html_also_stalls": true,
+    "probe_uses_no_omni_code_or_vault": true,
+    "isolated_cache_and_webkit_profile_did_not_resolve": true,
+    "original_cache_and_webkit_profile_restored": true,
+    "ci_macos_15_package_reproduces_local_stall": true,
+    "direct_launch_without_ui_automation_reproduces_stall": true,
+    "native_recovery_dialog_visually_checked": true,
+    "native_reload_action_checked": true,
+    "native_quit_action_checked": true,
+    "encrypted_database_matches_closed_private_backup": true,
+    "ci_macos_26_package_reproduces_local_stall": true
+  },
+  "data_preservation": {
+    "vault_reset": false,
+    "keychain_item_deleted": false,
+    "key_exported": false,
+    "private_vault_or_diagnostics_in_delivery": false,
+    "os_security_protections_disabled": false
+  },
+  "unverified": [
+    "Underlying operating-system or renderer cause",
+    "A version-specific 0.3.0 regression as the cause of this session's failure",
+    "Whether restarting macOS restores rendering",
+    "Complete native workflow and existing-vault upgrade on the affected Mac"
+  ],
+  "next_acceptance": "After a normal macOS restart, launch the delivered application, verify existing vault access without resetting it, perform a scoped synthetic-provider request and inspect its receipt, then quit and reopen. Restarting is a diagnostic next step, not a verified fix."
+}

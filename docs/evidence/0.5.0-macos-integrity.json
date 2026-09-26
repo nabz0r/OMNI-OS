@@ -1,0 +1,32 @@
+{
+  "version": "0.5.0",
+  "source_revision": "19d706ab8fea591cdeb28fc07f00f90d6d709232",
+  "status": "passed",
+  "scope": "Local package integrity; no claim of successful native workflow on the affected Mac.",
+  "checks": {
+    "download_matches_github_artifact_digest": true,
+    "packages_match_build_metadata": true,
+    "application_resource_seal_valid": true,
+    "disk_image_checksum_valid": true,
+    "mounted_image_app_matches_zip_app": true
+  },
+  "publisher_identity": "Ad-hoc only; no Developer ID or notarization",
+  "application_files": {
+    "Contents/Info.plist": {
+      "sha256": "cb9d8803260b39beec84c40562acbbc3d4938009029a8b997a855f638a8f9b53",
+      "mode": "0o644"
+    },
+    "Contents/MacOS/omni-desktop": {
+      "sha256": "83742ff04487353eed034f55c0ba778006f4b4575bc0ccb2a388faf27e258274",
+      "mode": "0o755"
+    },
+    "Contents/Resources/icon.icns": {
+      "sha256": "b51b301b24f2448f1d4e7c294c40a8060273487d338fb12ecb75fe4025b68f29",
+      "mode": "0o644"
+    },
+    "Contents/_CodeSignature/CodeResources": {
+      "sha256": "3210eae0fca81222bfe35016d8c69388dbd696d71d9f6bad6dc9223163b0af08",
+      "mode": "0o644"
+    }
+  }
+}

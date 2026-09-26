@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "scope": "Production web bundle; mocked native IPC; no native renderer or OS key-store claim",
+  "assertions": {
+    "missing_entry_keeps_static_recovery_visible": true,
+    "failed_application_chunk_has_reload_action": true,
+    "reload_recovers_after_transient_chunk_failure": true,
+    "rejected_vault_shows_recovery_without_false_readiness": true,
+    "stalled_vault_shows_recovery_without_false_readiness": true
+  },
+  "source_revision": "19d706ab8fea591cdeb28fc07f00f90d6d709232"
+}

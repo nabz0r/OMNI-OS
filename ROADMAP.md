@@ -47,9 +47,11 @@ Measure energy and emissions only with a named system boundary, functional unit,
 
 Prepare a maintainable integration package, independent security evidence, references authorised by actual customers, recurring-revenue/support records and verified company/IP/licence documentation. Existing AGPL-3.0-only terms require a rights review before any proprietary OEM promise. Evaluate partnerships, licensing and independent growth alongside a potential acquisition; no named company is presented as a partner or interested buyer.
 
-## 0.5.0 reliability increment — in validation
+## 0.5.0 reliability increment — candidate delivered, local acceptance blocked
 
-G1 implementation has started with an independent startup screen, bounded native-vault opening, macOS recovery outside WebKit, production-bundle fault injection and frontend/core readiness required by native packaging tests. A macOS 26 job complements macOS 15. The reported affected machine also stalls a standalone WebKit probe; full native acceptance remains open. [Investigation and release scope](docs/releases/v0.5.0.md). These changes do not close G1 or establish paid-pilot readiness.
+G1 implementation has started with an independent startup screen, bounded native-vault opening, macOS recovery outside WebKit, five passing production-bundle fault scenarios and frontend/core readiness required by native packaging tests. Clean-source native checks passed on macOS 15.7.9 and 26.6.2. The exact candidate's signature, disk image and application contents were checked locally. The affected macOS 26.5.2 session still stalls the candidate and a standalone WebKit probe; full native acceptance remains open. [Investigation and release scope](docs/releases/v0.5.0.md). These changes do not close G1 or establish paid-pilot readiness.
+
+**Next G1 acceptance:** repeat native startup after a normal restart of the affected Mac, verify existing-vault access without a reset, exercise one scoped synthetic-provider request and receipt, then quit/reopen and record persistence. If rendering still stalls, retain the failure and investigate that environment before widening supported-device claims. Follow with the two real-client/provider workflows, trusted signing and supported-device recovery evidence already required by G1.
 
 ## 0.4.0 implementation checkpoint — 26 September 2026
 

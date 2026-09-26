@@ -1,7 +1,7 @@
 <!-- omni:header -->
 [OMNI](../README.md) / [Field guide](README.md) / Releases
 
-> **Delivery reference** · Find the local 0.4.0 packages, retained public release and reproducible acceptance procedure.
+> **Delivery reference** · Find the macOS 0.5.0 candidate, preserved deliveries and exact acceptance boundaries.
 <!-- /omni:header -->
 
 # macOS and Android evaluation delivery
@@ -10,7 +10,11 @@ OMNI 0.4.0 adds Work authority, approved clients, explicit text continuity and b
 
 ## 0.5.0 macOS reliability candidate
 
-The current source adds startup recovery and stricter release validation. The affected macOS 26.5.2 machine has not passed full native acceptance; do not interpret a generated installer as a verified repair. [Investigation, changes and outstanding acceptance](releases/v0.5.0.md). The 0.4.0 folders below remain preserved historical deliveries; Android 0.5.0 acceptance is not implied by shared interface changes.
+Open `deliverables/OMNI-0.5.0-macOS-candidate/START-HERE.html` on the delivery machine. The Mac-only folder contains the DMG, application ZIP and extracted app, exact-source archive, evidence and checksums. These ignored local files are not included in a fresh clone. The package comes from clean source `19d706ab8fea591cdeb28fc07f00f90d6d709232` and the successful [macOS 26 native job](https://github.com/nabz0r/OMNI-OS/actions/runs/36271947430/job/108487961632). Its frontend/core readiness and fresh encrypted-vault check passed on macOS 26.6.2; the same source passed on macOS 15.7.9 in a separate build.
+
+**This is a candidate, not a confirmed repair of the affected Mac.** On the owner's macOS 26.5.2 session, both CI builds still reach native recovery without rendering the main interface. A standalone WebKit probe also stalls. Existing data and the installed 0.4.0 app remain preserved. Repeat acceptance after a normal macOS restart before replacing that installation. A restart is not yet a verified fix. [Investigation, changes and outstanding acceptance](releases/v0.5.0.md) · [Candidate manifest](evidence/0.5.0-macos-delivery.json).
+
+The app remains ad-hoc signed, without Developer ID or notarization. The 0.4.0 folders below remain preserved historical deliveries; no public 0.5.0 release or Android 0.5.0 delivery is claimed. The existing full macOS/Android assembly gate has not been weakened to create this separate candidate.
 
 ## Open the local package
 

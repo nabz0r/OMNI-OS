@@ -1,0 +1,56 @@
+{
+  "version": "0.5.0",
+  "created_on": "2026-09-26",
+  "status": "candidate_local_acceptance_blocked",
+  "platform": "macOS arm64",
+  "source_revision": "19d706ab8fea591cdeb28fc07f00f90d6d709232",
+  "source_dirty": false,
+  "ci_run": "https://github.com/nabz0r/OMNI-OS/actions/runs/36271947430",
+  "delivered_job": {
+    "id": 108487961632,
+    "os": "macOS 26.6.2 (25G83)",
+    "status": "success",
+    "artifact_id": 10915799827,
+    "artifact_zip_sha256": "0d26e7b8a813570f1b75dc0eb1c24a4cf4349a288f6dd0b7ee88c8222d13a8c8"
+  },
+  "additional_source_validation": {
+    "job_id": 108487961591,
+    "os": "macOS 15.7.9 (24G830)",
+    "status": "success",
+    "different_binary": true
+  },
+  "signing": "Ad-hoc resource seal; no Developer ID or notarization",
+  "packages": [
+    {
+      "file": "macOS/OMNI-0.5.0-macOS-arm64.dmg",
+      "sha256": "d293cb58f8abf2ec4650d770b217bb825eddad9bb125ff4f6d5d13026b5dd29e",
+      "bytes": 9083886
+    },
+    {
+      "file": "macOS/OMNI-0.5.0-macOS-arm64.app.zip",
+      "sha256": "0295ec1d86a36ea678dc2a656727470aaf85ec1288cbe9a82ab38bb05e09517c",
+      "bytes": 8995368
+    }
+  ],
+  "source_archive": {
+    "file": "OMNI-0.5.0-source.zip",
+    "sha256": "43330e2aad33f061b577b5bfb760ec40cce365b6c93c6a29ed3483bf6689038b",
+    "bytes": 5919109
+  },
+  "accepted_scope": [
+    "Packaged frontend/core readiness on the named CI runners",
+    "Fresh OS-key-backed encrypted-vault initialization on those runners",
+    "Local DMG, application resource seal and matching mounted-image/ZIP integrity",
+    "Five production-bundle startup fault scenarios with mocked native IPC",
+    "Independent native recovery on the affected Mac"
+  ],
+  "unverified": [
+    "Main interface and complete workflow on the affected macOS 26.5.2 session",
+    "Existing-vault upgrade and provider workflow on that Mac",
+    "Restarting macOS as a fix",
+    "Developer ID/notarization and production support"
+  ],
+  "installed_app_replaced": false,
+  "private_vault_data_included": false,
+  "public_release_published": false
+}

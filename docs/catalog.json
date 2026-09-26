@@ -339,7 +339,7 @@
     "path": "docs/DELIVERY.md",
     "title": "Installers and delivery records",
     "group": "Releases",
-    "summary": "Find the local 0.4.0 packages, retained public release and reproducible acceptance procedure.",
+    "summary": "Find the macOS 0.5.0 candidate, preserved deliveries and exact acceptance boundaries.",
     "status": "Delivery reference"
   },
   {
