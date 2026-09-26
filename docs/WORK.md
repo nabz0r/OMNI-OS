@@ -21,7 +21,7 @@ Every installation has a random identifier. Independent installations have indep
 3. In **Work**, enroll the dedicated installation. Approve a named client for exactly one configured destination and an expiry. Save the credential when it is shown; the vault retains a hash, not the reusable token.
 4. Under **Grant selected memory to a client**, choose that client and only the confirmed facts it needs. The UI grants one hour; the effective access also requires the client itself to remain active.
 5. In a native app, explicitly **Start local gateway** and use its displayed address. It binds an ephemeral port on `127.0.0.1`. Configure the approved client with its bearer credential and `X-Omni-Grant`. Optional `X-Omni-Provider` selects a configured profile. The destination must match both client approval and grant.
-6. Send through OMNI. Inspect `X-Omni-Receipt` and the disclosure record in History: exact destination, selected memory IDs and delivery status. A receipt records an authorised attempt; `sent` is not proof of a model's internal reasoning or deletion policy.
+6. Send through OMNI. Inspect `X-Omni-Receipt` and the record in **History → Disclosure receipts**: exact destination, selected memory IDs and delivery status. A receipt records an authorised attempt; `sent` is not proof of a model's internal reasoning or deletion policy.
 7. Revoke the grant and repeat. Then revoke the client and repeat without a grant. The counted-provider reference test proves those denied requests never arrive at its synthetic provider.
 
 Run the [two reference clients](WORK_VERIFICATION.md) before adding another protocol or making a third-party compatibility claim.

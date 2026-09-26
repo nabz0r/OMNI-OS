@@ -29,7 +29,7 @@ The Work interface was also exercised through a real browser against an isolated
 
 ## Observed local cost
 
-The two-client harness includes 40 sequential, warmed observations on a fixed small synthetic prompt. It records preflight and policy timings in the core and end-to-end time in the client. The synthetic provider deliberately waits 25 ms; this is **not model inference latency**. Policy is a subset of preflight, including local rule compilation/evaluation and decision persistence. Preflight also includes context preparation and local request journaling, but excludes credential middleware, provider I/O and later response processing.
+The two-client harness includes 40 sequential, warmed observations on a fixed small synthetic prompt. This baseline uses the built-in default policy with no custom regex rules; it does not measure a large rule set. It records preflight and policy timings in the core and end-to-end time in the client. The synthetic provider deliberately waits 25 ms; this is **not model inference latency**. Policy is a subset of preflight, including local rule compilation/evaluation and decision persistence. Preflight also includes context preparation and local request journaling, but excludes credential middleware, provider I/O and later response processing.
 
 The [archived report](evidence/0.4.0-controlled-loop.json) provides sample counts, min/median/p95/max, CPU, runtime versions, source revision and dirty state. Do not subtract percentiles, generalise a debug build's numbers to production, or promise an SLA from this baseline. Real workload sizes, policy complexity, concurrency, cold starts, battery modes and device/provider variability still require measurement.
 
