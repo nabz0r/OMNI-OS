@@ -345,7 +345,15 @@ fn terminal(status: &str) -> bool {
 fn valid_action(action: &str) -> bool {
     matches!(
         action,
-        "memory_created"
+        "work_enabled"
+            | "client_approved"
+            | "client_revoked"
+            | "conversation_created"
+            | "conversation_deleted"
+            | "conversation_saved"
+            | "recovery_exported"
+            | "recovery_restored"
+            | "memory_created"
             | "memory_updated"
             | "memory_deleted"
             | "source_deleted"

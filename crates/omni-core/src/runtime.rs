@@ -232,6 +232,7 @@ pub struct EmbeddedResponse {
 pub struct EmbeddedCore {
     config: Arc<Config>,
     router: Router,
+    client_router: Router,
     endpoint: Option<String>,
     core_address: String,
     closing: watch::Sender<bool>,
@@ -280,6 +281,7 @@ pub async fn start(options: EmbeddedOptions) -> Result<EmbeddedCore> {
     };
     let (closing, receiver) = watch::channel(false);
     let gate = receiver.clone();
+    let client_router = http::client_app(state.clone());
     let router = http::app(state).layer(middleware::from_fn(
         move |request: Request<Body>, next: middleware::Next| {
             let closed = *gate.borrow();
@@ -310,6 +312,7 @@ pub async fn start(options: EmbeddedOptions) -> Result<EmbeddedCore> {
     Ok(EmbeddedCore {
         config,
         router,
+        client_router,
         endpoint,
         core_address,
         closing,
@@ -317,7 +320,58 @@ pub async fn start(options: EmbeddedOptions) -> Result<EmbeddedCore> {
     })
 }
 
+/// An explicit loopback-only listener. Dropping it stops accepting connections.
+pub struct ClientGateway {
+    pub address: String,
+    closing: watch::Sender<bool>,
+    server: JoinHandle<std::io::Result<()>>,
+}
+impl Drop for ClientGateway {
+    fn drop(&mut self) {
+        self.closing.send_replace(true);
+        self.server.abort();
+    }
+}
+
 impl EmbeddedCore {
+    pub async fn start_client_gateway(&self) -> Result<ClientGateway> {
+        if *self.closing.borrow() {
+            bail!("The local core is shutting down");
+        }
+        let listener = tokio::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).await?;
+        let address = format!("http://127.0.0.1:{}", listener.local_addr()?.port());
+        let (gateway_closing, gate) = watch::channel(false);
+        let core_gate = self.closing.subscribe();
+        let app = self.client_router.clone().layer(middleware::from_fn(
+            move |request: Request<Body>, next: middleware::Next| {
+                let closed = *gate.borrow() || *core_gate.borrow();
+                async move {
+                    if closed {
+                        (
+                            StatusCode::SERVICE_UNAVAILABLE,
+                            "The client gateway is closed",
+                        )
+                            .into_response()
+                    } else {
+                        next.run(request).await
+                    }
+                }
+            },
+        ));
+        let mut closing = self.closing.subscribe();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app)
+                .with_graceful_shutdown(async move {
+                    let _ = closing.wait_for(|closed| *closed).await;
+                })
+                .await
+        });
+        Ok(ClientGateway {
+            address,
+            closing: gateway_closing,
+            server,
+        })
+    }
     pub fn endpoint(&self) -> Option<&str> {
         self.endpoint.as_deref()
     }
@@ -800,5 +854,88 @@ mod tests {
             .send()
             .await
             .is_err());
+    }
+    #[tokio::test]
+    async fn explicit_client_gateway_is_scoped_and_credentials_do_not_cross_installations() {
+        let first = tempfile::tempdir().unwrap();
+        let second = tempfile::tempdir().unwrap();
+        let a = start(options(first.path())).await.unwrap();
+        let b = start(options(second.path())).await.unwrap();
+        assert!(a.endpoint().is_none());
+        assert!(b.endpoint().is_none());
+        let (_, a_work) = json_request(
+            &a,
+            "POST",
+            "/api/work",
+            Some(json!({"label":"A","acknowledge_single_owner":true})),
+        )
+        .await;
+        let (_, b_work) = json_request(
+            &b,
+            "POST",
+            "/api/work",
+            Some(json!({"label":"B","acknowledge_single_owner":true})),
+        )
+        .await;
+        assert_ne!(a_work["instance_id"], b_work["instance_id"]);
+        let (_, admin) = json_request(&a, "GET", "/api/admin", None).await;
+        let destination = admin["providers"][0]["base_url"].clone();
+        let (status,client)=json_request(&a,"POST","/api/work/clients",Some(json!({"label":"Approved A","destinations":[destination],"expires_in_seconds":3600}))).await;
+        assert_eq!(status, 200, "{client}");
+        let listener = a.start_client_gateway().await.unwrap();
+        let other = b.start_client_gateway().await.unwrap();
+        let http = reqwest::Client::new();
+        let body = json!({"model":"test","messages":[{"role":"user","content":"Synthetic"}]});
+        for token in [a.owner_token(), a.agent_token()] {
+            assert_eq!(
+                http.post(format!("{}/v1/chat/completions", listener.address))
+                    .bearer_auth(token)
+                    .json(&body)
+                    .send()
+                    .await
+                    .unwrap()
+                    .status(),
+                401
+            );
+        }
+        let token = client["token"].as_str().unwrap();
+        for path in [
+            "/api/state",
+            "/api/work",
+            "/api/conversations",
+            "/mcp",
+            "/api/capture",
+        ] {
+            assert_eq!(
+                http.get(format!("{}{path}", listener.address))
+                    .bearer_auth(token)
+                    .send()
+                    .await
+                    .unwrap()
+                    .status(),
+                404
+            );
+        }
+        assert_eq!(
+            http.post(format!("{}/v1/chat/completions", other.address))
+                .bearer_auth(token)
+                .json(&body)
+                .send()
+                .await
+                .unwrap()
+                .status(),
+            401
+        );
+        let address = listener.address.clone();
+        drop(listener);
+        tokio::task::yield_now().await;
+        // Existing keep-alive connections can outlive a listener, but cannot admit work.
+        if let Ok(response) = http.get(&address).send().await {
+            assert_eq!(response.status(), 503);
+        }
+        assert!(reqwest::Client::new().get(address).send().await.is_err());
+        drop(other);
+        a.shutdown().await.unwrap();
+        b.shutdown().await.unwrap();
     }
 }

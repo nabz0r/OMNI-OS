@@ -43,6 +43,8 @@ jobs:
           OMNI_TEST_REDIS_URL: redis://127.0.0.1:6379
       - run: npm run build
       - run: cargo build --workspace --locked
+      - name: Verify two approved clients and zero egress after denial
+        run: node scripts/verify-work-context.mjs target/debug/omni-core
       - run: python3 infra/vpn/test_scripts.py
       - run: node --test scripts/lifecycle.test.mjs scripts/startup.test.mjs scripts/smoke-android.test.mjs
       - run: npx playwright install --with-deps chromium
@@ -71,7 +73,9 @@ jobs:
         if: always()
         with:
           name: synthetic-lab-evidence
-          path: .omni/simulation-latest.json
+          path: |
+            .omni/simulation-latest.json
+            artifacts/professional-implementation/controlled-loop.json
           include-hidden-files: true
           if-no-files-found: ignore
   collector-image:

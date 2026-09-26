@@ -1,9 +1,12 @@
 pub mod administration;
 pub mod analytics;
 pub mod config;
+pub(crate) mod continuity;
 pub mod http;
 pub(crate) mod journal;
 pub mod policy;
+pub(crate) mod recovery;
 pub mod runtime;
 pub mod sender;
 pub mod vault;
+pub(crate) mod work;

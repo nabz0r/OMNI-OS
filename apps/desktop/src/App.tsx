@@ -51,6 +51,7 @@ import {
 import Administration, { type AdminState } from "./Administration";
 import Operations from "./Operations";
 import Policies from "./Policies";
+import Professional from "./Professional";
 import ConversationImport from "./ConversationImport";
 import type { ImportedMessage } from "./conversations";
 import { readTextFiles, type TextAttachment } from "./files";
@@ -78,6 +79,7 @@ import {
 type View =
   | "overview"
   | "memories"
+  | "work"
   | "policies"
   | "permissions"
   | "activity"
@@ -91,6 +93,7 @@ const nav = [
   { id: "overview" as View, label: "Overview", icon: CircleDot },
   { id: "memories" as View, label: "Memory", icon: Database },
   { id: "permissions" as View, label: "Permissions", icon: ShieldCheck },
+  { id: "work" as View, label: "Work", icon: Fingerprint },
   { id: "policies" as View, label: "Policies", icon: Shield },
   { id: "models" as View, label: "Models", icon: Cpu },
   { id: "activity" as View, label: "History", icon: Activity },
@@ -1645,6 +1648,14 @@ function OmniSpace({
                       <h3>{g.destination}</h3>
                       <dl>
                         <div>
+                          <dt>Authority</dt>
+                          <dd>
+                            {g.client_id
+                              ? `Approved client ${g.client_id.slice(0, 8)}`
+                              : "Owner workspace"}
+                          </dd>
+                        </div>
+                        <div>
                           <dt>Memory access</dt>
                           <dd>
                             {g.scope.includes("*")
@@ -1678,6 +1689,14 @@ function OmniSpace({
                 />
               )}
             </>
+          )}
+          {view === "work" && (
+            <Professional
+              request={localRequest}
+              admin={admin}
+              core={core}
+              onChanged={refreshAdministration}
+            />
           )}
           {view === "policies" && <Policies request={localRequest} />}
           {(view === "models" || view === "settings") && (

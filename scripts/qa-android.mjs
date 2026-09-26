@@ -433,6 +433,131 @@ try {
   await importDialog
     .getByRole("button", { name: "Close import", exact: true })
     .click();
+  await nav("Work");
+  await page
+    .getByRole("heading", { name: "Context with clear authority." })
+    .waitFor();
+  await page
+    .getByLabel("Installation name", { exact: true })
+    .fill("Synthetic Android work");
+  await page
+    .getByLabel(
+      "This installation belongs to one OS user and is dedicated to work.",
+      { exact: true },
+    )
+    .check();
+  await page
+    .getByRole("button", { name: "Enable work authority", exact: true })
+    .click();
+  await page.getByText("Enrolled", { exact: true }).waitFor();
+  check(
+    "work_single_owner_enrollment",
+    (await localApi("/api/work")).authority === "per-device-single-owner",
+  );
+  await page
+    .getByRole("button", { name: "Start local gateway", exact: true })
+    .click();
+  await page.getByText("Local gateway is open", { exact: true }).waitFor();
+  check("work_explicit_native_gateway", true);
+  await page
+    .getByRole("button", { name: "Stop local gateway", exact: true })
+    .click();
+  await page.getByText("Local gateway is closed", { exact: true }).waitFor();
+  check("work_native_gateway_stopped", true);
+  await page
+    .getByLabel("Client name", { exact: true })
+    .fill("Synthetic Android client");
+  await page
+    .getByLabel("Destination", { exact: true })
+    .selectOption(`${provider.url}/v1`);
+  await page
+    .getByRole("button", { name: "Approve client", exact: true })
+    .click();
+  await page
+    .getByText("Save this client credential now", { exact: true })
+    .waitFor();
+  check(
+    "work_client_credential_shown_once",
+    (await localApi("/api/work")).clients.length === 1,
+  );
+  await page
+    .getByRole("button", { name: "I have stored it securely", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Revoke client", exact: true })
+    .click();
+  await page
+    .getByText("Client and its permissions revoked for future requests.", {
+      exact: true,
+    })
+    .waitFor();
+  check(
+    "work_client_revoked",
+    !!(await localApi("/api/work")).clients[0].revoked_at,
+  );
+  await page
+    .getByText("Start an opted-in conversation", { exact: true })
+    .click();
+  await page.getByLabel("Title", { exact: true }).fill("Synthetic continuity");
+  await page
+    .getByLabel("Project or purpose", { exact: true })
+    .fill("Synthetic Android acceptance");
+  const workProvider = (await localApi("/api/admin")).providers.find(
+    (p) => p.label === "Android acceptance fixture",
+  );
+  await page
+    .getByLabel("Provider", { exact: true })
+    .selectOption(workProvider.id);
+  await page
+    .getByLabel("Store the text of this conversation", { exact: false })
+    .check();
+  await page
+    .getByRole("button", { name: "Create conversation", exact: true })
+    .click();
+  await page
+    .getByRole("heading", { name: "Synthetic continuity", exact: true })
+    .waitFor();
+  const savedId = (await localApi("/api/conversations")).conversations[0].id;
+  check("continuity_explicit_consent", !!savedId);
+  await page
+    .getByLabel("Message", { exact: true })
+    .fill("Synthetic human statement: keep this project concise.");
+  await page
+    .getByRole("button", { name: "Send and save", exact: true })
+    .click();
+  await page
+    .getByText("Reply saved with its original roles.", { exact: true })
+    .waitFor();
+  const savedThread = await localApi(`/api/conversations/${savedId}`);
+  check(
+    "continuity_native_saved_roles",
+    savedThread.turns[0].human_statement.includes(
+      "Synthetic human statement",
+    ) &&
+      savedThread.turns[0].model_suggestion.includes(
+        "Synthetic task completed",
+      ),
+  );
+  check(
+    "work_no_horizontal_overflow",
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  await page.screenshot({ path: join(directory, "android-work.png") });
+  await page
+    .getByRole("button", {
+      name: "Delete conversation Synthetic continuity",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByText("Conversation deleted from this vault.", { exact: false })
+    .waitFor();
+  check(
+    "continuity_native_deleted",
+    (await localApi("/api/conversations")).conversations.length === 0,
+  );
   await page.getByRole("button", { name: "Lock session", exact: true }).click();
   await page
     .getByRole("button", { name: "Unlock on this device", exact: true })

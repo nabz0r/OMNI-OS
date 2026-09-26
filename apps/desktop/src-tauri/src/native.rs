@@ -23,6 +23,7 @@ struct NativeSession {
 pub struct NativeState {
     session: OnceCell<NativeSession>,
     requests: Semaphore,
+    gateway: tokio::sync::Mutex<Option<runtime::ClientGateway>>,
 }
 
 impl Default for NativeState {
@@ -30,6 +31,7 @@ impl Default for NativeState {
         Self {
             session: OnceCell::new(),
             requests: Semaphore::new(16),
+            gateway: tokio::sync::Mutex::new(None),
         }
     }
 }
@@ -94,9 +96,9 @@ pub async fn native_session(
         }).await.map_err(|_| "The system key store could not be opened.".to_owned())??;
         let mut options = EmbeddedOptions::new(data_dir, key, storage);
         #[cfg(desktop)]
-        if let Some(path) = std::env::var_os("OMNI_MANAGED_POLICY_FILE") {
-            options.managed_policy = Some(omni_core::policy::load_managed(std::path::Path::new(&path))
-                .map_err(|_| "The organization policy could not be validated. Ask your administrator to repair the managed policy file; startup was refused.".to_owned())?);
+        {
+            options.managed_policy = omni_core::policy::managed_from_env()
+                .map_err(|_| "The organization policy or its pinned digest could not be validated. Ask your administrator to repair the protected launch configuration; startup was refused.".to_owned())?;
         }
         options.listen = false;
         #[cfg(mobile)]
@@ -149,4 +151,49 @@ pub async fn core_request(
     let EmbeddedResponse { status, body } = core.request(&method, &path, body).await
         .map_err(|_| "The local request could not finish. Check History before retrying; it may have reached its destination.".to_owned())?;
     Ok(NativeResponse { status, body })
+}
+
+#[derive(serde::Serialize)]
+pub struct GatewayStatus {
+    enabled: bool,
+    address: Option<String>,
+    scope: &'static str,
+}
+
+#[tauri::command]
+pub async fn client_gateway(
+    window: tauri::WebviewWindow,
+    state: State<'_, NativeState>,
+    token: String,
+    enabled: Option<bool>,
+) -> Result<GatewayStatus, String> {
+    main_window(&window)?;
+    let session = state
+        .session
+        .get()
+        .ok_or("Open your local session first.")?;
+    if !bool::from(token.as_bytes().ct_eq(session.info.token.as_bytes())) {
+        return Err("Session token not accepted".into());
+    }
+    let core = session
+        .core
+        .as_ref()
+        .ok_or("This development session already uses its external gateway")?;
+    let mut gateway = state.gateway.lock().await;
+    if let Some(enabled) = enabled {
+        if !enabled {
+            *gateway = None;
+        } else if gateway.is_none() {
+            *gateway = Some(
+                core.start_client_gateway()
+                    .await
+                    .map_err(|_| "Cannot open the local client gateway")?,
+            );
+        }
+    }
+    Ok(GatewayStatus {
+        enabled: gateway.is_some(),
+        address: gateway.as_ref().map(|g| g.address.clone()),
+        scope: "loopback-approved-clients-only",
+    })
 }

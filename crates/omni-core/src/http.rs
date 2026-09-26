@@ -1,3 +1,5 @@
+mod professional;
+use crate::work::Principal;
 use crate::{
     administration::{Discovery, Provider, ProviderPatch, SettingsPatch},
     analytics::{self, Report},
@@ -472,7 +474,7 @@ fn bounded_stream(
     )
 }
 
-fn auth(headers: &HeaderMap, state: &AppState, admin: bool) -> ApiResult<()> {
+fn auth(headers: &HeaderMap, state: &AppState, admin: bool) -> ApiResult<Principal> {
     let token = headers
         .get(header::AUTHORIZATION)
         .and_then(|h| h.to_str().ok())
@@ -481,12 +483,26 @@ fn auth(headers: &HeaderMap, state: &AppState, admin: bool) -> ApiResult<()> {
     let equal = |expected: &str| token.as_bytes().ct_eq(expected.as_bytes()).into();
     let admin_ok: bool = equal(&state.config.local_token);
     let agent_ok: bool = equal(&state.config.agent_token);
-    if !admin_ok && (admin || !agent_ok) {
+    let principal = if admin_ok {
+        Principal::Owner
+    } else if !admin {
+        let vault = state.vault()?;
+        if agent_ok && !vault.work_enabled()? {
+            Principal::Legacy
+        } else {
+            vault.authenticate_client(token)?.ok_or_else(|| {
+                ApiError(
+                    StatusCode::UNAUTHORIZED,
+                    "An active, individually approved client token is required".into(),
+                )
+            })?
+        }
+    } else {
         return Err(ApiError(
             StatusCode::UNAUTHORIZED,
-            "A valid local bearer token is required".into(),
+            "A valid local owner token is required".into(),
         ));
-    }
+    };
     // CORS is not authorization. Also reject browser origins outside the exact
     // configured allowlist before accepting a mutation with a bearer token.
     if let Some(origin) = headers.get(header::ORIGIN).and_then(|h| h.to_str().ok()) {
@@ -494,7 +510,7 @@ fn auth(headers: &HeaderMap, state: &AppState, admin: bool) -> ApiResult<()> {
             return Err(ApiError::denied("Origin is not allowed"));
         }
     }
-    Ok(())
+    Ok(principal)
 }
 
 pub fn app(state: AppState) -> Router {
@@ -532,6 +548,29 @@ pub fn app(state: AppState) -> Router {
             "/api/session/claim",
             post(claim_session).layer(DefaultBodyLimit::max(1024)),
         )
+        .route("/api/recovery/export", post(professional::export_recovery))
+        .route(
+            "/api/recovery/restore",
+            post(professional::restore_recovery),
+        )
+        .route(
+            "/api/conversations",
+            get(professional::conversations).post(professional::create_conversation),
+        )
+        .route(
+            "/api/conversations/{id}",
+            get(professional::read_conversation).delete(professional::delete_conversation),
+        )
+        .route(
+            "/api/conversations/{id}/attempt",
+            post(professional::clear_attempt),
+        )
+        .route(
+            "/api/work",
+            get(professional::view).post(professional::enable),
+        )
+        .route("/api/work/clients", post(professional::approve))
+        .route("/api/work/clients/{id}", delete(professional::revoke))
         .route("/api/admin", get(admin_view))
         .route("/api/policies", get(policy_view).post(policy_save))
         .route("/api/policies/test", post(policy_test))
@@ -569,6 +608,39 @@ pub fn app(state: AppState) -> Router {
         .route("/mcp", post(mcp))
         .layer(DefaultBodyLimit::max(1024 * 1024))
         .layer(cors)
+        .layer(axum::middleware::map_response(
+            |mut response: Response| async move {
+                response.headers_mut().insert(
+                    header::CACHE_CONTROL,
+                    header::HeaderValue::from_static("no-store"),
+                );
+                response
+            },
+        ))
+        .with_state(state)
+}
+
+/// Restricted opt-in native listener: named clients and gateway paths only.
+pub fn client_app(state: AppState) -> Router {
+    Router::new()
+        .route("/v1/chat/completions", post(openai_proxy))
+        .route("/v1/messages", post(anthropic_proxy))
+        .layer(DefaultBodyLimit::max(1024 * 1024))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            |State(state): State<AppState>,
+             request: axum::http::Request<Body>,
+             next: axum::middleware::Next| async move {
+                match auth(request.headers(), &state, false) {
+                    Ok(Principal::Client(_)) => next.run(request).await,
+                    _ => ApiError(
+                        StatusCode::UNAUTHORIZED,
+                        "An active approved client credential is required".into(),
+                    )
+                    .into_response(),
+                }
+            },
+        ))
         .with_state(state)
 }
 
@@ -1111,6 +1183,7 @@ async fn list_grants(State(state): State<AppState>, headers: HeaderMap) -> ApiRe
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct AddGrant {
+    client_id: Option<String>,
     destination: String,
     scope: Vec<String>,
     expires_in_seconds: Option<i64>,
@@ -1135,11 +1208,20 @@ async fn add_grant(
             "Destination must be a configured provider or https://omni.local/mcp",
         ));
     }
-    Ok(Json(json!(state.vault()?.create_grant(
+    let mut vault = state.vault()?;
+    if let Some(client) = &input.client_id {
+        vault.authorize_principal(&Principal::Client(client.clone()), &destination, None)?;
+    }
+    let mut grant = vault.create_grant(
         &destination,
         input.scope,
-        input.expires_in_seconds.unwrap_or(3600)
-    )?)))
+        input.expires_in_seconds.unwrap_or(3600),
+    )?;
+    if let Some(client) = &input.client_id {
+        vault.bind_work_grant(&grant.id, client, &destination)?;
+        grant.client_id = Some(client.clone());
+    }
+    Ok(Json(json!(grant)))
 }
 async fn revoke_grant(
     State(state): State<AppState>,
@@ -1230,6 +1312,9 @@ async fn send_report(
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Chat {
+    conversation_id: Option<String>,
+    request_id: Option<String>,
+    conversation_revision: Option<i64>,
     message: String,
     grant_id: Option<String>,
     provider_id: Option<String>,
@@ -1308,12 +1393,51 @@ async fn chat(
     Json(input): Json<Chat>,
 ) -> ApiResult<Json<Value>> {
     auth(&headers, &state, true)?;
-    let messages = chat_messages(input.message, input.history)?;
+    if input.conversation_id.is_some()
+        && (!input.history.is_empty() || !input.attachments.is_empty())
+    {
+        return Err(ApiError::bad(
+            "Saved conversations accept plain text; stored history is selected by the core",
+        ));
+    }
+    if input.conversation_id.is_none()
+        && (input.request_id.is_some() || input.conversation_revision.is_some())
+    {
+        return Err(ApiError::bad(
+            "Continuity fields require a saved conversation",
+        ));
+    }
+    let mut messages = chat_messages(input.message.clone(), input.history)?;
     let provider =
         state
             .vault()?
             .selected_provider(input.provider_id.as_deref(), None, &state.config)?;
     let model = input.model.unwrap_or_else(|| provider.model.clone());
+    let continuity = if let Some(id) = &input.conversation_id {
+        let prepared = state.vault()?.prepare_conversation(
+            id,
+            input
+                .request_id
+                .as_deref()
+                .ok_or_else(|| ApiError::bad("A request UUID is required"))?,
+            input
+                .conversation_revision
+                .ok_or_else(|| ApiError::bad("A conversation revision is required"))?,
+            &provider.id,
+            &provider.base_url,
+            &model,
+            input.grant_id.as_deref(),
+            &input.message,
+        )?;
+        if let Some(reply) = &prepared.replay {
+            return Ok(Json(reply.clone()));
+        }
+        messages = prepared.history.clone();
+        messages.push(json!({"role":"user","content":input.message}));
+        Some(prepared)
+    } else {
+        None
+    };
     let anthropic = provider.kind == "anthropic";
     let mut request = json!({"model":model,"messages":messages,"stream":false});
     if !input.attachments.is_empty() {
@@ -1329,6 +1453,7 @@ async fn chat(
         input.grant_id.as_deref(),
         provider.clone(),
         ResponseMode::Launcher,
+        &Principal::Owner,
     )
     .await?;
     let status = response.status();
@@ -1379,8 +1504,15 @@ async fn chat(
         analytics::token_bucket(usage_tokens(&value)),
     )?;
     trace.complete("succeeded", None);
+    let stored = if let Some(prepared) = &continuity {
+        state
+            .vault()?
+            .finish_conversation(prepared, &reply, receipt_id.as_deref(), &trace.id)?
+    } else {
+        false
+    };
     Ok(Json(
-        json!({"reply":reply,"receipt_id":receipt_id,"model":model,"provider_id":provider.id,"interaction_id":trace.id}),
+        json!({"reply":reply,"receipt_id":receipt_id,"model":model,"provider_id":provider.id,"interaction_id":trace.id,"stored":stored,"conversation_id":input.conversation_id,"conversation_revision":continuity.as_ref().map(|p|p.revision+1)}),
     ))
 }
 
@@ -1404,7 +1536,7 @@ async fn proxy(
     body: Value,
     anthropic: bool,
 ) -> ApiResult<Response> {
-    auth(&headers, &state, false)?;
+    let principal = auth(&headers, &state, false)?;
     let grant = headers.get("x-omni-grant").and_then(|s| s.to_str().ok());
     let streaming = body.get("stream").and_then(Value::as_bool).unwrap_or(false);
     let provider = state.vault()?.selected_provider(
@@ -1412,8 +1544,15 @@ async fn proxy(
         Some(anthropic),
         &state.config,
     )?;
-    let (response, receipt, interaction_id, mut trace) =
-        upstream(&state, body, grant, provider, ResponseMode::Proxy).await?;
+    let (response, receipt, interaction_id, mut trace) = upstream(
+        &state,
+        body,
+        grant,
+        provider,
+        ResponseMode::Proxy,
+        &principal,
+    )
+    .await?;
     let status =
         StatusCode::from_u16(response.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
     let mut builder = Response::builder().status(status);
@@ -1545,7 +1684,9 @@ async fn upstream(
     grant: Option<&str>,
     provider: Provider,
     response_mode: ResponseMode,
+    principal: &Principal,
 ) -> ApiResult<(reqwest::Response, Option<String>, String, ExchangeTrace)> {
+    let preflight_start = Instant::now();
     let anthropic = provider.kind == "anthropic";
     if !body.is_object() || !body.get("messages").is_some_and(Value::is_array) {
         return Err(ApiError::bad("A messages array is required"));
@@ -1568,6 +1709,9 @@ async fn upstream(
     let text = request_text(&body);
     let memories = {
         let vault = state.vault()?;
+        vault
+            .authorize_principal(principal, base, grant)
+            .map_err(|e| ApiError::denied(e.to_string()))?;
         if let Some(grant) = grant {
             vault
                 .context(grant, base, None)
@@ -1586,6 +1730,7 @@ async fn upstream(
     inspection.include_source(&json!(memories));
     // Validate the complete outbound request, including authorized context and
     // history. No memory grant or owner credential bypasses content policy.
+    let policy_start = Instant::now();
     enforce_policy(
         state,
         &inspection,
@@ -1595,6 +1740,7 @@ async fn upstream(
             "gateway"
         },
     )?;
+    let policy_us = policy_start.elapsed().as_micros().min(u64::MAX as u128) as u64;
     let endpoint = if anthropic {
         "messages"
     } else {
@@ -1622,6 +1768,10 @@ async fn upstream(
     }
     // Last synchronous check occurs immediately before starting network I/O.
     // Revocation cannot retract bytes already handed to the HTTP client.
+    state
+        .vault()?
+        .authorize_principal(principal, base, grant)
+        .map_err(|e| ApiError::denied(e.to_string()))?;
     let receipt = if let Some(grant) = grant {
         state
             .vault()?
@@ -1662,6 +1812,13 @@ async fn upstream(
             rate_snapshot: rate_snapshot(&provider, body["model"].as_str().unwrap_or("")),
             ..Default::default()
         },
+    )?;
+    state.vault()?.record_work_request(
+        &trace.id,
+        principal,
+        receipt.as_deref(),
+        preflight_start.elapsed().as_micros().min(u64::MAX as u128) as u64,
+        policy_us,
     )?;
     trace.known_no_cache_write = matches!(provider.kind.as_str(), "openai" | "ollama");
     let start = Instant::now();
@@ -1778,7 +1935,11 @@ async fn capture_status(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> ApiResult<Json<Value>> {
-    auth(&headers, &state, false)?;
+    if matches!(auth(&headers, &state, false)?, Principal::Client(_)) {
+        return Err(ApiError::denied(
+            "This approved client supports gateway requests only",
+        ));
+    }
     Ok(Json(
         json!({"ready":true,"extractor":"local-only","review_required":true}),
     ))
@@ -1788,7 +1949,11 @@ async fn capture(
     headers: HeaderMap,
     Json(input): Json<Capture>,
 ) -> ApiResult<Json<Value>> {
-    auth(&headers, &state, false)?;
+    if matches!(auth(&headers, &state, false)?, Principal::Client(_)) {
+        return Err(ApiError::denied(
+            "This approved client supports gateway requests only",
+        ));
+    }
     if input.content.trim().is_empty() || input.content.len() > 100_000 {
         return Err(ApiError::bad("Capture must contain 1–100000 bytes"));
     }
@@ -1949,7 +2114,11 @@ async fn mcp(
     headers: HeaderMap,
     Json(request): Json<Value>,
 ) -> ApiResult<Response> {
-    auth(&headers, &state, false)?;
+    if matches!(auth(&headers, &state, false)?, Principal::Client(_)) {
+        return Err(ApiError::denied(
+            "This approved client supports gateway requests only",
+        ));
+    }
     let id = request.get("id").cloned().unwrap_or(Value::Null);
     let method = request.get("method").and_then(Value::as_str).unwrap_or("");
     if method.starts_with("notifications/") {
@@ -2113,6 +2282,7 @@ mod tests {
         )
     }
     mod policy_http_tests;
+    mod professional_tests;
     #[test]
     fn parsers_preserve_only_text_segments() {
         assert_eq!(

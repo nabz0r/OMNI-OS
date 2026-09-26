@@ -97,3 +97,15 @@ export function vaultStorageLabel(value: string) {
   };
   return labels[value] ?? "System key store";
 }
+
+export async function nativeGateway(
+  enabled?: boolean,
+): Promise<{ enabled: boolean; address: string | null }> {
+  if (!nativeSession || nativeSession.mode !== "embedded")
+    throw new Error("This session uses the external gateway.");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke("client_gateway", {
+    token: nativeSession.token,
+    enabled: enabled ?? null,
+  });
+}

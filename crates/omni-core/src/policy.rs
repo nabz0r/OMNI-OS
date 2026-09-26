@@ -66,6 +66,7 @@ pub enum RuleAction {
 pub struct CompiledPolicy {
     pub spec: PolicySpec,
     pub fingerprint: String,
+    pub pinned: bool,
     expressions: Vec<(Rule, Regex)>,
 }
 impl CompiledPolicy {
@@ -133,6 +134,7 @@ impl CompiledPolicy {
         Ok(Self {
             spec,
             fingerprint,
+            pinned: false,
             expressions,
         })
     }
@@ -179,6 +181,34 @@ impl CompiledPolicy {
 }
 
 pub fn load_managed(path: &Path) -> Result<Arc<CompiledPolicy>> {
+    load_managed_pinned(path, None)
+}
+
+pub fn managed_from_env() -> Result<Option<Arc<CompiledPolicy>>> {
+    let path = std::env::var_os("OMNI_MANAGED_POLICY_FILE");
+    let pin = std::env::var("OMNI_MANAGED_POLICY_SHA256").ok();
+    match path {
+        Some(path) => load_managed_pinned(Path::new(&path), pin.as_deref()).map(Some),
+        None if pin.is_some() => {
+            bail!("A managed policy digest requires its policy file; startup refused")
+        }
+        None => Ok(None),
+    }
+}
+
+pub fn load_managed_pinned(path: &Path, expected: Option<&str>) -> Result<Arc<CompiledPolicy>> {
+    let metadata =
+        std::fs::symlink_metadata(path).context("Managed policy is missing; startup refused")?;
+    if !metadata.is_file() || metadata.file_type().is_symlink() {
+        bail!("Managed policy must be a regular file, not a symlink");
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if metadata.permissions().mode() & 0o022 != 0 {
+            bail!("Managed policy must not be writable by other groups or users");
+        }
+    }
     let file = std::fs::File::open(path)
         .context("Managed policy file cannot be opened; startup refused")?;
     let mut bytes = Vec::new();
@@ -188,7 +218,17 @@ pub fn load_managed(path: &Path) -> Result<Arc<CompiledPolicy>> {
     }
     let spec: PolicySpec =
         serde_json::from_slice(&bytes).context("Managed policy is invalid; startup refused")?;
-    Ok(Arc::new(CompiledPolicy::compile(spec)?))
+    if let Some(expected) = expected {
+        if expected.len() != 64
+            || !expected.bytes().all(|b| b.is_ascii_hexdigit())
+            || hex::encode(Sha256::digest(&bytes)) != expected.to_ascii_lowercase()
+        {
+            bail!("Managed policy digest does not match the protected launch configuration; startup refused");
+        }
+    }
+    let mut compiled = CompiledPolicy::compile(spec)?;
+    compiled.pinned = expected.is_some();
+    Ok(Arc::new(compiled))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -413,6 +453,7 @@ pub fn prepare_files(body: &mut Value) -> Result<Vec<TextAttachment>> {
 
 #[derive(Serialize)]
 pub struct PolicyView {
+    pub managed_pinned: bool,
     pub revision: u64,
     pub policy: PolicySpec,
     pub managed: Option<PolicySpec>,
@@ -458,6 +499,7 @@ impl Vault {
     pub fn policy_view(&self, managed: Option<&CompiledPolicy>) -> Result<PolicyView> {
         let (revision, local) = self.policy_current()?;
         Ok(PolicyView {
+            managed_pinned: managed.is_some_and(|p| p.pinned),
             revision,
             policy: local.spec.clone(),
             managed: managed.map(|p| p.spec.clone()),
@@ -726,5 +768,29 @@ mod tests {
         assert!(load_managed(&path).is_err());
         std::fs::write(&path, serde_json::to_vec(&PolicySpec::default()).unwrap()).unwrap();
         assert!(load_managed(&path).is_ok());
+    }
+    #[test]
+    fn managed_digest_pin_detects_changed_bytes_and_insecure_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("managed.json");
+        let bytes = serde_json::to_vec(&PolicySpec::default()).unwrap();
+        std::fs::write(&path, &bytes).unwrap();
+        let pin = hex::encode(Sha256::digest(&bytes));
+        assert!(load_managed_pinned(&path, Some(&pin)).unwrap().pinned);
+        assert!(!load_managed(&path).unwrap().pinned);
+        let mut changed = bytes;
+        changed.push(b' ');
+        std::fs::write(&path, changed).unwrap();
+        assert!(load_managed_pinned(&path, Some(&pin)).is_err());
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::{symlink, PermissionsExt};
+            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o666)).unwrap();
+            assert!(load_managed(&path).is_err());
+            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
+            let alias = dir.path().join("alias.json");
+            symlink(&path, &alias).unwrap();
+            assert!(load_managed(&alias).is_err());
+        }
     }
 }

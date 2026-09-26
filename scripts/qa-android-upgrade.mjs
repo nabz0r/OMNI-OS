@@ -131,6 +131,21 @@ try {
     .click();
   await page.getByRole("heading", { name: "Build your rule chain." }).waitFor();
   check("new_policy_console_available", true);
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Work", exact: true })
+    .click();
+  await page
+    .getByRole("heading", { name: "Context with clear authority." })
+    .waitFor();
+  check(
+    "work_upgrade_without_implicit_enrollment",
+    (await api("/api/work")).enabled === false,
+  );
+  check(
+    "continuity_upgrade_without_implicit_consent",
+    (await api("/api/conversations")).conversations.length === 0,
+  );
   report.status = "passed";
   console.log(
     `Android in-place upgrade passed: ${Object.keys(report.assertions).length} checks.`,

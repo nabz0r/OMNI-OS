@@ -36,6 +36,7 @@ type Snapshot = {
   policy: Policy;
   managed: Policy | null;
   managed_fingerprint: string | null;
+  managed_pinned: boolean;
 };
 type Decision = {
   id: string;
@@ -308,7 +309,9 @@ export default function Policies({ request }: { request: Request }) {
                   </div>
                 ))}
                 <p className="policy-caption">
-                  Fingerprint: {saved.managed_fingerprint}
+                  Launch configuration:{" "}
+                  {saved.managed_pinned ? "digest pinned" : "not digest pinned"}
+                  . Fingerprint: {saved.managed_fingerprint}
                 </p>
               </details>
             </section>

@@ -6,7 +6,7 @@ use std::{
 #[cfg(desktop)]
 use tauri::Manager;
 mod native;
-use native::{core_request, native_session, save_metadata, NativeState};
+use native::{client_gateway, core_request, native_session, save_metadata, NativeState};
 #[cfg(desktop)]
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
@@ -128,6 +128,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             native_session,
             core_request,
+            client_gateway,
             save_metadata,
             open_setup_resource
         ])

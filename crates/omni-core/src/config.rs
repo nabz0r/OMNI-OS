@@ -194,9 +194,7 @@ impl Config {
         let agent_token = load_token(&data_dir, "agent-token", "OMNI_AGENT_TOKEN")?;
         validate_tokens(&local_token, &agent_token)?;
         Ok(Self {
-            managed_policy: env::var_os("OMNI_MANAGED_POLICY_FILE")
-                .map(|path| crate::policy::load_managed(Path::new(&path)))
-                .transpose()?,
+            managed_policy: crate::policy::managed_from_env()?,
             local_token,
             agent_token,
             pairing,

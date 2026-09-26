@@ -20,6 +20,8 @@ pub struct Memory {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Grant {
+    #[serde(default)]
+    pub client_id: Option<String>,
     pub id: String,
     pub destination: String,
     pub scope: Vec<String>,
@@ -79,6 +81,8 @@ impl Vault {
             CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);")?;
         crate::journal::initialize(&db)?;
         crate::policy::initialize(&db)?;
+        crate::work::initialize(&db)?;
+        crate::continuity::initialize(&db)?;
         Ok(Self {
             db,
             runtime_lease: None,
@@ -300,6 +304,7 @@ impl Vault {
             }
         }
         let grant = Grant {
+            client_id: None,
             id: Uuid::new_v4().to_string(),
             destination: destination.into(),
             scope,
@@ -331,10 +336,11 @@ impl Vault {
     }
 
     pub fn grants(&self) -> Result<Vec<Grant>> {
-        let mut stmt=self.db.prepare("SELECT id,destination,scope,expires_at,revoked_at,created_at FROM grants ORDER BY created_at DESC")?;
+        let mut stmt=self.db.prepare("SELECT g.id,g.destination,g.scope,g.expires_at,g.revoked_at,g.created_at,w.client_id FROM grants g LEFT JOIN work_grants w ON w.grant_id=g.id ORDER BY g.created_at DESC")?;
         let rows = stmt.query_map([], |r| {
             let scope: String = r.get(2)?;
             Ok(Grant {
+                client_id: r.get(6)?,
                 id: r.get(0)?,
                 destination: r.get(1)?,
                 scope: serde_json::from_str(&scope).unwrap_or_default(),
@@ -388,11 +394,24 @@ impl Vault {
         }
         let query = query.unwrap_or("").to_lowercase();
         let mut budget = 12_000usize;
-        let selected = self
-            .memories()?
+        // Apply the granted resource scope in SQL before retrieval or selection.
+        let wildcard = grant.scope == ["*"];
+        let clause = if wildcard {
+            String::new()
+        } else {
+            format!(" AND m.id IN ({})", vec!["?"; grant.scope.len()].join(","))
+        };
+        let mut statement = self.db.prepare(&format!("SELECT m.id,m.source_id,m.content,m.status,m.created_at,m.updated_at,s.kind FROM memories m JOIN sources s ON s.id=m.source_id WHERE m.status='confirmed'{clause} ORDER BY m.created_at DESC,m.id"))?;
+        let ids = if wildcard {
+            &[][..]
+        } else {
+            grant.scope.as_slice()
+        };
+        let authorized = statement
+            .query_map(rusqlite::params_from_iter(ids), memory_row)?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        let selected = authorized
             .into_iter()
-            .filter(|m| m.status == "confirmed")
-            .filter(|m| grant.scope.iter().any(|s| s == "*" || s == &m.id))
             .filter(|m| query.is_empty() || m.content.to_lowercase().contains(&query))
             .filter(|m| {
                 if m.content.len() > budget {

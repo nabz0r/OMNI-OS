@@ -18,6 +18,7 @@ export interface Memory {
   updated_at: string;
 }
 export interface Grant {
+  client_id?: string | null;
   id: string;
   destination: string;
   scope: string[];
