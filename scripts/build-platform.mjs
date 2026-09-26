@@ -471,6 +471,19 @@ async function smokeDesktop(binary) {
   });
   child.stdout.pipe(log, { end: false });
   child.stderr.pipe(log, { end: false });
+  let frontendReady = false;
+  let frontendRecovered = false;
+  let startupOutput = "\n";
+  child.stdout.on("data", (data) => {
+    startupOutput = (startupOutput + data.toString()).replaceAll("\r\n", "\n");
+    frontendReady ||= startupOutput.includes(
+      `\nOMNI_STARTUP_READY ${config.version}\n`,
+    );
+    frontendRecovered ||= startupOutput.includes(
+      `\nOMNI_STARTUP_RECOVERY ${config.version}\n`,
+    );
+    startupOutput = startupOutput.slice(-512);
+  });
   let failure;
   const exited = new Promise((resolveExit) => {
     child.once("error", (error) => {
@@ -489,10 +502,18 @@ async function smokeDesktop(binary) {
         `Packaged application stopped during startup (${failure}); inspect smoke.log.`,
       );
     const encryption = await awaitVault(vault, () => failure);
+    const readinessDeadline = Date.now() + 10_000;
+    while (!frontendReady && !failure && Date.now() < readinessDeadline)
+      await delay(100);
+    if (!frontendReady || frontendRecovered || failure)
+      throw new Error(
+        "The packaged interface did not acknowledge rendering and reading its core state. An encrypted vault alone does not pass startup validation.",
+      );
     buildInfo.smoke = {
       status: "passed",
       scope:
-        "Native process started and its frontend initialized a fresh embedded vault through the OS key store; no provider request or end-to-end conversation tested",
+        "Packaged frontend acknowledged mounting and reading core state; fresh embedded vault verified through the OS key store. No screenshot, provider request or end-to-end conversation tested",
+      frontend_ready: true,
       vault: encryption,
     };
   } finally {

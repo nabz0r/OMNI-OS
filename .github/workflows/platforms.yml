@@ -37,7 +37,7 @@ concurrency:
 # read. Android uses a development debug key; iOS targets an unsigned simulator.
 jobs:
   desktop:
-    name: ${{ matrix.platform }} package and startup
+    name: ${{ matrix.platform }} package and startup (${{ matrix.runner }})
     strategy:
       fail-fast: false
       matrix:
@@ -51,6 +51,10 @@ jobs:
           - platform: macos
             runner: macos-15
             target: aarch64-apple-darwin
+          - platform: macos
+            runner: macos-26
+            target: aarch64-apple-darwin
+            artifact_suffix: -macos-26
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     env:
@@ -68,7 +72,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri
-          key: native-${{ matrix.platform }}
+          key: native-${{ matrix.platform }}${{ matrix.artifact_suffix }}
       - name: Install Linux build and display dependencies
         if: runner.os == 'Linux'
         run: |
@@ -93,7 +97,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: omni-${{ matrix.platform }}-${{ matrix.target }}-evaluation
+          name: omni-${{ matrix.platform }}-${{ matrix.target }}-evaluation${{ matrix.artifact_suffix }}
           path: artifacts/platforms/${{ matrix.platform }}/
           if-no-files-found: warn
           retention-days: 14

@@ -47,6 +47,10 @@ Measure energy and emissions only with a named system boundary, functional unit,
 
 Prepare a maintainable integration package, independent security evidence, references authorised by actual customers, recurring-revenue/support records and verified company/IP/licence documentation. Existing AGPL-3.0-only terms require a rights review before any proprietary OEM promise. Evaluate partnerships, licensing and independent growth alongside a potential acquisition; no named company is presented as a partner or interested buyer.
 
+## 0.5.0 reliability increment — in validation
+
+G1 implementation has started with an independent startup screen, bounded native-vault opening, macOS recovery outside WebKit, production-bundle fault injection and frontend/core readiness required by native packaging tests. A macOS 26 job complements macOS 15. The reported affected machine also stalls a standalone WebKit probe; full native acceptance remains open. [Investigation and release scope](docs/releases/v0.5.0.md). These changes do not close G1 or establish paid-pilot readiness.
+
 ## 0.4.0 implementation checkpoint — 26 September 2026
 
 The next implementation sequence now has concrete source and tests on `main`: two executable approved clients complete the controlled-context loop; the authority decision is a dedicated per-device/OS-user work installation; encrypted logical recovery and managed-policy digest pinning are implemented; optional scoped text continuity is consented, role-preserving, bounded, reviewable and deletable. No shared organisation service was introduced. [Work contract](docs/WORK.md) · [Recovery](docs/RECOVERY.md) · [Evidence and supported matrix](docs/WORK_VERIFICATION.md).

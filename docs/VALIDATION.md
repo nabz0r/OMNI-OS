@@ -6,6 +6,12 @@
 
 # Validation evidence
 
+## 0.5.0 startup reliability — in validation
+
+Five production-bundle startup fault scenarios passed, alongside the native-transport browser suite using an isolated real Rust core and synthetic provider, two desktop Rust tests, strict desktop Clippy and the frontend production build. Browser transport tests do not verify WKWebView or the OS key store. The native macOS recovery alert and Reload action were inspected on the affected machine; its full native render/upgrade acceptance remains open. [Exact investigation scope](releases/v0.5.0.md).
+
+The historical macOS startup records below cover their original environments and fresh vaults. They do not establish successful operation on the currently affected macOS 26.5.2 session.
+
 ## 0.4.0 Work delivery acceptance — 2026-09-26
 
 The local evaluation delivery is `deliverables/OMNI-0.4.0-mvp/`. Both installers use clean source `699f95cc1d1eb458b245d76e8d297f98fa6e2c7c` on `main`. The [tracked delivery manifest](evidence/0.4.0-delivery.json) preserves package provenance; the folder contains a visual installation guide, the exact-source archive, native screenshots and **29 file hashes**. No new public GitHub release is claimed. Earlier delivery directories remain unchanged.

@@ -162,7 +162,7 @@ async function nativePage(platform) {
   await current.exposeFunction(
     "__omniNativeInvoke",
     async (command, args = {}) => {
-      calls.push({ platform, command, path: args.path, method: args.method });
+      calls.push({ platform, command, path: args.path, method: args.method, phase: args.phase });
       if (command === "native_session") {
         return {
           token: owner,
@@ -189,6 +189,10 @@ async function nativePage(platform) {
           body: args.body ?? undefined,
         });
         return { status: response.status, body: await response.text() };
+      }
+      if (command === "startup_report") {
+        assert.ok(["interface", "ready", "recovery"].includes(args.phase));
+        return null;
       }
       if (command === "save_metadata") {
         assert.match(args.name, /^omni-[a-zA-Z0-9_.-]+\.(json|csv)$/);
@@ -240,6 +244,7 @@ try {
         .click();
     const setup = page.getByRole("dialog", { name: "Make yourself at home." });
     await setup.waitFor();
+    await until(() => calls.some((call) => call.platform === platform && call.command === "startup_report" && call.phase === "ready"), "The rendered application did not acknowledge a successful core read");
     assert.equal(
       await page.evaluate(() => sessionStorage.getItem("omni.token")),
       owner,

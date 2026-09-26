@@ -6,6 +6,7 @@ use std::{
 #[cfg(desktop)]
 use tauri::Manager;
 mod native;
+mod startup;
 use native::{client_gateway, core_request, native_session, save_metadata, NativeState};
 #[cfg(desktop)]
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
@@ -125,12 +126,14 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_omni_device::init())
         .manage(NativeState::default())
+        .manage(startup::StartupState::default())
         .invoke_handler(tauri::generate_handler![
             native_session,
             core_request,
             client_gateway,
             save_metadata,
-            open_setup_resource
+            open_setup_resource,
+            startup::startup_report
         ])
         .setup(|app| {
             #[cfg(desktop)]
@@ -160,6 +163,7 @@ pub fn run() {
             }
             #[cfg(mobile)]
             let _ = app;
+            startup::watch(app.handle());
             Ok(())
         })
         .run(tauri::generate_context!())

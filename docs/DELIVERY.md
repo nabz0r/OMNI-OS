@@ -8,6 +8,10 @@
 
 OMNI 0.4.0 adds Work authority, approved clients, explicit text continuity and bounded encrypted recovery to the shared native applications. Application source, documentation, test recipes and release records are on `main`. Generated installers are stored in the local delivery folder and GitHub Actions artifacts; they are not committed as large binaries in Git.
 
+## 0.5.0 macOS reliability candidate
+
+The current source adds startup recovery and stricter release validation. The affected macOS 26.5.2 machine has not passed full native acceptance; do not interpret a generated installer as a verified repair. [Investigation, changes and outstanding acceptance](releases/v0.5.0.md). The 0.4.0 folders below remain preserved historical deliveries; Android 0.5.0 acceptance is not implied by shared interface changes.
+
 ## Open the local package
 
 Open `deliverables/OMNI-0.4.0-mvp/START-HERE.html` on the delivery machine. The ignored folder is not present in a fresh clone. It contains installers, an extracted Mac app, a portable installation guide, exact-source archive, checksums and native acceptance evidence. The preserved [public 0.2.0 release](https://github.com/nabz0r/OMNI-OS/releases/tag/v0.2.0) predates Work and conversation import; no public 0.4.0 release is claimed here.

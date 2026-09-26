@@ -1,6 +1,6 @@
 {
   "name": "omni-os",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "Your memory. Your permissions. Your AI.",
   "license": "AGPL-3.0-only",
@@ -29,7 +29,8 @@
     "docs:diagrams": "node scripts/docs/diagrams.mjs",
     "docs:build": "node scripts/docs/build.mjs",
     "docs:check": "node scripts/docs/check.mjs",
-    "docs:serve": "node scripts/docs/serve.mjs"
+    "docs:serve": "node scripts/docs/serve.mjs",
+    "test:startup": "node apps/desktop/qa-startup.mjs"
   },
   "devDependencies": {
     "github-slugger": "2.0.0",

@@ -4,6 +4,7 @@ import App from "./App";
 import RecoveryBoundary from "./RecoveryBoundary";
 import { configureRuntime } from "./api";
 import { isNative, provisionNativeSession } from "./native";
+import { reportStartup, withinDeadline } from "./startup";
 import "./styles.css";
 
 const viewport = () => {
@@ -33,7 +34,7 @@ async function start() {
       </main>,
     );
   try {
-    const session = await provisionNativeSession();
+    const session = await withinDeadline(provisionNativeSession(), 20_000);
     configureRuntime(session);
     if (session) {
       document.documentElement.dataset.platform = session.platform;
@@ -70,6 +71,9 @@ async function start() {
         </button>
         <span>Existing memories have not been deleted or replaced.</span>
       </main>,
+    );
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => reportStartup("recovery")),
     );
   }
 }

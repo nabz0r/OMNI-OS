@@ -45,6 +45,10 @@ Revocation cannot retrieve content a provider has already received. The launcher
 
 *Actual application interface. Demonstration content is synthetic, not customer activity.*
 
+## macOS reliability update
+
+The reported blank-screen incident is under investigation. **0.5.0 adds bounded startup, visible recovery and a stricter native release gate; the affected Mac has not yet passed full acceptance.** [Status and investigation](docs/releases/v0.5.0.md). The earlier Work checkpoint below is preserved as historical evidence.
+
 ## The 0.4.0 work increment
 
 **Named authority, deliberate continuity and recoverable context.** Work adds a dedicated single-owner installation, separately approved API clients, an optional local gateway, scoped conversation storage and encrypted recovery. The complete controlled-context loop runs through two independent reference clients and a counted synthetic provider.

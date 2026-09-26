@@ -9,9 +9,73 @@
     <meta name="theme-color" content="#0a0e11" />
     <title>OMNI — Your context. Your authority.</title>
     <link rel="icon" type="image/svg+xml" href="/omni.svg" />
+    <style>
+      html {
+        background: #0b0e11;
+      }
+      #omni-startup {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: grid;
+        place-content: center;
+        padding: 36px;
+        background: #0b0e11;
+        color: #edf4f0;
+        font:
+          16px/1.6 -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+      }
+      #omni-startup[hidden],
+      #omni-startup button[hidden] {
+        display: none;
+      }
+      #omni-startup > div {
+        max-width: 520px;
+      }
+      #omni-startup small {
+        color: #89ccb2;
+        letter-spacing: 0.15em;
+      }
+      #omni-startup h1 {
+        font-size: clamp(26px, 5vw, 40px);
+        line-height: 1.2;
+        font-weight: 550;
+      }
+      #omni-startup p {
+        color: #b3c3bc;
+      }
+      #omni-startup button {
+        border: 0;
+        border-radius: 12px;
+        padding: 13px 20px;
+        background: #b7f2cf;
+        color: #10281e;
+        font: inherit;
+        cursor: pointer;
+      }
+      #omni-startup button:focus-visible {
+        outline: 3px solid white;
+        outline-offset: 4px;
+      }
+    </style>
   </head>
   <body>
+    <section id="omni-startup" role="status" aria-live="polite">
+      <div>
+        <small>OMNI · YOUR CONTEXT. YOUR AUTHORITY.</small>
+        <h1 id="omni-startup-heading">Opening your space…</h1>
+        <p id="omni-startup-detail">
+          Connecting to your local vault. If this screen persists, quit and
+          reopen OMNI. Your saved vault does not need to be deleted.
+        </p>
+        <button id="omni-startup-retry" type="button" hidden>
+          Reload OMNI
+        </button>
+      </div>
+    </section>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/bootstrap.ts"></script>
   </body>
 </html>

@@ -432,5 +432,12 @@
     "group": "Trust & evidence",
     "summary": "A protocol for testing token, cost, energy and carbon effects without assuming savings.",
     "status": "Measurement plan \u00b7 26 Sep 2026"
+  },
+  {
+    "path": "docs/releases/v0.5.0.md",
+    "title": "0.5.0 \u00b7 Startup reliability",
+    "group": "Releases",
+    "summary": "Bounded opening, independent recovery and a stricter native release gate.",
+    "status": "Reliability candidate"
   }
 ]

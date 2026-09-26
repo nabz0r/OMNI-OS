@@ -1,4 +1,5 @@
 import { version as appVersion } from "../package.json";
+import { reportStartup } from "./startup";
 import {
   lazy,
   Suspense,
@@ -168,6 +169,10 @@ function Brand() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => reportStartup("interface"));
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const [session, setSession] = useState(() =>
     isNative && sessionStorage.getItem("omni.locked") === "true" ? 1 : 0,
   );
@@ -248,6 +253,15 @@ function OmniSpace({
   const [connection, setConnection] = useState<
     "connecting" | "online" | "offline"
   >("connecting");
+  const startupReported = useRef(false);
+  useEffect(() => {
+    if (!core || connection !== "online" || startupReported.current) return;
+    const frame = requestAnimationFrame(() => {
+      startupReported.current = true;
+      reportStartup("ready");
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [core, connection]);
   const [green, setGreen] = useState(
     () => localStorage.getItem("omni.green") === "true",
   );

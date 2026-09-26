@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { ArrowRight, ShieldCheck } from "lucide-react";
+import { reportStartup } from "./startup";
 
 export default class RecoveryBoundary extends Component<
   { children: ReactNode },
@@ -8,6 +9,9 @@ export default class RecoveryBoundary extends Component<
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+  componentDidCatch() {
+    reportStartup("recovery");
   }
   render() {
     if (!this.state.failed) return this.props.children;
