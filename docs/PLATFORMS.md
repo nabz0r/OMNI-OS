@@ -8,6 +8,10 @@
 
 OMNI shares one React/Three.js interface and Rust core across its desktop and mobile targets. The implementation includes native adapters for macOS, Windows, Linux, Android and iOS. This document describes source behavior and build procedures. A target appearing here does not certify a successful build, physical-device test, signed release or store acceptance; current evidence belongs in [VALIDATION.md](VALIDATION.md).
 
+## Current simulator exception
+
+The 0.4.0 delivery covers macOS and Android. The broader [iOS simulator job at `225e16a`](https://github.com/nabz0r/OMNI-OS/actions/runs/36257535875/job/108447115619) built and launched its unsigned application, but failed the fresh encrypted-vault initialization check on iOS 18.5. The process remaining open is not a passing runtime test. The same gate failed at the installer source checkpoint `699f95c`. The cause is not established by the available logs; native startup/key-store diagnostics and a passing retest are required before claiming simulator support. No iOS installer is included in this delivery. The separate unsigned device archive build does not close that runtime gate.
+
 ## Current macOS and Android delivery
 
 The 0.4.0 applications add Work authority, named clients, an optional narrow loopback gateway, scoped continuity and encrypted logical recovery. macOS targets Apple Silicon and macOS 14.4+; Android includes ARM64 and x86_64 with minimum API 24, version name `0.4.0` and version code `4000`. Exact native checks and package hashes are recorded in [delivery](DELIVERY.md) and [validation](VALIDATION.md); source targets alone are not runtime claims.
