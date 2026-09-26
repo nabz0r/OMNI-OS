@@ -1,0 +1,40 @@
+{
+  "platform": "macos",
+  "version": "0.4.0",
+  "source_revision": "699f95cc1d1eb458b245d76e8d297f98fa6e2c7c",
+  "source_dirty": false,
+  "profile": "release",
+  "created_at": "2026-09-26T16:45:07.263Z",
+  "status": "built",
+  "signing": "Ad-hoc application signature; no Developer ID signing or notarization",
+  "distribution": "Development evaluation; not a signed store release",
+  "runtime": "Embedded Rust core; no Node.js service bundled",
+  "smoke": {
+    "status": "passed",
+    "scope": "Native process started and its frontend initialized a fresh embedded vault through the OS key store; no provider request or end-to-end conversation tested",
+    "vault": {
+      "created_during_smoke": true,
+      "bytes": 4096,
+      "plain_sqlite_header": false,
+      "header_bytes_examined": 16
+    }
+  },
+  "artifacts": [
+    {
+      "file": "OMNI_0.4.0_aarch64.dmg",
+      "bytes": 9192638,
+      "sha256": "203c8cdbb0d1494fd8ac9865b6c5f2bae4a952bf888c171aab484ec6d5e71a07"
+    },
+    {
+      "file": "OMNI-macos-arm64.app.zip",
+      "bytes": 9101713,
+      "sha256": "24a08b24d01bcbe78f422821ab1c7f7b058fc2d21c12ff04d1dbb131fff13a84"
+    }
+  ],
+  "target": "aarch64-apple-darwin",
+  "integrity": {
+    "application_signature": "Ad-hoc resource seal verified with codesign --deep --strict",
+    "disk_image": "Verified with hdiutil verify",
+    "publisher_identity": "Not verified; no Developer ID certificate or notarization"
+  }
+}

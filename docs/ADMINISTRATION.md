@@ -10,9 +10,13 @@ OMNI's console manages the local gateway, its provider connections and the evide
 
 This document describes the implemented administration features. See [Integrations](INTEGRATIONS.md) for the gateway and capture interfaces, [Privacy](PRIVACY.md) for analytics accounting, and [Security](SECURITY.md) for the broader trust boundaries.
 
+## Work authority, saved conversations and recovery
+
+The **Work** view manages installation enrollment, named client access, an optional local client gateway, explicitly opted-in conversation continuity and encrypted recovery. Read [Work](WORK.md) and [Recovery](RECOVERY.md) for the owner-only endpoints, role preservation, retention, retry and recovery boundaries. Ordinary History exports still exclude conversation bodies and provider keys; recovery archives deliberately include encrypted vault content and provider credentials.
+
 ## Using the console
 
-Open the native application or follow the [repository development instructions](../README.md). Native startup provisions its device session and opens no HTTP listener. After an explicit interface lock, use **Unlock on this device** to reopen it; this does not perform OS authentication. The browser development address is `http://localhost:3006`, with its external core normally on loopback port `3007`. Normal browser opening pairs automatically once; manual owner-token entry remains available for expired links or headless sessions. [Deployment modes →](PLATFORMS.md)
+Open the native application or follow the [repository development instructions](../README.md). Native startup provisions its device session and opens no HTTP listener. Work can explicitly open a narrow approved-client gateway; closing the interface session does not stop that gateway. After an explicit interface lock, use **Unlock on this device** to reopen it; this does not perform OS authentication. The browser development address is `http://localhost:3006`, with its external core normally on loopback port `3007`. Normal browser opening pairs automatically once; manual owner-token entry remains available for expired links or headless sessions. [Deployment modes →](PLATFORMS.md)
 
 | View        | What it controls or shows                                                                                   |
 | ----------- | ----------------------------------------------------------------------------------------------------------- |

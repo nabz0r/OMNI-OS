@@ -11,6 +11,10 @@ The labels **V1**, **Target**, and **Not guaranteed** are part of the specificat
 Startup, platform, transport, and validation procedures remain in [README.md](README.md), [docs/PLATFORMS.md](docs/PLATFORMS.md), [docs/VPN.md](docs/VPN.md), and [docs/VALIDATION.md](docs/VALIDATION.md).
 The [diagrams](DIAGRAMS.md) provide data flow and container views; the [roadmap](ROADMAP.md) sets the evidence required before each change.
 
+## Implemented work authority in 0.4.0
+
+The professional deployment decision is a dedicated single-owner installation per device or OS user. Named gateway clients, client-bound grants, controlled text continuity and bounded encrypted recovery are implemented; a shared tenant service and work/personal partitions are not. Use [the Work contract](docs/WORK.md), [Recovery](docs/RECOVERY.md) and [measured scope](docs/WORK_VERIFICATION.md) to interpret the longer-term targets below.
+
 ## Navigation
 
 - [1. Thesis and scope](#thesis)

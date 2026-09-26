@@ -6,6 +6,32 @@
 
 # Validation evidence
 
+## 0.4.0 Work delivery acceptance — 2026-09-26
+
+The local evaluation delivery is `deliverables/OMNI-0.4.0-mvp/`. Both installers use clean source `699f95cc1d1eb458b245d76e8d297f98fa6e2c7c` on `main`. The [tracked delivery manifest](evidence/0.4.0-delivery.json) preserves package provenance; the folder contains a visual installation guide, the exact-source archive, native screenshots and **29 file hashes**. No new public GitHub release is claimed. Earlier delivery directories remain unchanged.
+
+| Exact package | SHA-256 |
+| --- | --- |
+| `OMNI-0.4.0-macOS-arm64.dmg` | `203c8cdbb0d1494fd8ac9865b6c5f2bae4a952bf888c171aab484ec6d5e71a07` |
+| `OMNI-0.4.0-macOS-arm64.app.zip` | `24a08b24d01bcbe78f422821ab1c7f7b058fc2d21c12ff04d1dbb131fff13a84` |
+| `OMNI-0.4.0-android.apk` | `85774abe09ab517f1ee1c939529033ab8d6e7bd5e1c9968d35fd8c4ce78b5a86` |
+
+**Controlled context and authority.** Two independently approved clients (JavaScript fetch and Python urllib) completed import → review/confirmation → exact-destination, client-bound grant → actual core request → receipt inspection → grant/client revocation. All **16 checks** passed, and denied requests produced zero additional arrivals at the counted synthetic provider. The clean baseline revision is `c43a9e61de62f28a3a3b36c755ae0101b18f6ef0`; core code and its workspace dependency locks are unchanged from the installer source. Forty warmed observations measured policy and preflight separately: policy median/p95 **0.379/0.457 ms**, preflight **1.322/1.532 ms** on an M2 Max debug build. End-to-end time includes a deliberately delayed synthetic provider and is not model latency or an SLA. [Full report and matrix](WORK_VERIFICATION.md).
+
+**Android.** The exact APK passed **47 native acceptance checks** through its installed WebView, production IPC, Rust runtime and encrypted vault on a dedicated Android 15 AOSP ARM64 emulator. Beyond the previous 38 scenarios, this covers dedicated work enrollment, explicit gateway start/stop, one-time client approval, revocation, opted-in conversation creation, preserved human/model roles, deletion and Work layout. The final run had no WebView errors. Keyboard activation is used for selected form controls to avoid soft-keyboard transition races in coordinate tapping; this does not certify physical touch behavior on every device. [Acceptance record](evidence/0.4.0-android-native-acceptance.json).
+
+All **five Keystore instrumentation cases** passed with no failures, errors or skips. **Nine update checks** installed the exact APK over the 0.3.0 package without uninstalling, preserved synthetic memory/settings and verified no implicit Work enrollment or conversation storage. The development signing certificate remains `497a8facf989aaaf6e18f0d5d7131620b96f9a11b8660d67281477b276a976dc`. Version name/code are `0.4.0`/`4000`, minimum API 24 and target API 36, with ARM64 and x86_64 libraries. The local runtime checks used ARM64, not every supported API/ABI combination. [Keystore record](evidence/0.4.0-android-keystore-tests.json) · [Update record](evidence/0.4.0-android-upgrade.json).
+
+**macOS.** The [native macOS job](https://github.com/nabz0r/OMNI-OS/actions/runs/36256350017/job/108444162585) passed release packaging, native tests and fresh embedded encrypted-vault startup through the OS key store. The downloaded Actions archive matched digest `25c5af55c9f9c748940c245fc0a9f256af0e361bb715c23bcc5b15b00f1fe341`. Local assembly verified the complete application resource seal and DMG, mounted the image read-only and matched its application with the extracted ZIP. This establishes startup and integrity for this exact package; it does not establish a complete real-provider Work conversation or existing-Keychain upgrade. [Build record](evidence/0.4.0-macos-build.json).
+
+**Source quality.** The Rust workspace passed **87 tests: 80 core and seven VPN**. Formatting, strict Clippy, TypeScript, the production frontend build, 14 import tests, five extension tests, nine collector tests and two Android harness tests passed. The optional Redis integration case was skipped locally; the [green six-job source verification workflow](https://github.com/nabz0r/OMNI-OS/actions/runs/36256349980) supplied its test service and ran the browser regressions. Tests include authorization before continuity selection, replay and revocation, late-response deletion, retention, uncertain retries, pinned-policy rejection, authenticated recovery, changed device identity/key, revoked restored access and transactional rollback. Recovery UI and physical lost-device scenarios are not established by core tests alone.
+
+The Work screen was additionally reviewed in a real browser against an isolated core and synthetic provider. Enrollment, consented conversation creation, role-separated sending and deletion passed. The inspected 390-pixel layout had no horizontal document overflow and visible Work buttons were at least 44 pixels high.
+
+The harmonized field guide builds 60 offline pages from 59 guides, with 12 rendered Mermaid diagrams. Local Markdown/HTML links, anchors, embedded resources and diagram source hashes passed validation. The new controlled-request diagram, guide homepage, mobile Work page and local recovery search results were inspected in the browser. The inspected mobile guide had no horizontal document overflow.
+
+This remains an evaluation delivery: ad-hoc Mac signing, Android development signing, synthetic provider acceptance and emulator coverage. Independent security review, production signing, live commercial-provider acceptance and physical-device recovery/update drills remain explicit gates in the [external review scope](EXTERNAL_REVIEW.md). Repository documentation and test-runner commits after the package checkpoint do not change the delivered application bytes.
+
 ## 0.3.0 local delivery acceptance — 2026-09-26
 
 The updated local delivery is `deliverables/OMNI-0.3.0-mvp/`, with an offline guide, source archive, evidence and a 27-file SHA-256 inventory. This is a local evaluation delivery, not a newly published GitHub release. The public 0.2.0 assets remain unchanged.

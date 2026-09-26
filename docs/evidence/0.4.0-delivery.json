@@ -1,0 +1,83 @@
+{
+  "product": "OMNI",
+  "version": "0.4.0",
+  "channel": "MVP evaluation",
+  "assembled_at": "2026-09-26T16:57:04.815Z",
+  "source_repository": "https://github.com/nabz0r/OMNI-OS",
+  "controlled_loop": {
+    "source_revision": "c43a9e61de62f28a3a3b36c755ae0101b18f6ef0",
+    "core_unchanged_from_package_source": true,
+    "checks": 16,
+    "evidence": "Evidence/controlled-loop.json",
+    "scope": "Actual core process and two independent local HTTP reference clients; synthetic extraction and response provider only. No commercial provider, third-party UI, SLA or physical-device claim."
+  },
+  "platforms": {
+    "macos": {
+      "source_revision": "699f95cc1d1eb458b245d76e8d297f98fa6e2c7c",
+      "build_run": "https://github.com/nabz0r/OMNI-OS/actions/runs/36256350017",
+      "profile": "release",
+      "architecture": "Apple Silicon ARM64",
+      "minimum_os": "macOS 14.4",
+      "signature": "Ad-hoc application signature; no Developer ID signing or notarization",
+      "startup": {
+        "status": "passed",
+        "scope": "Native process started and its frontend initialized a fresh embedded vault through the OS key store; no provider request or end-to-end conversation tested",
+        "vault": {
+          "created_during_smoke": true,
+          "bytes": 4096,
+          "plain_sqlite_header": false,
+          "header_bytes_examined": 16
+        }
+      },
+      "integrity": {
+        "application_signature": "Ad-hoc resource seal verified with codesign --deep --strict",
+        "disk_image": "Verified with hdiutil verify",
+        "publisher_identity": "Not verified; no Developer ID certificate or notarization"
+      }
+    },
+    "android": {
+      "source_revision": "699f95cc1d1eb458b245d76e8d297f98fa6e2c7c",
+      "architectures": [
+        "arm64-v8a",
+        "x86_64"
+      ],
+      "minimum_api": 24,
+      "tested_os": "Android 15 AOSP ARM64 emulator",
+      "signature": "Android development debug key; not a release signature",
+      "acceptance": "47 native acceptance checks passed",
+      "keystore": "5 instrumentation tests passed",
+      "tested_apk_sha256": "85774abe09ab517f1ee1c939529033ab8d6e7bd5e1c9968d35fd8c4ce78b5a86",
+      "upgrade": "9 in-place upgrade checks passed from the 0.3.0 evaluation APK",
+      "certificate_sha256": "497a8facf989aaaf6e18f0d5d7131620b96f9a11b8660d67281477b276a976dc"
+    }
+  },
+  "boundaries": [
+    "No Apple Developer ID signing or notarization",
+    "Android development signing; no Play Store release",
+    "No physical-phone test claim",
+    "No inference model or provider credits bundled",
+    "Separate device vaults; bounded encrypted recovery, no synchronization or physical lost-device certification"
+  ],
+  "packages": [
+    {
+      "file": "macOS/OMNI-0.4.0-macOS-arm64.dmg",
+      "bytes": 9192638,
+      "sha256": "203c8cdbb0d1494fd8ac9865b6c5f2bae4a952bf888c171aab484ec6d5e71a07"
+    },
+    {
+      "file": "macOS/OMNI-0.4.0-macOS-arm64.app.zip",
+      "bytes": 9101713,
+      "sha256": "24a08b24d01bcbe78f422821ab1c7f7b058fc2d21c12ff04d1dbb131fff13a84"
+    },
+    {
+      "file": "Android/OMNI-0.4.0-android.apk",
+      "bytes": 174665595,
+      "sha256": "85774abe09ab517f1ee1c939529033ab8d6e7bd5e1c9968d35fd8c4ce78b5a86"
+    }
+  ],
+  "source_archive": {
+    "file": "OMNI-0.4.0-source.zip",
+    "revision": "699f95cc1d1eb458b245d76e8d297f98fa6e2c7c",
+    "sha256": "61ad9025c5841d3b9cdd2ef7e9cda7264db6bc1156e8affef1e14d9dcaf1c200"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "created_at": "2026-09-26T16:25:09.427Z",
+  "source_revision": "c43a9e61de62f28a3a3b36c755ae0101b18f6ef0",
+  "source_dirty": false,
+  "hardware": {
+    "cpu": "Apple M2 Max",
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v24.19.0",
+    "python": "Python 3.9.6"
+  },
+  "scope": "Actual core process and two independent local HTTP reference clients; synthetic extraction and response provider only. No commercial provider, third-party UI, SLA or physical-device claim.",
+  "checks": {
+    "import_creates_proposal_only": true,
+    "JavaScript fetch reference_delivered_once": true,
+    "JavaScript fetch reference_selected_context_received": true,
+    "JavaScript fetch reference_receipt_verified": true,
+    "Python urllib reference_delivered_once": true,
+    "Python urllib reference_selected_context_received": true,
+    "Python urllib reference_receipt_verified": true,
+    "foreign_client_grant_denied": true,
+    "legacy_work_token_denied": true,
+    "denied_traffic_never_arrived": true,
+    "d85fd051-72cb-4664-a8dc-de16e133298a_revoked_grant_denied": true,
+    "d85fd051-72cb-4664-a8dc-de16e133298a_revoked_client_denied": true,
+    "d85fd051-72cb-4664-a8dc-de16e133298a_revocations_zero_egress": true,
+    "110683c2-6d72-408c-8238-c02840381a98_revoked_grant_denied": true,
+    "110683c2-6d72-408c-8238-c02840381a98_revoked_client_denied": true,
+    "110683c2-6d72-408c-8238-c02840381a98_revocations_zero_egress": true
+  },
+  "provider_arrivals": 43,
+  "benchmark": {
+    "profile": "debug unless the supplied binary was built otherwise",
+    "concurrency": 1,
+    "warm_samples": 40,
+    "prompt": "fixed synthetic project budget",
+    "synthetic_upstream_delay_ms": 25,
+    "preflight": {
+      "samples": 40,
+      "min_us": 1007,
+      "p50_us": 1322,
+      "p95_us": 1532,
+      "max_us": 1659
+    },
+    "policy": {
+      "samples": 40,
+      "min_us": 208,
+      "p50_us": 379,
+      "p95_us": 457,
+      "max_us": 562
+    },
+    "end_to_end": {
+      "samples": 40,
+      "min_us": 29966,
+      "p50_us": 32264,
+      "p95_us": 32867,
+      "max_us": 33160
+    },
+    "interpretation": "Policy is a subset of preflight. End-to-end includes local HTTP, serialization, persistence, the synthetic provider delay and response handling. Do not subtract percentiles or infer production latency."
+  }
+}

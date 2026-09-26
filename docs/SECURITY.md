@@ -8,6 +8,14 @@
 
 OMNI enforces explicit contracts around a local vault and supported request paths. An unlocked or compromised device remains inside the trust boundary. Use the sections below to evaluate a deployment; tests are evidence for particular behaviors, not independent security certification.
 
+## 0.4.0 work authority and recovery
+
+Work uses one dedicated installation per OS user/device, not a shared tenant service. Named client tokens are hash-stored, expiring, destination-constrained and revocable; grants may be bound to that client. Work disables the legacy integration token. A native opt-in listener exposes only named-client provider routes, rejects owner credentials and denies new admission on existing connections after stop. Already admitted requests are not recalled. [Authority and continuity](WORK.md).
+
+Saved conversations are separate encrypted content tables, explicitly consented and destination/model/grant bound. Operational journals remain metadata-only. Authorisation precedes bounded history selection; there is no automatic model-to-memory promotion. Expiry is enforced at access, with lazy local pruning; SSD erasure, provider copies and backups are separate concerns.
+
+Encrypted recovery contains provider keys and vault content. It is not a metadata export. Restoration is atomic into an unused installation, under its own key and identity, with grants revoked and no client credentials restored. The archive format and workflow still require independent review. [Recovery](RECOVERY.md) · [External review scope](EXTERNAL_REVIEW.md).
+
 ## Protect the installation and credentials
 
 - Treat `.omni/`, native application-data vaults, vault keys, agent/console tokens, VPN enrollment files and report logs as private runtime data. Repository runtime paths are ignored by Git; native vaults live outside the checkout.
@@ -25,7 +33,7 @@ OMNI enforces explicit contracts around a local vault and supported request path
 
 ## Keep exports and browser handoff bounded
 
-- Operational history and audit schemas exclude conversation bodies and secrets. Model identifiers, destinations and usage are still private metadata. Exports include only the selected metadata page, selected usage totals or secret-free configuration. Native desktop writes under `Documents/OMNI`; mobile uses a system share sheet with temporary file access and no automatic recipient. Keep exported files private; they are outside SQLCipher protection.
+- Operational history and audit schemas exclude conversation bodies and secrets. Model identifiers, destinations and usage are still private metadata. Ordinary operational exports include only the selected metadata page, selected usage totals or secret-free configuration. The separate passphrase-encrypted recovery archive intentionally contains vault content and provider keys. Native desktop writes under `Documents/OMNI`; mobile uses a system share sheet with temporary file access and no automatic recipient. Keep exported files private; they are outside SQLCipher protection.
 - The native setup browser command accepts only the fixed `ollama` resource from the main window. It cannot open arbitrary URLs or files and runs no shell. Desktop launch removes credential-like environment variables before invoking the fixed browser helper; mobile uses the platform URL-opening API.
 - Browser auto-opening uses a random 256-bit pairing capability in a URL fragment, never the owner bearer token in a query. The UI immediately removes the fragment and exchanges it once through `/api/session/claim`; the core accepts it only within 120 seconds and returns `Cache-Control: no-store`. The pairing state stores its hash and monotonic expiry behind a lock; a successful claim removes the ticket atomically. The original secret also enters through the core process environment, which remains within the local process trust boundary. A browser extension or local process that captures the live link is inside this threat boundary; it is not an authentication mechanism for a public server. Locking does not repeat the exchange.
 

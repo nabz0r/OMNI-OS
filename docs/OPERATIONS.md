@@ -34,7 +34,7 @@ Native desktop metadata exports go to `Documents/OMNI`; mobile exports open the 
 
 ## Managed request policies
 
-The owner edits local rules under **Policies**. For an operator-enforced baseline, provision `OMNI_MANAGED_POLICY_FILE` and an administrator-controlled policy file. A missing or invalid configured file refuses startup. Changes require a process restart; there is no automatic remote policy fetch. Protect the launch environment and enforce routing outside OMNI if direct provider bypass must be prevented. The [policy guide](POLICIES.md) supplies a complete example, precedence, API contracts and operational limits.
+The owner edits local rules under **Policies**. In 0.4.0, also pin the managed file's exact bytes with `OMNI_MANAGED_POLICY_SHA256` in an independently protected launch environment. Group/world-writable files and symlinks are rejected on Unix; the hash detects changed bytes. This is not signed fleet policy or rollback protection. For an operator-enforced baseline, provision `OMNI_MANAGED_POLICY_FILE` and an administrator-controlled policy file. A missing or invalid configured file refuses startup. Changes require a process restart; there is no automatic remote policy fetch. Protect the launch environment and enforce routing outside OMNI if direct provider bypass must be prevented. The [policy guide](POLICIES.md) supplies a complete example, precedence, API contracts and operational limits.
 
 ## Collector deployment
 
@@ -51,7 +51,7 @@ No production endpoint is deployed automatically by publishing source code. VPN 
 
 ## Interface inventory
 
-These routes describe the shared core router. The native UI calls them through its authenticated IPC bridge; the HTTP addresses apply only to an explicitly running external core or opt-in embedded listener. Browser pairing is disabled in the standalone embedded runtime.
+These routes describe the shared core router. The native UI calls them through its authenticated IPC bridge; the HTTP addresses in this table apply to the explicitly running external core. The Work listener exposes only the two named-client provider routes. Browser pairing is disabled in the standalone embedded runtime.
 
 | Endpoint                                                                  | Authentication                                               | Role                                                                        |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------- |
@@ -64,8 +64,9 @@ These routes describe the shared core router. The native UI calls them through i
 | Core `/api/admin`, `/api/admin/settings`                                  | Console token                                                | Persistent local settings and read-only deployment policy                   |
 | Core `/api/providers`, `/api/providers/{id}`, `/api/providers/{id}/probe` | Console token                                                | Provider profiles, write-only keys and explicit discovery                   |
 | Core `/api/interactions`, `/api/usage`, `/api/logs`                       | Console token                                                | Metadata history, measured/estimated usage and structured audit             |
+| Core `/api/work`, `/api/conversations`, `/api/recovery` | Console token | Dedicated work authority, consented continuity and encrypted recovery; [contract](WORK.md) |
 | Core `/api/chat`                                                          | Console token                                                | Context-aware interaction                                                   |
-| Core `/v1/chat/completions`, `/v1/messages`                               | Agent or console token + applicable grant                    | Provider-compatible requests                                                |
+| Core `/v1/chat/completions`, `/v1/messages`                               | Named client or owner; legacy integration only outside work mode + applicable grant                    | Provider-compatible requests                                                |
 | Core `/mcp`                                                               | Agent or console token                                       | Explicitly authorized memory tools                                          |
 | Core `/api/analytics/prepare`                                             | Console token, opt-in                                        | Immutable local noised report                                               |
 | Core `/api/analytics/send`                                                | Console token, opt-in                                        | Send the locally prepared report through Rust                               |
@@ -88,7 +89,7 @@ Track CPU time, resident memory, processing latency, bytes transmitted and queue
 
 ## Backups and upgrades
 
-An encrypted database copy is useful only with an actually recoverable key. Native Android wrapping keys and iOS device-only Keychain items do not supply a cross-device recovery flow; Android automatic backup is disabled in the platform application configuration. No complete key migration or backup-and-restore wizard is implemented. Loss or invalidation of a key can make the vault unreadable, and the app will not replace a missing key for an existing database.
+An encrypted database copy is useful only with an actually recoverable key. Native Android wrapping keys and iOS device-only Keychain items do not supply a cross-device recovery flow; Android automatic backup is disabled in the platform application configuration. Work provides a bounded encrypted logical archive and restoration into an unused installation under a new device key; all recovered grants are revoked and clients must be approved again. It is not OS-key migration or continuous backup. [Recovery procedure](RECOVERY.md). Loss or invalidation of a key can make the vault unreadable, and the app will not replace a missing key for an existing database.
 
 Never commit live databases, model weights, tokens or enrollment secrets. Preserve the privacy ledger together with the vault when restoring, and treat concurrent cloned installations as separate privacy-accounting risks. Keep dependency locks and run the full checks before updating the network or DP implementation. Source development, desktop packaging, simulator execution, physical-device testing and signed public distribution each need their own evidence.
 

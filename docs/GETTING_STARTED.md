@@ -10,7 +10,7 @@ OMNI gives your AI tools a local memory and a visible boundary. Start with one c
 
 ## Open the native application
 
-For the macOS and Android MVP package set, open `deliverables/OMNI-0.3.0-mvp/START-HERE.html` on the delivery machine. The local 0.3.0 folder contains installers, an extracted Mac application, checksums and acceptance evidence. It is not included in a fresh clone. The preserved public 0.2.0 release predates conversation import. The [delivery guide](DELIVERY.md) explains installation, supported devices and OS permissions.
+For the macOS and Android MVP package set, open `deliverables/OMNI-0.4.0-mvp/START-HERE.html` on the delivery machine. The local 0.4.0 folder contains installers, an extracted Mac application, checksums and acceptance evidence. It is not included in a fresh clone. The preserved public 0.2.0 release predates conversation import. The [delivery guide](DELIVERY.md) explains installation, supported devices and OS permissions.
 
 A standalone native build opens its own local Rust core inside the application. It does not need a separately running terminal, Node.js server or port 3007. Its encrypted vault lives in the operating system's application-data directory and uses the platform key store. The current source targets and build instructions are in [PLATFORMS.md](PLATFORMS.md); actual package and device checks are recorded in [VALIDATION.md](VALIDATION.md), not implied by the presence of source code.
 
@@ -38,7 +38,9 @@ For cloud inference, enter your provider API key in the connection form. An ordi
 
 You can chat with **No memory context** immediately. When you want a model to use something from your vault, open **Permissions**, select confirmed memories and the exact destination, and choose an expiry. Select that permission in the launcher before sending.
 
-The visible conversation lasts for the interface session. Reloading or locking clears its turns and drafts. Follow-ups include up to ten previous exchanges within the content limit. Changing the model, destination, permission or authorized memory resets that conversation. Permanent memories, provider settings and retained operational records survive restarts.
+The launcher conversation lasts for the interface session. Reloading or locking clears its turns and drafts. Follow-ups include up to ten previous exchanges within the content limit. Changing the model, destination, permission or authorized memory resets that conversation. Permanent memories, provider settings and retained operational records survive restarts.
+
+For deliberate continuity, use **Work → Start an opted-in conversation**. Choose its project, provider, model, permission and retention, then explicitly consent. Work also manages named clients and encrypted recovery. [Work guide](WORK.md) · [Recovery](RECOVERY.md).
 
 Use **Policies** to set content patterns, permitted text-file types and size limits. Save and test a sample locally before sending; the [policy guide](POLICIES.md) explains organization baselines and the private decision trail. A blocked request can be corrected without sending it to a model.
 

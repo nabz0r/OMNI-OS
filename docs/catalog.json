@@ -339,7 +339,7 @@
     "path": "docs/DELIVERY.md",
     "title": "Installers and delivery records",
     "group": "Releases",
-    "summary": "Find the local 0.3.0 packages, retained public release and reproducible acceptance procedure.",
+    "summary": "Find the local 0.4.0 packages, retained public release and reproducible acceptance procedure.",
     "status": "Delivery reference"
   },
   {
@@ -376,5 +376,40 @@
     "group": "Design history",
     "summary": "Earlier protocol ideas, including superseded parameters and unimplemented proposals.",
     "status": "Historical notes"
+  },
+  {
+    "path": "docs/WORK.md",
+    "title": "Work with explicit authority",
+    "group": "Use OMNI",
+    "summary": "Named clients, scoped continuity and a dedicated single-owner installation.",
+    "status": "Guide + API contract"
+  },
+  {
+    "path": "docs/RECOVERY.md",
+    "title": "Recover without reviving access",
+    "group": "Use OMNI",
+    "summary": "Encrypted recovery, empty-installation restore and explicit capacity limits.",
+    "status": "Guide + recovery contract"
+  },
+  {
+    "path": "docs/WORK_VERIFICATION.md",
+    "title": "Controlled work, measured",
+    "group": "Trust & evidence",
+    "summary": "Two executable clients, denied-traffic evidence and the supported matrix.",
+    "status": "Evidence record"
+  },
+  {
+    "path": "docs/EXTERNAL_REVIEW.md",
+    "title": "Independent review scope",
+    "group": "Trust & evidence",
+    "summary": "A concrete assessment handoff; independent review remains open.",
+    "status": "Review plan"
+  },
+  {
+    "path": "docs/releases/v0.4.0.md",
+    "title": "0.4.0 \u00b7 Work authority",
+    "group": "Releases",
+    "summary": "Named authority, explicit continuity and bounded recovery.",
+    "status": "Release notes"
   }
 ]

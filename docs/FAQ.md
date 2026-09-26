@@ -34,6 +34,14 @@ Capture retains the selected source in the encrypted vault and proposes a bounde
 
 Import creates proposed memories. Confirm useful facts separately and create a destination-scoped permission before using them as vault context. Assistant replies are unchecked by default. Preparing a review does not itself persist a memory or grant access. [Import workflow](CONVERSATION_IMPORT.md#use-the-application).
 
+## Does Work save every conversation automatically?
+
+No. The launcher stays transient. A separate Work conversation needs explicit consent, a project label, a fixed provider/model/permission and a retention deadline. It stores human statements separately from model suggestions and selects at most 10 pairs/40,000 bytes after authorisation. Review and delete it in Work. [Continuity contract](WORK.md).
+
+## Can a whole team share one installation token?
+
+No. Use dedicated installations for individual OS users and approve each client separately. Work disables the legacy integration token. The current product has no shared tenant service, SSO or internal work/personal partition. [Professional authority](WORK.md).
+
 ## Can revocation take back a provider's copy?
 
 Revocation blocks future authorized sharing through OMNI. It cannot retrieve content already received by a provider. Deleting local data is not a promise of remote deletion. [Disclosure and deletion](PRIVACY.md#deletion).
@@ -44,11 +52,11 @@ No. It clears transient interface state and requires an explicit reopen action. 
 
 ## Can I copy my vault to another device as a backup?
 
-A database copy alone is not a recoverable backup without its original usable key. Mobile keys can be device-bound. Cross-device synchronization and a complete recovery wizard are not implemented. Do not delete a vault or key to resolve an update problem. [Operations](OPERATIONS.md).
+A database copy alone is not a recoverable backup without its original usable key. Mobile keys can be device-bound. Work offers a bounded passphrase-encrypted archive and restoration to an unused installation with revoked permissions. Cross-device synchronization and a full physical-device loss drill are not implied. [Recovery](RECOVERY.md). Do not delete a vault or key to resolve an update problem. [Operations](OPERATIONS.md).
 
 ## Are these production-signed applications?
 
-The 0.3.0 Mac package is ad-hoc signed and not notarized. The Android package uses a development certificate. Its acceptance evidence comes from an emulator. The local delivery passed its documented checks; production identity, physical-device coverage and recovery remain release work. [Delivery and evidence](DELIVERY.md).
+The evaluation Mac package is ad-hoc signed and not notarized. The Android package uses a development certificate. Its acceptance evidence comes from an emulator. The local delivery passed its documented checks; production identity, physical-device coverage and independently reviewed recovery drills remain release work. [Delivery and evidence](DELIVERY.md).
 
 ## What do the token and cost figures prove?
 

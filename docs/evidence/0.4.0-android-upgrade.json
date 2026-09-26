@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "serial": "emulator-5562",
+  "started_at": "2026-09-26T16:45:43.144Z",
+  "from_apk_sha256": "78bd6ff80df26f7be177d2ddfa58123df9f72fefd250979c9d14a5571fef3d1d",
+  "to_apk_sha256": "85774abe09ab517f1ee1c939529033ab8d6e7bd5e1c9968d35fd8c4ce78b5a86",
+  "certificate_sha256": "497a8facf989aaaf6e18f0d5d7131620b96f9a11b8660d67281477b276a976dc",
+  "scope": "Synthetic fresh vault on a disposable Android emulator, updated in place with adb install -r; no personal data or physical-device claim.",
+  "assertions": {
+    "same_signing_identity": true,
+    "previous_installed": true,
+    "update_without_uninstall": true,
+    "original_memory_preserved": true,
+    "original_settings_preserved": true,
+    "policy_schema_migrated": true,
+    "new_policy_console_available": true,
+    "work_upgrade_without_implicit_enrollment": true,
+    "continuity_upgrade_without_implicit_consent": true
+  },
+  "finished_at": "2026-09-26T16:45:52.757Z"
+}

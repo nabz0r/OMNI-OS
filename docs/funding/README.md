@@ -12,6 +12,10 @@ Prepared on 24 September 2026. Research and product evidence have this cutoff. A
 
 **Recommendation:** present OMNI as local AI memory with explicit sharing controls and request policies. Test demand with small fintech engineering and operations teams. The repository supports a working evaluation MVP; it does not establish revenue, customer adoption, independent security assurance or a zero-knowledge proof system.
 
+## Implementation addendum — 26 September 2026
+
+OMNI 0.4.0 now implements per-installation work authority, two executable approved-client workflows, bounded encrypted recovery and explicitly scoped conversation continuity. Read [Work](../WORK.md), [current evidence](../WORK_VERIFICATION.md) and [release notes](../releases/v0.4.0.md). The research, forecasts and open company/customer facts below retain their original cutoff; new code is not traction, programme acceptance, independent review or production certification.
+
 ## Start here
 
 1. Read [readiness and missing facts](READINESS.md). Product and strategy copy is prepared. Founder identities, corporate records, actual traction and the YC founder video still require authentic information or recordings.

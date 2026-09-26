@@ -14,7 +14,7 @@ The collector may observe or retain every released report. A configured AI provi
 
 Guided setup discovers provider catalogs and optionally saves a confirmed local preference. It does not issue an inference request or create a sharing permission automatically. Conversation suggestions are local drafts until submitted. The browser launch capability is short-lived, single-use and removed from the URL before rendering; no owner token is embedded in the generated URL. This convenience does not provide protection against a compromised local browser or core.
 
-Standalone native applications embed the core and use authenticated IPC without opening a listener. Each installation has a separate application-data vault and an OS-managed key-store adapter; the SQLCipher key is supplied only to native code. A native interface lock clears its token and transient conversation, but deliberately reopening on the device is not biometric or OS authentication. It does not erase a running core's key or recall an already dispatched provider request. [Platform boundaries →](PLATFORMS.md)
+Standalone native applications embed the core and use authenticated IPC without opening a listener by default. Work can explicitly enable a named-client-only loopback gateway; interface lock does not stop it. Each installation has a separate application-data vault and an OS-managed key-store adapter; the SQLCipher key is supplied only to native code. A native interface lock clears its token and transient conversation, but deliberately reopening on the device is not biometric or OS authentication. It does not erase a running core's key or recall an already dispatched provider request. [Platform boundaries →](PLATFORMS.md)
 
 ## Private operational metadata
 
@@ -66,7 +66,7 @@ Clients can fabricate reports. Rate limits constrain abuse but are not Sybil res
 
 ## Deletion
 
-Deleting a memory prevents its future selection and removes its corresponding source/derived references as implemented in the vault. Revoking a grant blocks new authorized requests. Previously disclosed provider content and already released aggregate contributions cannot be pulled back by local deletion. Backups and SSD physical erasure have distinct limitations. A copied database is not a recoverable backup without its usable key; native mobile device-bound keys can prevent restoration to another device. Preserve the privacy ledger and use a recovery policy appropriate to the deployment. There is no implemented cross-device privacy-budget synchronization or complete native backup wizard.
+Deleting a memory prevents its future selection and removes its corresponding source/derived references as implemented in the vault. Revoking a grant blocks new authorized requests. Previously disclosed provider content and already released aggregate contributions cannot be pulled back by local deletion. Backups and SSD physical erasure have distinct limitations. A copied database is not a recoverable backup without its usable key; native mobile device-bound keys can prevent restoration to another device. Preserve the privacy ledger and use a recovery policy appropriate to the deployment. Work now provides a bounded passphrase-encrypted archive with explicit restore into an unused installation, revoked grants and no recovered client credentials. Restored analytics is disabled. There is still no cross-device privacy-budget synchronization; cloning or rollback needs separate accounting. [Recovery](RECOVERY.md).
 
 ## Implementation details
 

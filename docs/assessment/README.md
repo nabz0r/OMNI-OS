@@ -6,6 +6,11 @@
 
 # OMNI venture assessment
 
+## Implementation addendum — 26 September 2026
+
+OMNI 0.4.0 implements per-installation work authority, two executable approved-client workflows, bounded encrypted recovery and scoped conversation continuity. Read [Work](../WORK.md), [current evidence](../WORK_VERIFICATION.md) and [release notes](../releases/v0.4.0.md). Research, forecasts and open company/customer facts below retain their original cutoff. New code is not traction, programme acceptance, independent review or production certification.
+
+
 Prepared on 24 September 2026, with a 2027 planning horizon. Deliverables are in English; the owner-facing discussion is in French.
 
 > **Product update after this research cutoff:** the local [0.3.0 delivery](../releases/v0.3.0.md) adds reviewed conversation import. The dated assessment, forecasts, programme research and unverified owner facts below remain a 24 September record; they have not been recertified by a documentation redesign.

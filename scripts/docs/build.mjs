@@ -9,6 +9,7 @@ import {
   pageName,
   render,
 } from "./common.mjs";
+const version = JSON.parse(await readFile(join(root, "package.json"), "utf8")).version;
 const revision = execFileSync("git", ["rev-parse", "HEAD"], {
   cwd: root,
   encoding: "utf8",
@@ -51,7 +52,7 @@ function shell(entry, body, toc = [], minutes = 0) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
 <title>${e(entry?.title || "The OMNI field guide")} · OMNI</title><link rel="stylesheet" href="${pre}assets/style.css"><script defer src="${pre}assets/search-data.js"></script><script defer src="${pre}assets/site.js"></script></head>
 <body data-root="${pre}" class="${home ? "home" : "document"}"><a class="skip-link" href="#main">Skip to content</a>
-<header class="topbar"><a class="wordmark" href="${pre}index.html" aria-label="OMNI field guide home">OMNI<span>.</span></a><span class="edition">THE FIELD GUIDE <i>/</i> 0.3</span><div class="top-actions"><button class="search-open" aria-haspopup="dialog" aria-controls="search-dialog">Search the guide <kbd>/</kbd></button><button class="theme-toggle" aria-label="Use dark theme">◐</button><button class="menu-toggle" aria-controls="sidebar" aria-expanded="false">Menu</button></div></header>
+<header class="topbar"><a class="wordmark" href="${pre}index.html" aria-label="OMNI field guide home">OMNI<span>.</span></a><span class="edition">THE FIELD GUIDE <i>/</i> ${e(version)}</span><div class="top-actions"><button class="search-open" aria-haspopup="dialog" aria-controls="search-dialog">Search the guide <kbd>/</kbd></button><button class="theme-toggle" aria-label="Use dark theme">◐</button><button class="menu-toggle" aria-controls="sidebar" aria-expanded="false">Menu</button></div></header>
 <div class="layout"><aside class="sidebar" id="sidebar" aria-label="Documentation sections"><div class="sidebar-intro">A map of the product.<br>A record of the boundaries.</div><nav aria-label="Documentation">${nav(entry, home)}</nav><a class="sidebar-repo" href="https://github.com/nabz0r/OMNI-OS">Source repository ↗</a></aside>
 <main id="main" tabindex="-1">${
     entry
@@ -77,10 +78,10 @@ const cards = [
   ],
   [
     "02",
-    "Connect a tool",
-    "Work with an explicit API boundary and clear permission and policy contracts.",
-    "docs/INTEGRATIONS.md",
-    "Explore integrations",
+    "Control work context",
+    "Approve each client, inspect what leaves and retain conversations only with consent.",
+    "docs/WORK.md",
+    "Explore Work",
   ],
   [
     "03",
@@ -99,8 +100,8 @@ const cards = [
 ];
 const href = (path) =>
   "pages/" + pageName(catalog.find((x) => x.path === path));
-const home = `<section class="hero"><div class="hero-copy"><div class="eyebrow">LOCAL MEMORY. EXPLICIT CONTROL.</div><h1>Your context.<br><em>Your authority.</em></h1><p>A field guide to keeping what matters,<br class="wide-only"> choosing what leaves, and seeing what happened.</p><div class="hero-actions"><a class="button primary" href="${href("docs/GETTING_STARTED.md")}">Start here <span>↗</span></a><a class="button quiet" href="${href("docs/DELIVERY.md")}">Explore the 0.3.0 delivery</a></div><div class="hero-note"><span class="signal-dot"></span> An evaluation MVP. Boundaries included.</div></div><div class="hero-art" aria-label="Conceptual path: reviewed context passes through permissions and policy before a chosen model"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="context-chip chip-top"><span>01 / YOUR CONTEXT</span>Reviewed. Correctable. Local.</div><div class="authority-core"><span class="core-dot"></span><strong>OMNI<span>.</span></strong><small>Memory · Permissions · Policies</small></div><div class="context-chip chip-bottom"><span>02 / YOUR DECISION</span>Choose the destination.</div><div class="art-caption">A conceptual view of supported request paths.</div></div></section>
-<div class="evidence-strip"><div><strong>0.3.0</strong><span>LOCAL EVALUATION</span></div><div><strong>38</strong><span>ANDROID NATIVE CHECKS</span></div><div><strong>5 + 7</strong><span>KEYSTORE + UPDATE CHECKS</span></div><a href="${href("docs/VALIDATION.md")}">Read the measured scope ↗</a></div>
+const home = `<section class="hero"><div class="hero-copy"><div class="eyebrow">LOCAL MEMORY. EXPLICIT CONTROL.</div><h1>Your context.<br><em>Your authority.</em></h1><p>A field guide to keeping what matters,<br class="wide-only"> choosing what leaves, and seeing what happened.</p><div class="hero-actions"><a class="button primary" href="${href("docs/GETTING_STARTED.md")}">Start here <span>↗</span></a><a class="button quiet" href="${href("docs/DELIVERY.md")}">Explore the ${e(version)} delivery</a></div><div class="hero-note"><span class="signal-dot"></span> An evaluation MVP. Boundaries included.</div></div><div class="hero-art" aria-label="Conceptual path: reviewed context passes through permissions and policy before a chosen model"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="context-chip chip-top"><span>01 / YOUR CONTEXT</span>Reviewed. Correctable. Local.</div><div class="authority-core"><span class="core-dot"></span><strong>OMNI<span>.</span></strong><small>Memory · Permissions · Policies</small></div><div class="context-chip chip-bottom"><span>02 / YOUR DECISION</span>Choose the destination.</div><div class="art-caption">A conceptual view of supported request paths.</div></div></section>
+<div class="evidence-strip"><div><strong>${e(version)}</strong><span>LOCAL EVALUATION</span></div><div><strong>80</strong><span>CORE CONTRACT TESTS</span></div><div><strong>16</strong><span>CONTROLLED-LOOP CHECKS</span></div><a href="${href("docs/VALIDATION.md")}">Read the measured scope ↗</a></div>
 <section class="home-section"><div class="section-heading"><div><div class="eyebrow">CHOOSE YOUR PATH</div><h2>Less searching.<br>More understanding.</h2></div><p>Four starting points.<br>One source of truth.</p></div><div class="path-grid">${cards.map(([n, t, d, p, c]) => `<a class="path-card" href="${href(p)}"><span class="card-number">${n}</span><h3>${t}</h3><p>${d}</p><span class="card-link">${c} ↗</span></a>`).join("")}</div></section>
 <section class="workspace-section"><div><div class="eyebrow">THE ACTUAL WORKSPACE</div><h2>Context you can inspect.</h2><p>Memories, connections, permissions and request decisions belong in the same conversation.</p><a class="text-link" href="${href("docs/ADMINISTRATION.md")}">Walk through the workspace ↗</a><p class="caption">Actual application interface with synthetic demonstration data.</p></div><img src="files/docs/images/nebula.png" alt="Actual OMNI workspace showing synthetic demonstration memories" loading="lazy"></section>
 <section class="home-section"><div class="section-heading"><div><div class="eyebrow">READ THE BOUNDARIES</div><h2>Clear claims.<br>Useful evidence.</h2></div></div><div class="boundary-grid"><div><h3>Local does not mean invisible.</h3><p>A remote provider receives the request and context you send. The vault and local controls do not erase that disclosure.</p><a href="${href("docs/PRIVACY.md")}">Follow the data ↗</a></div><div><h3>A target is not a feature.</h3><p>Plans, historical notes and completed checks carry different labels. Evidence belongs to its named build and environment.</p><a href="${href("ROADMAP.md")}">Read the roadmap ↗</a></div><div><h3>A tunnel is not a chat reader.</h3><p>OMNI checks supported application paths. A VPN does not make another application's encrypted prompts readable.</p><a href="${href("docs/PRO_MVP.md")}">Understand the professional MVP ↗</a></div></div></section>

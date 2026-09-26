@@ -10,6 +10,12 @@ Memory answers “what may be shared?” Policies answer “may this request lea
 
 This is an implemented request-filtering MVP for OMNI-mediated AI traffic. It is not a general web application firewall, a fleet management service, or a claim to be the first AI proxy.
 
+## Pin a managed policy at startup
+
+For 0.4.0 desktop or external-core deployment, place `OMNI_MANAGED_POLICY_FILE` in an administrator-controlled directory and pin its exact file bytes through `OMNI_MANAGED_POLICY_SHA256` in a separately protected launch configuration. Compute the SHA-256 after final formatting; whitespace changes alter the pin. Restart after an authorised update. The policy view reports `managed_pinned` separately from the semantic policy fingerprint.
+
+A missing file, malformed pin, changed digest, oversized file, symlink or Unix group/world-writable file refuses startup. A pin without a file also refuses startup. Protect parent directories and the launch environment: an OS administrator or process owner who can replace both file and pin remains trusted. This is digest pinning, not a signed fleet rollout, freshness/expiry check or rollback protection. The native Android bootstrap does not consume desktop environment policy files. Mobile managed provisioning remains a deployment gate.
+
 ## Use it in the application
 
 Open **Policies** in the navigation. Give the local policy a name, add content rules, select permitted file extensions and set request/file limits. Save to activate a new revision. Invalid expressions leave the saved revision unchanged and preserve the interface draft. Concurrent edits receive a conflict instead of silently replacing another session's policy; reload before editing again.

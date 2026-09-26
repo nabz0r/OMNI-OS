@@ -10,7 +10,7 @@ OMNI shares one React/Three.js interface and Rust core across its desktop and mo
 
 ## Current macOS and Android delivery
 
-The local 0.3.0 installers include the reviewed conversation importer and decoded-message policy inspection in the embedded Rust core. The macOS application targets Apple Silicon and macOS 14.4+; Android includes ARM64 and x86_64 with minimum API 24. Android version name is `0.3.0` and version code is `3000`. Both packages use the same clean source snapshot. Native startup on a fresh macOS runner, 38 Android acceptance checks, five Keystore tests and seven update checks from 0.2.0 passed. See [delivery](DELIVERY.md) for package paths and [validation](VALIDATION.md) for scope.
+The 0.4.0 applications add Work authority, named clients, an optional narrow loopback gateway, scoped continuity and encrypted logical recovery. macOS targets Apple Silicon and macOS 14.4+; Android includes ARM64 and x86_64 with minimum API 24, version name `0.4.0` and version code `4000`. Exact native checks and package hashes are recorded in [delivery](DELIVERY.md) and [validation](VALIDATION.md); source targets alone are not runtime claims.
 
 Distribution status is unchanged: the Mac application remains ad-hoc signed and not notarized; Android retains the same local development certificate used for the preceding delivery. The standalone app still has no HTTP listener by default. The separate browser extension therefore does not automatically pair with this native application; native users can explicitly import conversation files through Memory.
 
@@ -33,7 +33,7 @@ The main native window calls `native_session` to initialize its core once. Platf
 
 The runtime accepts only local request paths. It reports `core_address: "in-process"`, with no pretend `localhost:0` service. Its exclusive vault lease prevents a second embedded runtime from opening the same directory. Shutdown refuses new requests and signals an optional listener to stop; references held by active adapters retain the vault lease until they are dropped.
 
-The reusable Rust runtime can explicitly enable an ephemeral loopback listener. The packaged application's bootstrap leaves that option off. External API clients, MCP clients and browser capture therefore use the separate, explicit gateway workflow in [INTEGRATIONS.md](INTEGRATIONS.md); installing the native app alone does not expose port 3007 to other applications.
+The reusable Rust runtime can explicitly enable an ephemeral loopback listener. The packaged application's bootstrap leaves that option off. Work can explicitly start a separate narrow listener for approved named API clients. MCP and browser capture continue to require the external gateway workflow in [INTEGRATIONS.md](INTEGRATIONS.md); installing the native app alone does not expose port 3007 to other applications.
 
 ## Key custody by platform
 
@@ -112,7 +112,7 @@ Run it with a built core and the development UI server available, alongside `tes
 
 ## Recovery and distribution limits
 
-Preserve both the encrypted database and an actually recoverable key strategy. Copying a database to another device is not a restore procedure: Android wrapping keys and iOS device-only items may be unavailable there. Android backup is disabled in the platform application configuration. Losing or invalidating key material can make a vault permanently unreadable. There is no implemented cross-device synchronization, key export/import flow or complete backup-and-restore wizard.
+Preserve both the encrypted database and an actually recoverable key strategy. Copying a database to another device is not a restore procedure: Android wrapping keys and iOS device-only items may be unavailable there. Android backup is disabled in the platform application configuration. Losing or invalidating key material can make a vault permanently unreadable. Work now provides a bounded encrypted logical archive and unused-installation restore under the destination device key. It does not export the platform wrapping key, synchronize devices or complete a physical lost-device drill. [Recovery](RECOVERY.md).
 
 Android debug signing keys can differ between disposable CI runners. The published 0.2.0 APK retains the original local 0.1.0 development signing identity, with a verified in-place emulator upgrade. Independent CI APKs do not have that continuity. A pilot release still needs a protected, persistent production signing key before personal vaults depend on long-term updates.
 

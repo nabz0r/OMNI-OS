@@ -97,6 +97,29 @@ const acceptance = await json(join(evidence, "android-native-acceptance.json"));
 const keystore = await json(join(evidence, "android-keystore-tests.json"));
 const smoke = await json(join(evidence, "android-smoke.json"));
 const upgrade = await json(join(evidence, "android-upgrade.json"));
+const controlledLoopPath = join(
+  root,
+  `docs/evidence/${version}-controlled-loop.json`,
+);
+const controlledLoop = await json(controlledLoopPath);
+assert.equal(controlledLoop.status, "passed");
+assert.equal(controlledLoop.source_dirty, false);
+assert.match(controlledLoop.source_revision, /^[a-f0-9]{40}$/);
+assert.ok(
+  Object.keys(controlledLoop.checks).length >= 16 &&
+    Object.values(controlledLoop.checks).every((value) => value === true),
+  "The two-client controlled-context loop must pass",
+);
+execFileSync("git", [
+  "diff",
+  "--exit-code",
+  controlledLoop.source_revision,
+  values["--macos-revision"],
+  "--",
+  "crates/omni-core",
+  "Cargo.toml",
+  "Cargo.lock",
+]);
 const previousDirectory = resolve(values["--previous-delivery"]);
 const previous = await json(join(previousDirectory, "delivery.json"));
 assert.match(previous.version, /^\d+\.\d+\.\d+$/);
@@ -150,7 +173,7 @@ assert.equal(androidBuild.platform, "android");
 assert.equal(androidBuild.status, "built");
 assert.equal(acceptance.status, "passed");
 assert.ok(
-  Object.keys(acceptance.assertions).length >= 38 &&
+  Object.keys(acceptance.assertions).length >= 47 &&
     Object.values(acceptance.assertions).every((x) => x === true),
 );
 for (const name of [
@@ -165,6 +188,15 @@ for (const name of [
   "import_does_not_grant_access",
   "import_decoded_policy_denial",
   "import_survives_process_restart",
+  "work_single_owner_enrollment",
+  "work_explicit_native_gateway",
+  "work_native_gateway_stopped",
+  "work_client_credential_shown_once",
+  "work_client_revoked",
+  "continuity_explicit_consent",
+  "continuity_native_saved_roles",
+  "continuity_native_deleted",
+  "work_no_horizontal_overflow",
 ])
   assert.equal(
     acceptance.assertions[name],
@@ -193,6 +225,8 @@ for (const name of [
   "original_settings_preserved",
   "policy_schema_migrated",
   "new_policy_console_available",
+  "work_upgrade_without_implicit_enrollment",
+  "continuity_upgrade_without_implicit_consent",
 ])
   assert.equal(
     upgrade.assertions[name],
@@ -223,6 +257,7 @@ try {
     [join(android, apk.file), `Android/OMNI-${version}-android.apk`],
     [join(mac, "build-info.json"), "Evidence/macos-build.json"],
     [join(android, "build-info.json"), "Evidence/android-build.json"],
+    [controlledLoopPath, "Evidence/controlled-loop.json"],
     [join(root, "LICENSE"), "LICENSE"],
   ];
   for (const name of ["README.md", "START-HERE.html"])
@@ -239,6 +274,7 @@ try {
     "android-policies.png",
     "android-upgrade.json",
     "android-import.png",
+    "android-work.png",
     "android-keystore-junit.xml",
     "android-package.txt",
   ])
@@ -318,6 +354,13 @@ try {
     channel: "MVP evaluation",
     assembled_at: new Date().toISOString(),
     source_repository: "https://github.com/nabz0r/OMNI-OS",
+    controlled_loop: {
+      source_revision: controlledLoop.source_revision,
+      core_unchanged_from_package_source: true,
+      checks: Object.keys(controlledLoop.checks).length,
+      evidence: "Evidence/controlled-loop.json",
+      scope: controlledLoop.scope,
+    },
     platforms: {
       macos: {
         source_revision: values["--macos-revision"],
@@ -347,7 +390,7 @@ try {
       "Android development signing; no Play Store release",
       "No physical-phone test claim",
       "No inference model or provider credits bundled",
-      "Separate device vaults; no synchronization or complete recovery wizard",
+      "Separate device vaults; bounded encrypted recovery, no synchronization or physical lost-device certification",
     ],
     packages: [],
     source_archive: {

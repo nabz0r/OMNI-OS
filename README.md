@@ -34,33 +34,28 @@ A remote model still receives the request and context you send to it. OMNI's con
 
 **03 · Continue.** Use the launcher or a compatible integration. Inspect the destination, request outcome and disclosure receipt. Revoke access to stop future sharing through OMNI.
 
-Revocation cannot retrieve content a provider has already received. The visible launcher conversation is transient; permanent memories and retained operational records survive restarts.
+Revocation cannot retrieve content a provider has already received. The launcher stays transient. Work adds explicitly opted-in, scoped conversations with retention, separate human/model roles and deletion. [Use Work →](docs/WORK.md)
 
 ![The actual OMNI workspace with explicitly synthetic demonstration memories](docs/images/nebula.png)
 
 *Actual application interface. Demonstration content is synthetic, not customer activity.*
 
-## The 0.3.0 evaluation delivery
+## The 0.4.0 work increment
 
-**The local Mac and Android packages include reviewed conversation import and decoded-message policy inspection.** Both embed the matched interface, Rust core and SQLCipher vault. No Node.js, Rust, Docker or OMNI server is needed to run an installed app. Supply your own model endpoint or provider API account.
+**Named authority, deliberate continuity and recoverable context.** Work adds a dedicated single-owner installation, separately approved API clients, an optional local gateway, scoped conversation storage and encrypted recovery. The complete controlled-context loop runs through two independent reference clients and a counted synthetic provider.
 
-| Platform | Local delivery | Distribution boundary |
-| --- | --- | --- |
-| macOS | Apple Silicon, macOS 14.4+ · DMG and application ZIP | Ad-hoc signed; not notarized |
-| Android | ARM64 and x86_64, API 24+ · APK | Development-signed; acceptance on Android 15 ARM64 emulator |
-
-The local package lives in `deliverables/OMNI-0.3.0-mvp/`; open its `START-HERE.html`. That ignored folder is not part of a fresh clone. The preserved [public 0.2.0 release](https://github.com/nabz0r/OMNI-OS/releases/tag/v0.2.0) predates conversation import. No public 0.3.0 release is claimed.
-
-[Installation and updates →](docs/DELIVERY.md) · [What changed →](docs/releases/v0.3.0.md)
-
-| Evidence for the delivered 0.3.0 packages | Measured scope |
+| Proof | Measured scope |
 | --- | --- |
-| **38** Android acceptance checks | Actual APK, native bridge and encrypted vault; synthetic response provider |
-| **5** Keystore tests | Android key persistence and failure handling on the emulator |
-| **7** update checks | 0.2.0 → 0.3.0, with synthetic memory and settings preserved |
-| macOS startup and integrity | Fresh encrypted-vault initialization, application seal and disk-image checks |
+| **80 core tests** | Isolation, grants, policy, recovery, continuity, streaming and existing privacy contracts |
+| **16 controlled-loop checks** | Actual core process, JavaScript and Python HTTP clients, verified receipts and zero denied upstream arrivals |
+| **40 latency observations** | Local policy/preflight measured separately from a synthetic response delay; no SLA |
+| **Shared Work interface** | Enrollment, explicit consent, role preservation, deletion and a 390-pixel browser layout |
 
-Evidence is bounded to the named builds and environments. It is not a physical-device matrix, an independent security audit or a guarantee of every workflow. [Read the exact records →](docs/VALIDATION.md)
+[Work guide →](docs/WORK.md) · [Recovery →](docs/RECOVERY.md) · [Supported matrix and evidence →](docs/WORK_VERIFICATION.md)
+
+The macOS and Android applications embed the interface, Rust core and SQLCipher vault. No Node.js, Rust, Docker or separate OMNI server is needed to run an installed app. Supply your own model endpoint or provider account. Apple Silicon/macOS 14.4+ and Android ARM64/x86_64/API 24+ are build targets; runtime evidence is narrower and attached to each exact package.
+
+[Installers and exact release scope](docs/DELIVERY.md) · [0.4.0 release notes](docs/releases/v0.4.0.md). Generated local packages live under `deliverables/`; that ignored folder is not included in a fresh clone. Application source, documentation, build recipes and versioned evidence contracts are on `main`. The preserved [public 0.2.0 release](https://github.com/nabz0r/OMNI-OS/releases/tag/v0.2.0) predates these changes. Ad-hoc macOS and development Android signatures are evaluation identities, not production signing.
 
 ## Control the request, understand the boundary
 
@@ -77,12 +72,13 @@ flowchart LR
 
 | Surface | Delivered behavior | Limit |
 | --- | --- | --- |
-| Memory | Local SQLCipher storage, proposed/confirmed states, correction and provenance | No complete cross-device recovery or synchronization |
+| Memory | Local SQLCipher storage, proposed/confirmed states, correction and provenance | Bounded encrypted recovery; no continuous backup or synchronization |
 | Conversation import | Supported ChatGPT, Claude and neutral JSON files; explicit message review | No account login, automatic history sync or deduplication |
 | Request policies | Regex block/require rules, inspectable text files, size limits and managed baseline | No universal DLP, response filtering or device-wide enforcement |
-| Connections | Launcher, explicit Chat Completions/Messages gateway and MCP memory tools | Native apps open no HTTP listener by default |
+| Connections | Launcher, explicit Chat Completions/Messages gateway and MCP memory tools | Native apps open no listener by default; Work can expose a named-client-only gateway |
 | Browser capture | User-triggered visible or selected text; Z.AI supports selection only | Separate extension; no automatic pairing with the standalone app |
 | Observability | Local request metadata, token counters, receipts and audit events | Missing counters stay unknown; manual cost estimates are not invoices |
+| Work continuity | Opt-in project conversations, original roles, bounded history and deletion | One owner; no semantic retrieval or cross-device sync |
 | Optional analytics | OpenDP with a persisted privacy budget | Disabled by default outside simulation; no collector in the standalone app |
 
 [Integration contracts](docs/INTEGRATIONS.md) · [Privacy protocol](docs/PRIVACY.md) · [Optional VPN](docs/VPN.md)
@@ -133,7 +129,7 @@ After the documented prerequisites, use `./scripts/verify.sh` for application ch
 
 ## The next proof is useful work
 
-The professional direction is approved reusable context plus inspectable request control in a workflow people already use. Team identity, recovery, trusted distribution and measured customer value remain work to complete. Billing and validated commercial traction are not established by this repository.
+The professional direction is approved reusable context plus inspectable request control in a workflow people already use. Shared team identity, production distribution, physical-device recovery drills, independent review and measured customer value remain work to complete. Billing and validated commercial traction are not established by this repository.
 
 [Professional MVP](docs/PRO_MVP.md) · [Roadmap](ROADMAP.md) · [Venture assessment](docs/assessment/README.md) · [2027 application package](docs/funding/README.md)
 

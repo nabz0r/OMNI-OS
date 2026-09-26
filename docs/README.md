@@ -8,11 +8,12 @@
 
 A practical map of the product, the contracts and the evidence. Start with the experience you need; follow the implementation details when they become useful.
 
-## Four ways in
+## Five ways in
 
 | Your task | Read first | Then go deeper |
 | --- | --- | --- |
 | **Use OMNI** | [Your first conversation](GETTING_STARTED.md) | [Conversation import](CONVERSATION_IMPORT.md) · [Workspace administration](ADMINISTRATION.md) |
+| **Work with scoped context** | [Work authority](WORK.md) | [Recovery](RECOVERY.md) · [Measured scope](WORK_VERIFICATION.md) |
 | **Connect a tool** | [Integration contracts](INTEGRATIONS.md) | [Request policies](POLICIES.md) · [Implementation map](ARCHITECTURE.md) |
 | **Operate a deployment** | [Native platforms](PLATFORMS.md) | [Operations](OPERATIONS.md) · [Security](SECURITY.md) · [Optional VPN](VPN.md) |
 | **Evaluate the venture** | [Professional MVP](PRO_MVP.md) | [Evidence](VALIDATION.md) · [Venture assessment](assessment/README.md) · [Application package](funding/README.md) |
@@ -21,7 +22,7 @@ A practical map of the product, the contracts and the evidence. Start with the e
 
 - **Local memory, explicit disclosure.** A remote provider receives the request and any context you authorize. [Follow the data](PRIVACY.md).
 - **Native app and external gateway are separate modes.** Installing the app does not expose port 3007 to other clients. [Choose an integration](INTEGRATIONS.md).
-- **Evidence belongs to a build and an environment.** The local 0.3.0 package and the public 0.2.0 release are different deliveries. [Read the delivery record](DELIVERY.md).
+- **Evidence belongs to a build and an environment.** The 0.4.0 work delivery, preserved 0.3.0 package and public 0.2.0 release are distinct records. [Read the delivery record](DELIVERY.md).
 - **A target is not a feature.** The architecture book and roadmap include work that has not been implemented. [See the roadmap](../ROADMAP.md).
 
 ## Explore the system
@@ -38,7 +39,9 @@ A practical map of the product, the contracts and the evidence. Start with the e
 
 ## Find the right release
 
-**0.3.0 · Local evaluation.** Reviewed conversation import and decoded-message policy inspection in matched macOS and Android packages. [Release notes](releases/v0.3.0.md).
+**0.4.0 · Work authority.** Named per-installation clients, explicitly scoped continuity and bounded encrypted recovery. [Work](WORK.md) · [Recovery](RECOVERY.md) · [Release notes](releases/v0.4.0.md).
+
+**0.3.0 · Preserved local evaluation.** Reviewed conversation import and decoded-message policy inspection in matched macOS and Android packages. [Release notes](releases/v0.3.0.md).
 
 **0.2.0 · Preserved public evaluation.** Request policies and text attachments. It predates the new importer. [Release notes](releases/v0.2.0.md).
 

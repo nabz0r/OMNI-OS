@@ -6,11 +6,17 @@
 
 # OMNI — From the First Thread of Continuity to Personal Infrastructure
 
+## 0.4.0 implementation checkpoint — 26 September 2026
+
+The next implementation sequence now has concrete source and tests on `main`: two executable approved clients complete the controlled-context loop; the authority decision is a dedicated per-device/OS-user work installation; encrypted logical recovery and managed-policy digest pinning are implemented; optional scoped text continuity is consented, role-preserving, bounded, reviewable and deletable. No shared organisation service was introduced. [Work contract](docs/WORK.md) · [Recovery](docs/RECOVERY.md) · [Evidence and supported matrix](docs/WORK_VERIFICATION.md).
+
+The baseline records policy/preflight cost separately from a synthetic provider delay. It creates no SLA. Trusted signing, actual lost-device/update drills on physical hardware, commercial-provider acceptance, independent review execution and measured paid demand remain release/business gates. The [external review scope](docs/EXTERNAL_REVIEW.md) is prepared, not completed. Historical checkpoints below retain their original evidence.
+
 ## 0.3.0 delivery checkpoint — 26 September 2026
 
 The updated macOS and Android evaluation installers now include reviewed conversation import and policy inspection of decoded messages. Both were packaged from one clean source snapshot. The exact Android APK passed 38 native checks, five Keystore tests and seven update checks from 0.2.0; macOS passed native startup with a fresh encrypted vault and package-integrity checks. The local delivery includes an offline guide, source archive and checksums. [Release notes](docs/releases/v0.3.0.md).
 
-Production gates remain Developer ID/notarization, a protected Android release identity, physical-device coverage, recovery, tenant/agent identity and native browser pairing. File import does not establish account synchronization, device-wide interception or enterprise-wide enforcement. These remain roadmap items rather than delivered behavior.
+At that checkpoint, production gates included Developer ID/notarization, a protected Android release identity, physical-device coverage, recovery, tenant/agent identity and native browser pairing. The 0.4.0 checkpoint above updates the implemented subset. File import does not establish account synchronization, device-wide interception or enterprise-wide enforcement. These remain roadmap items rather than delivered behavior.
 
 The journey from zero to a million people begins with one person choosing to return.
 
@@ -26,7 +32,7 @@ Installations, accounts, subscriptions, study participants and active users rema
 
 ## 2026-2027 execution plan for applications and first revenue
 
-**Professional focus, 26 September 2026:** the [Pro MVP brief](docs/PRO_MVP.md) narrows the next experiment to controlled AI requests and reusable approved work context. Reviewed conversation import is implemented; per-user professional authority, trusted distribution/recovery and supported-client acceptance remain gates. API mediation, browser capture and VPN routing are distinct scopes. This focus does not claim universal HTTPS interception or replace resource and paid-demand requirements below.
+**Professional focus, 26 September 2026:** the [Pro MVP brief](docs/PRO_MVP.md) narrows the next experiment to controlled AI requests and reusable approved work context. Reviewed import, per-installation professional authority, bounded recovery and two reference-client workflows are implemented in 0.4.0. Trusted distribution, broader client/provider acceptance and real device recovery drills remain gates. API mediation, browser capture and VPN routing are distinct scopes. This focus does not claim universal HTTPS interception or replace resource and paid-demand requirements below.
 
 Added 24 September 2026 after reviewing the public 0.2.0 evaluation release and current source verification. This section supplies near-term priorities for the broader phases below. Dates are planning targets, conditional on resources and acceptance gates. The [application package](docs/funding/README.md) records researched programme deadlines, a proposed business plan, product evidence and unresolved owner facts.
 
@@ -76,7 +82,7 @@ The proposed first audience is independent professionals, developers and small t
 
 The guided first run now connects a provider, optionally saves one confirmed memory without granting access, and opens a first conversation. The browser development launch uses an expiring, single-use pairing exchange; standalone native startup creates an in-process owner session. A read-only development diagnostic and dependency freshness checks improve recovery. The home screen places conversation and guided setup beside the private memory view. Public signing, notarization, device validation and store acceptance remain separate release gates.
 
-The product must continue to make it simple to correct a first memory, grant limited permission, send a request with context and inspect the resulting receipt. Metadata export is distinct from complete memory portability or a recoverable encrypted backup. Verified key recovery and vault restoration remain work to complete before a public beta, particularly for device-bound mobile keys. Withdrawing permission must be understandable without reading code.
+The product must continue to make it simple to correct a first memory, grant limited permission, send a request with context and inspect the resulting receipt. Metadata export is distinct from complete memory portability or a recoverable encrypted backup. The 0.4.0 Work screen now exports a passphrase-encrypted logical archive and restores to an unused installation under a new device key. Larger-vault capacity, external review and physical-device loss drills remain required before a public beta. Withdrawing permission must be understandable without reading code.
 
 Platform release work must test cold start, key-store denial, existing-vault recovery, app suspension, network loss, touch and keyboard input, metadata export and reopening after an explicit interface lock on each claimed target. Windows and Linux need their own packaging checks; Apple device distribution requires actual signing credentials. None of these gates is satisfied merely by generating a project or an unsigned simulator artifact.
 
@@ -85,7 +91,7 @@ Platform release work must test cold start, key-store denial, existing-vault rec
 - **Utility:** recruit at least 30 participants, complete 20 four-week participant journeys and compare 200 tasks. Alternate the order between OMNI and a manually prepared context brief, using the same model and task budget. Target a median reduction of at least 30% in time spent rebuilding context, with no drop in task success greater than five percentage points. Publish distributions and their uncertainty.
 - **Accuracy:** across the tasks reviewed, target a rate of false or outdated memory injections no higher than 2%. Disagreements between evaluators and sensitive categories remain visible; a favorable average must not hide a serious incident.
 - **Control:** no unauthorized access in the adversarial test suite defined before the pilot. Every observed disclosure must correspond to an applicable permission. A failure blocks distribution of the affected version until it is corrected and checked again.
-- **Installation and continuity:** on explicitly supported hardware, at least 90% of participants reach a first useful interaction in under ten minutes. Every tested backup scenario must restore memories and their permissions without silent loss.
+- **Installation and continuity:** on explicitly supported hardware, at least 90% of participants reach a first useful interaction in under ten minutes. Every tested backup scenario must restore memories without silent loss while revoking recovered permissions; reauthorisation must be explicit.
 - **Energy:** establish reproducible measurements on two published reference configurations. At idle, with the window hidden and excluding the response model, target no more than 0.5% average total CPU usage over ten minutes and 350 MiB of resident memory. Measure the cost of local extraction separately; also publish consumption for the complete workflow, including the model.
 - **Economic value:** offer a subscription at a price announced before the test and obtain at least ten real payments, followed by a majority renewing at the first renewal date. Interviews, purchase intentions and free trials will be counted separately.
 
@@ -97,7 +103,7 @@ These thresholds are decision tools. They remain operating hypotheses, never pub
 
 **Delivered in the 0.2.0 macOS/Android evaluation release and source MVP:** owner-administered regex block/require rules, allowed UTF-8 file formats, volume limits, pre-egress enforcement, local preview, revision conflicts and an encrypted decision trail. Deployment operators can require a validated, read-only baseline that local policy edits cannot weaken. The same Rust engine is used by native IPC and the explicit gateway. This is request filtering, not yet a centrally operated enterprise firewall. [Implemented contract](docs/POLICIES.md).
 
-**Next enterprise acceptance gates:** separate work and personal vaults; authenticated administrator/group identity; signed policy version distribution with rollback protection and deployment acknowledgements; tested OS/network rules preventing direct provider bypass; explicit retention controls and an accountable audit export; carefully evaluated document parsers and response controls. Each requires tests for stale/offline policy, failed rollout, false positives and malicious inputs. Binary formats remain unavailable until their parser and extraction boundary can be defended.
+**Next enterprise acceptance gates:** validate dedicated work/OS-user deployment (0.4.0 does not add in-app work/personal partitions); authenticated administrator/group identity for any future shared service; signed policy version distribution with rollback protection and deployment acknowledgements; tested OS/network rules preventing direct provider bypass; explicit retention controls and an accountable audit export; carefully evaluated document parsers and response controls. Each requires tests for stale/offline policy, failed rollout, false positives and malicious inputs. Binary formats remain unavailable until their parser and extraction boundary can be defended.
 
 **Business hypothesis:** organizations pay for maintained policies, managed deployment and support, with seats or managed installations counted explicitly. The payer gains policy administration over the agreed work environment, not ownership of personal memory. Validate willingness to pay in a narrowly scoped pilot before implementing billing or claiming enterprise readiness. There is no substantiated market-first claim.
 

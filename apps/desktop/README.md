@@ -8,6 +8,10 @@
 
 A shared interface built with React, Three.js and Tauri 2 for desktop and mobile targets. Native applications embed the Rust engine and use platform key stores; the historical `apps/desktop` directory name does not limit the source to desktop. The interface makes saved memories, sharing permissions and disclosure receipts inspectable without treating a model's interpretation as a fact.
 
+## Work in 0.4.0
+
+The shared Work view provides single-owner enrollment, named destination-bound clients, explicit local gateway start/stop, opt-in scoped conversation storage and bounded encrypted recovery. The native main-window capability explicitly permits `client_gateway`; its command still verifies the owner token. Work's listener accepts only named client credentials and exposes no administration or capture routes. [Authority and continuity](../../docs/WORK.md) · [Recovery](../../docs/RECOVERY.md) · [Measured support](../../docs/WORK_VERIFICATION.md).
+
 ## Start the interface
 
 Standalone native startup initializes the embedded Rust core in the application process, with its own OS application-data vault and authenticated IPC. It starts no HTTP listener, Node.js collector or Vite server by default. See [Platforms](../../docs/PLATFORMS.md) for native build targets, prerequisites and limits, and [Validation](../../docs/VALIDATION.md) for actual package/device results.
@@ -44,7 +48,7 @@ A permission names an exact destination, selected confirmed memories and an expi
 
 ## Import selected conversation context
 
-In **Memory → Import text → Import chats**, read a supported ChatGPT, Claude or neutral JSON export. Choose a conversation and review individual messages. Assistant replies are unchecked by default. The prepared text is readable before extraction; resulting memories remain proposed and carry no sharing grant. The standalone 0.3.0 packages include both this interface and the matching Rust policy inspection. See [formats and limits](../../docs/CONVERSATION_IMPORT.md).
+In **Memory → Import text → Import chats**, read a supported ChatGPT, Claude or neutral JSON export. Choose a conversation and review individual messages. Assistant replies are unchecked by default. The prepared text is readable before extraction; resulting memories remain proposed and carry no sharing grant. The standalone application includes this interface and the matching Rust policy inspection. See [formats and limits](../../docs/CONVERSATION_IMPORT.md).
 
 ## Continue a conversation deliberately
 

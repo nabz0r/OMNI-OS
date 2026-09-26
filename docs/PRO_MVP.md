@@ -6,13 +6,13 @@
 
 # OMNI Pro: controlled AI requests and reusable work context
 
-Decision brief, 26 September 2026. The recommended initial product is a local AI gateway for a bounded professional workflow. The first increment in this change is reviewed conversation import, not a completed enterprise security platform.
+Decision brief, 26 September 2026. The recommended initial product is a local AI gateway for a bounded professional workflow. The 0.4.0 increment implements the controlled-context sequence with named per-installation authority, bounded recovery and explicit conversation continuity; enterprise deployment gates remain visible.
 
 ## Product promise
 
 Help a professional reuse approved work context across supported AI tools while checking what leaves the device, restricting destinations and keeping a disclosure trail. A useful demonstration must show both a better task outcome and a blocked disclosure. The potential is a hypothesis to validate with users; more intercepted traffic is not itself customer value.
 
-Use one work-only OMNI instance for the initial pilot. The current vault has one owner and an integration credential; it is not a multi-tenant service or a product with enforced work/personal partitions. An employer paying for the service does not thereby acquire access to personal chats.
+Use one work-only OMNI instance for the initial pilot. The vault has one owner and named revocable gateway clients; work mode rejects the legacy integration credential. It is not a multi-tenant service or a product with enforced work/personal partitions. [Authority contract](WORK.md). An employer paying for the service does not thereby acquire access to personal chats.
 
 ## Three different technical surfaces
 
@@ -36,7 +36,7 @@ Chrome's ordinary Manifest V3 extension model does not offer unrestricted synchr
 | Existing Claude conversations | User-provided JSON in the supported chat_messages layout, or explicit rendered/selected browser text | Export authority depends on account and organisation; arbitrary member access is not implied |
 | Existing Z.AI conversations | Selected text from chat.z.ai, reviewed paste, or conversion to the documented neutral JSON format | No native Z.AI bulk export schema or automatic account connector was validated |
 | New API interactions | Supported clients point to OMNI; only granted memories are injected | A browser subscription, API account and API conversation store are separate integration surfaces |
-| Continuous memory updates | A future explicit opt-in that queues scoped proposals with retention and deletion controls | Interception must not silently turn every exchange or AI assertion into durable user memory |
+| Continuous memory updates | Work now stores explicitly opted-in scoped text conversations with retention and deletion; promotion to memory still requires review | Interception must not silently turn every exchange or AI assertion into durable user memory |
 
 OpenAI documents API-managed conversation state, including application-created conversation objects. That documentation is not a general connector contract for ChatGPT website history. [OpenAI conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
 
@@ -61,15 +61,15 @@ See [the import contract and neutral schema](CONVERSATION_IMPORT.md). The import
 | --- | --- | --- | --- |
 | P0 | Text gateway for the first two supported client workflows | Chat Completions and Anthropic Messages paths exist | Contract tests for real chosen clients, streaming, cancellation, tool fields and limits; unsupported schemas visibly rejected |
 | P0 | Reviewed context ingestion and provenance | Initial UI/parser/extension increment implemented here | Demonstrated selection, no unintended persistence, proposed status, and denial before extractor traffic |
-| P0 | Work authority and identity | Single-owner baseline only | Decide personal/work ownership; implement per-user/app identity, revocation and isolation before shared deployment |
+| P0 | Work authority and identity | Dedicated per-device/OS-user installation; named clients, expiry, revocation and bound grants | No shared deployment; independently review OS-user separation and admission races |
 | P0 | Destination and request restrictions | Configured upstream allowlist plus managed/local policy layers exist | Protected launch configuration; known denied requests never reach any upstream; no direct fallback |
 | P0 | Useful secret/data controls | Regex and bounded text-file inspection exist | Representative customer-approved corpus, Unicode/encoding evasions, false-positive review; precise supported claims |
 | P0 | Context quality | User confirmation and scoped grants exist | Test stale/conflicting facts, provenance and user correction; never promote model guesses automatically |
-| P0 | Distribution and recovery | Evaluation delivery and platform key adapters exist | Trusted release/update identity, backup/restore and lost-device drills before ordinary work-data reliance |
+| P0 | Distribution and recovery | Evaluation packages, platform keys and bounded authenticated recovery exist | Production release/update identity, independent archive review and physical lost-device drills |
 | P0 | Measured utility and operating cost | Not demonstrated by this change | Compare the same task with existing tools; record setup, corrections, support and paid continuation |
 | P1 | Response checks | Not implemented | Decide buffering versus streaming; prohibited content must not already have been delivered when a block is reported |
 | P1 | Redaction/pseudonymisation | Not implemented | Preview exact transformations; protect any token map, preserve API semantics and define unrecoverable fields |
-| P1 | Scoped conversation continuity | Current UI history is transient; reviewed imports are captured sources | Explicit consent, work/project scope, deduplication, TTL, deletion and a verified retrieval-authorisation boundary |
+| P1 | Scoped conversation continuity | Work stores consented conversations with original roles, fixed TTL, request deduplication, review/delete and authorisation before bounded retrieval | Larger realistic corpus, uncertain-network drills and independent review; no semantic retrieval promise |
 | P1 | Managed browser deployment | Explicit capture only | One versioned site adapter, managed policy, site-change detection and bypass tests; no universal prevention claim |
 | P1 | Fleet administration | No SSO/MDM/signed distribution service | Authenticated administrators, policy signing/expiry/rollback, device acknowledgement and safe offboarding |
 | Later | Broad HTTPS interception and more protocols | Not implemented | A real procurement need, threat model, deployable trust architecture, client matrix and external assessment |
@@ -78,13 +78,13 @@ Do not add Responses/WebSocket, file-upload or browser protocol support as opaqu
 
 The same restriction applies to tools. A permitted prompt is not authorisation for a model to browse, send messages or execute an external action. The gateway must explicitly define which tool paths it understands.
 
-## Next implementation sequence
+## Implementation sequence and next gates
 
-1. **Demonstrate the complete controlled-context loop.** Import a synthetic work preference, review and confirm it, grant a single destination, send through OMNI, inspect the receipt, revoke, then prove denied traffic does not reach the provider. Test with two approved clients before expanding protocols.
-2. **Settle and implement professional authority.** Choose per-device work instances versus a shared service. For a shared service, isolate identities, grants, storage, retrieval and audit at the tenant boundary; do not reuse the current single-owner token across an organisation.
-3. **Harden the release and real workflow.** Recovery, supported provider/device matrix, protected policy provisioning and external review follow the chosen deployment. Measure policy overhead separately from model latency; establish an observed baseline before committing to an SLA.
-4. **Introduce optional continuity with controls.** Store only opted-in scoped conversations, separate human statements from model suggestions, define deduplication and retention, and expose review/deletion. Retrieval must apply authorisation before selecting context. Start with bounded deterministic selection before making semantic retrieval promises.
-5. **Run a bounded paid pilot.** Define participants, permitted data, support hours and success criteria. Expand only if useful task outcomes and paid continuation justify the operating burden.
+1. **Controlled-context loop implemented and exercised.** Synthetic import → confirm → client-bound single-destination grant → send → inspect receipt → revoke → counted denial. Two real executable reference clients pass; they are not two commercial app certifications. [Evidence](WORK_VERIFICATION.md).
+2. **Authority chosen and implemented.** Dedicated per-device/OS-user single-owner installation. Named clients cannot administer or borrow another client's grant. No tenant service or shared owner token. [Contract](WORK.md).
+3. **Release hardening implemented in a bounded scope.** Authenticated recovery, protected launch digest checks, supported matrix and observed local timing are available. Independent review, production identity and physical-device drills remain external gates. [Recovery](RECOVERY.md) · [Assessment scope](EXTERNAL_REVIEW.md).
+4. **Optional continuity implemented.** Consent, scope, distinct human/model provenance, local request deduplication, retention and review/delete precede bounded deterministic continuation. No automatic memory promotion or semantic retrieval claim.
+5. **Next business proof: a bounded paid pilot.** Define participants, permitted data, support hours and success criteria. Expand only if task outcomes and paid continuation justify the operating burden. Do not mark an unrun external gate complete.
 
 ## Z.AI configuration path
 

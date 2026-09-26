@@ -46,10 +46,19 @@ This is an explicit import of a file you provide. It does not sign in to ChatGPT
 
 Close OMNI before replacing the Mac application. On Android, install the APK over the previous application using the same signing identity. The {{PREVIOUS_VERSION}} → {{VERSION}} Android update preserved synthetic memory and settings in the tested emulator. Do not uninstall a personal vault or delete its system key to fix an update error. macOS may ask the owner to authorize access to the existing Keychain item; that upgrade authorization was not exercised for this exact package.
 
+## Work with approved clients and deliberate continuity
+
+Open **Work** to enroll a dedicated single-owner work installation. Do not enroll a vault containing personal data: enrollment labels the existing vault rather than creating a new partition. Approve each API client separately for an exact destination and expiry; use selected confirmed memories and a client-bound permission for context. The optional local gateway is closed by default and can be started and stopped here. Interface lock does not stop it.
+
+Scoped conversations require explicit storage consent, a project label, one provider/model/permission and 1–30 days of retention. Human statements and model suggestions remain separate. Review and delete them in Work. Selection rechecks authority and uses at most ten complete exchanges and 40,000 bytes; it does not perform semantic search or automatic memory promotion.
+
+For recovery, export an encrypted archive with a separately stored passphrase. It includes provider credentials and vault content; capacity is 400,000 bytes of serialized data and 10,000 records. Restore only into an unused installation: its new key and identity remain, all recovered grants are revoked, old client credentials are absent and analytics is off. Large-vault backup, independent review and physical lost-device drills remain release gates.
+
 ## What was verified
 
 - The delivered macOS package passed native startup and fresh encrypted-vault initialization on a macOS runner. Its application resource seal, disk image and delivery checksums are verified. An earlier native build also completed real local Ollama inference, history, export and reopening on the project Mac.
-- The exact delivered Android APK passed fresh installation and encrypted-vault reopening, followed by **{{ANDROID_CHECKS}} native acceptance checks**: actual WebView/IPC, model setup and discovery, synthetic-provider inference, private memory boundaries, token history, the native export share sheet, metadata-only export, lock/reload and persistence after process restart. Conversation import additionally passed selection, readable review, proposed-memory creation, decoded-text policy denial and restart checks. All **five Android Keystore instrumentation tests** also passed.
+- The exact delivered Android APK passed fresh installation and encrypted-vault reopening, followed by **{{ANDROID_CHECKS}} native acceptance checks**: actual WebView/IPC, model setup and discovery, synthetic-provider inference, private memory boundaries, token history, the native export share sheet, metadata-only export, lock/reload and persistence after process restart. Conversation import additionally passed selection, readable review, proposed-memory creation, decoded-text policy denial and restart checks. Work passed enrollment, explicit gateway start/stop, one-time client approval and revocation, storage consent, role preservation and conversation deletion. All **five Android Keystore instrumentation tests** also passed.
+- Two approved reference clients completed the actual core controlled-context loop, including receipts and revocation. All 16 checks passed, with zero additional provider arrivals for denied traffic. The provider was synthetic; `Evidence/controlled-loop.json` records the source and local timing baseline.
 - Android screenshots in `Evidence/` come from that installed APK on an emulator. The response model is explicitly synthetic. These checks do not establish physical-phone compatibility with every vendor, minimum-OS compatibility, app-store approval or absence of every possible defect.
 
 The included `OMNI-{{VERSION}}-source.zip` contains the exact source snapshot used for both applications, including build instructions and lockfiles.
@@ -58,6 +67,6 @@ The included `OMNI-{{VERSION}}-source.zip` contains the exact source snapshot us
 
 ## Current boundaries
 
-Each installation has its own encrypted vault. There is no implemented cross-device synchronization or complete recovery wizard. The standalone app does not enable an analytics collector. The mobile app does not install a system-wide VPN or automatically capture other applications. Inference requires the selected provider or model to be available; remote providers receive the prompt and any context you explicitly authorize.
+Each installation has its own encrypted vault. Work provides bounded encrypted recovery into an unused installation, with revoked permissions and no recovered client credentials. Cross-device synchronization is not implemented. The standalone app does not enable an analytics collector. The mobile app does not install a system-wide VPN or automatically capture other applications. Inference requires the selected provider or model to be available; remote providers receive the prompt and any context you explicitly authorize.
 
 For reproducible builds and detailed limitations, see the repository's [platform guide](https://github.com/nabz0r/OMNI-OS/blob/main/docs/PLATFORMS.md) and [validation report](https://github.com/nabz0r/OMNI-OS/blob/main/docs/VALIDATION.md).

@@ -37,7 +37,7 @@ Compare conversation-only context, selected project documents and additional aut
 
 Local analysis, actual provider integrations, explicit permissions, a genuine optional VPN transport and a synthetic network laboratory. The native application embeds its Rust core, uses authenticated IPC and platform key stores, and keeps a separate local vault per installation. Source targets cover macOS, Windows, Linux, Android and iOS; [platform evidence](VALIDATION.md) determines what has actually been built and exercised. There is no bundled mobile model, system-wide mobile VPN or background capture service.
 
-Analytics is an opt-in experiment with a finite privacy budget. The standalone native app configures no collector, so its personal workspace works without an analytics service. All networking is classical. Production deployment, signing and store credentials, third-party API credentials and user consent remain real external requirements. Metadata export does not yet constitute complete memory portability or verified cross-device recovery.
+Analytics is an opt-in experiment with a finite privacy budget. The standalone native app configures no collector, so its personal workspace works without an analytics service. All networking is classical. Production deployment, signing and store credentials, third-party API credentials and user consent remain real external requirements. Metadata export remains separate from the 0.4.0 encrypted logical recovery archive. That archive has explicit capacity limits and revokes recovered access; cross-device synchronization and physical lost-device certification remain open.
 
 ## An inspectable daily workspace
 

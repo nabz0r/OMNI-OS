@@ -39,7 +39,7 @@ Every reader-facing Markdown guide is catalogued. `AGENTS.md` remains repository
 | Historical | Earlier reasoning or an older release; not a claim about current behavior |
 | Packaging template | Source material rendered during application delivery assembly |
 
-Do not turn test counts into security certification, a simulated exchange into customer traction, or a target into an implemented feature. Keep the public 0.2.0 release distinct from the local 0.3.0 delivery.
+Do not turn test counts into security certification, a simulated exchange into customer traction, or a target into an implemented feature. Keep the public 0.2.0 release distinct from the preserved 0.3.0 and current 0.4.0 local deliveries.
 
 ## Diagrams and images
 
